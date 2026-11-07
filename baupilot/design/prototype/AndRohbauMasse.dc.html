@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot Android – Rohbau Maße und Lot</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9C4300}a:hover{color:#753400}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Roboto, system-ui, sans-serif; overflow: hidden">
+  <header style="height: 64px; margin-top: 32px; padding: 0 16px 0 4px; display: flex; align-items: center; gap: 4px">
+    <a href="AndRohbau.dc.html" aria-label="Zurück" style="width: 48px; height: 48px; border-radius: 24px; color: {{t.text}}; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+    </a>
+    <div style="flex: 1; display: flex; flex-direction: column">
+      <span style="font-size: 20px">Fensteröffnung F8</span>
+      <span style="font-size: 13px; color: {{t.muted}}">OG Schlafen · Toleranz ± {{tol}} mm</span>
+    </div>
+    <span style="font-size: 14px; font-weight: 500; color: {{t.muted}}">8 / 12</span>
+  </header>
+
+  <div style="padding: 8px 16px 0; display: flex; flex-direction: column; gap: 14px">
+    <div style="border-radius: 16px; background: {{t.surfaceContainer}}; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <p style="margin: 0; font-size: 14px; line-height: 20px; color: {{t.muted}}">Zollstock oben, mittig und unten anlegen. Den kleinsten Wert eintragen – das Fenster muss überall passen.</p>
+      <sc-for list="{{dims}}" as="m" hint-placeholder-count="2">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 16px">{{m.label}}</span>
+            <span style="font-size: 13px; color: {{t.muted}}">Soll {{m.soll}} mm · <span style="color: {{m.fg}}; font-weight: 500">{{m.diff}}</span></span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 4px; height: 48px; border-radius: 24px; border: 1px solid {{t.outline}}; padding: 0 4px">
+            <button type="button" aria-label="{{m.label}} verringern" onClick="{{m.down}}" style="width: 40px; height: 40px; border: 0; border-radius: 20px; background: {{t.secondaryContainer}}; color: {{t.onSecondaryContainer}}; font: inherit; font-size: 20px">−</button>
+            <span style="min-width: 52px; text-align: center; font-size: 16px; font-weight: 500">{{m.ist}}</span>
+            <button type="button" aria-label="{{m.label}} erhöhen" onClick="{{m.up}}" style="width: 40px; height: 40px; border: 0; border-radius: 20px; background: {{t.secondaryContainer}}; color: {{t.onSecondaryContainer}}; font: inherit; font-size: 20px">+</button>
+          </div>
+        </div>
+      </sc-for>
+      <div style="padding: 12px 16px; border-radius: 12px; background: {{res.bg}}; color: {{res.fg}}; font-size: 15px; font-weight: 500">{{res.text}}</div>
+      <div style="display: flex; gap: 8px">
+        <button type="button" aria-label="Foto aufnehmen" style="width: 48px; height: 48px; flex-shrink: 0; border-radius: 24px; border: 1px solid {{t.outline}}; background: transparent; color: {{t.primary}}; display: flex; align-items: center; justify-content: center">
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
+        </button>
+        <a href="AndAbnMangel.dc.html" style="flex: 1; height: 48px; border-radius: 24px; border: 1px solid {{t.outline}}; color: {{t.err}}; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; text-decoration: none">Mangel</a>
+        <button type="button" style="flex: 1; height: 48px; border-radius: 24px; border: 0; background: {{t.primary}}; color: {{t.onPrimary}}; font: inherit; font-size: 15px; font-weight: 500">Speichern</button>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <h2 style="margin: 0; font-size: 14px; font-weight: 500; color: {{t.primary}}">Bereits gemessen</h2>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap">
+        <sc-for list="{{done}}" as="o" hint-placeholder-count="7">
+          <span style="height: 32px; padding: 0 12px; border-radius: 8px; background: {{t.okBg}}; color: {{t.okFg}}; display: flex; align-items: center; font-size: 14px; font-weight: 500">{{o}}</span>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 16px; min-height: 56px; border-top: 1px solid {{t.divider}}">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{t.ok}}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1M22 4L12 14l-3-3"></path></svg>
+      <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 16px">Wände im Lot</span>
+        <span style="font-size: 13px; color: {{t.muted}}">2-m-Wasserwaage an allen Außenecken</span>
+      </span>
+      <span style="font-size: 14px; font-weight: 500; color: {{t.okFg}}">8 / 8</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"toleranz":{"editor":"int","default":12,"min":1,"max":30,"unit":"mm"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { w: 1005, h: 1395 };
+  }
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const tol = this.props.toleranz ?? 12;
+    const t = d
+      ? { bg: '#16130F', text: '#ECE0D8', muted: '#D7C3B8', outline: '#A08D83', divider: '#3A332E', primary: '#FFB68E', onPrimary: '#532200', secondaryContainer: '#5C4032', onSecondaryContainer: '#FFDBCA', surfaceContainer: '#231F1B', err: '#FFB4AB', ok: '#7FD889', okBg: '#1F3A22', okFg: '#A6F0A6', errBg: '#5C1B16', errFg: '#FFDAD6' }
+      : { bg: '#FFF8F5', text: '#221A15', muted: '#52443C', outline: '#85736A', divider: '#E4D7CF', primary: '#9C4300', onPrimary: '#FFFFFF', secondaryContainer: '#FFDBCA', onSecondaryContainer: '#2B160B', surfaceContainer: '#F7ECE6', err: '#BA1A1A', ok: '#2E7D32', okBg: '#D7F5D3', okFg: '#14501C', errBg: '#FFDAD6', errFg: '#410002' };
+    const soll = { w: 1010, h: 1385 };
+    const dim = (key, label) => {
+      const diff = this.state[key] - soll[key];
+      const ok = Math.abs(diff) <= tol;
+      return {
+        label, soll: soll[key], ist: this.state[key],
+        diff: (diff > 0 ? '+' : diff < 0 ? '−' : '±') + Math.abs(diff) + ' mm', fg: ok ? t.okFg : t.err, ok,
+        down: () => this.setState({ [key]: this.state[key] - 5 }),
+        up: () => this.setState({ [key]: this.state[key] + 5 })
+      };
+    };
+    const dims = [dim('w', 'Breite'), dim('h', 'Höhe')];
+    const allOk = dims.every((x) => x.ok);
+    return {
+      t,
+      tol,
+      dims,
+      res: allOk ? { text: 'Innerhalb der Toleranz', bg: t.okBg, fg: t.okFg } : { text: 'Außerhalb der Toleranz – Mangel erfassen', bg: t.errBg, fg: t.errFg },
+      done: ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7']
+    };
+  }
+}
+</script>
+</body>
+</html>

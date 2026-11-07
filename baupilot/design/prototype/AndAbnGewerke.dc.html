@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot Android – Abnahmen je Gewerk</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9C4300}a:hover{color:#753400}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Roboto, system-ui, sans-serif; overflow: hidden">
+  <header style="height: 64px; margin-top: 32px; padding: 0 4px 0 16px; display: flex; align-items: center">
+    <span style="flex: 1; font-size: 22px">Abnahmen</span>
+    <a href="#" style="height: 40px; padding: 0 12px; border-radius: 20px; display: flex; align-items: center; font-size: 14px; font-weight: 500; color: {{t.primary}}; text-decoration: none">Vorlagen</a>
+  </header>
+
+  <div role="tablist" aria-label="Ansicht" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-bottom: 1px solid {{t.divider}}">
+    <button type="button" role="tab" aria-selected="true" style="height: 48px; border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 500; color: {{t.primary}}; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 12px; padding: 0">Gewerke<span style="width: 64px; height: 3px; border-radius: 3px 3px 0 0; background: {{t.primary}}"></span></button>
+    <a href="AndAbnMaengel.dc.html" role="tab" aria-selected="false" style="height: 48px; font-size: 14px; font-weight: 500; color: {{t.muted}}; text-decoration: none; display: flex; align-items: center; justify-content: center">Offene Mängel (3)</a>
+  </div>
+
+  <div style="padding-top: 8px">
+    <sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+      <a href="{{r.href}}" style="display: flex; align-items: center; gap: 16px; min-height: 60px; padding: 0 16px; text-decoration: none; color: {{t.text}}; background: {{r.rowBg}}">
+        <div style="width: 40px; height: 40px; border-radius: 20px; background: {{r.avBg}}; color: {{r.avFg}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="{{r.icon}}"></path></svg>
+        </div>
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 16px">{{r.name}}</span>
+          <span style="font-size: 14px; color: {{t.muted}}">{{r.sub}}</span>
+        </div>
+        <span style="font-size: 12px; font-weight: 500; color: {{r.fg}}">{{r.status}}</span>
+      </a>
+    </sc-for>
+  </div>
+
+  <nav aria-label="Hauptnavigation" style="position: absolute; left: 0; right: 0; bottom: 0; height: 80px; box-sizing: border-box; padding-top: 12px; background: {{t.surfaceContainer}}; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
+    <sc-for list="{{tabs}}" as="b" hint-placeholder-count="5">
+      <a href="{{b.href}}" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{b.color}}; font-size: 12px; font-weight: {{b.weight}}">
+        <span style="width: 56px; height: 32px; border-radius: 16px; background: {{b.pill}}; display: flex; align-items: center; justify-content: center">
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{b.icon}}"></path></svg>
+        </span>
+        {{b.label}}
+      </a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#16130F', text: '#ECE0D8', muted: '#D7C3B8', divider: '#3A332E', primary: '#FFB68E', secondaryContainer: '#5C4032', onSecondaryContainer: '#FFDBCA', surfaceContainer: '#231F1B', hi: '#2A221C', okBg: '#1F3A22', okFg: '#A6F0A6', warnBg: '#3D3110', warnFg: '#F5D27A', nowBg: '#753400', nowFg: '#FFDBCA', planBg: '#2E2823' }
+      : { bg: '#FFF8F5', text: '#221A15', muted: '#52443C', divider: '#E4D7CF', primary: '#9C4300', secondaryContainer: '#FFDBCA', onSecondaryContainer: '#2B160B', surfaceContainer: '#F7ECE6', hi: '#FFEDE3', okBg: '#D7F5D3', okFg: '#14501C', warnBg: '#FCEBC0', warnFg: '#6B4A00', nowBg: '#FFDBCA', nowFg: '#331200', planBg: '#F0E6E0' };
+    const I = { ok: 'M5 12l5 5 9-10', vb: 'M12 8v5M12 16.5h.01M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z', now: 'M9 3h6v4H9zM9 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3', plan: 'M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z' };
+    const S = { ok: ['Abgenommen', t.okBg, t.okFg, t.okFg], vb: ['Vorbehalt', t.warnBg, t.warnFg, t.warnFg], now: ['Heute', t.nowBg, t.nowFg, t.primary], plan: ['Geplant', t.planBg, t.muted, t.muted] };
+    const rows = [
+      ['Erdarbeiten', '9 Prüfschritte · 14.04.', 'ok'],
+      ['Rohbau', '9 Prüfschritte · 1 Mangel offen', 'vb'],
+      ['Zimmerer', '8 Prüfschritte · 27.11.', 'ok'],
+      ['Dachdecker', '8 Prüfschritte · 1 Mangel offen', 'vb'],
+      ['Fenster & Türen', '6 Schritte je Element · 7 / 12', 'now'],
+      ['Elektro', '10 Prüfschritte · KW 3', 'plan'],
+      ['Sanitär & Heizung', '11 Prüfschritte · KW 5', 'plan'],
+      ['Estrich', '6 Prüfschritte · KW 8', 'plan'],
+      ['Fliesen', '6 Schritte je Raum · KW 12', 'plan'],
+      ['Maler', '5 Schritte je Raum · KW 15', 'plan']
+    ].map(([name, sub, k]) => ({ name, sub, status: S[k][0], avBg: S[k][1], avFg: S[k][2], fg: S[k][3], icon: I[k], href: k === 'now' ? 'AndAbnElemente.dc.html' : ({ 'Erdarbeiten': 'AndErd.dc.html', 'Rohbau': 'AndRohbau.dc.html', 'Zimmerer': 'AndZimmerer.dc.html', 'Elektro': 'AndElUebersicht.dc.html', 'Sanitär & Heizung': 'AndSanUebersicht.dc.html', 'Estrich': 'AndEsUebersicht.dc.html', 'Fliesen': 'AndFlUebersicht.dc.html', 'Maler': 'AndMaUebersicht.dc.html' }[name] || '#'), rowBg: k === 'now' ? t.hi : 'transparent' }));
+    const tab = (label, icon, href, on) => ({ label, icon, href, color: on ? t.text : t.muted, weight: on ? '700' : '500', pill: on ? t.secondaryContainer : 'transparent' });
+    return {
+      t,
+      rows,
+      tabs: [
+        tab('Übersicht', 'M3 11l9-7 9 7M5 10v10h14V10', 'AndHome.dc.html', false),
+        tab('Zeitplan', 'M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', 'AndZeitplan.dc.html', false),
+        tab('Abnahmen', 'M9 3h6v4H9zM9 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3M9 14l2 2 4-4', 'AndAbnGewerke.dc.html', true),
+        tab('Dokumente', 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', 'AndDokumente.dc.html', false),
+        tab('Profil', 'M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10z', 'AndProfil.dc.html', false)
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

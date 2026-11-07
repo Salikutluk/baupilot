@@ -1,0 +1,1385 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-11-04T10:00:00Z"
+ },
+ "title": "Baupilot – App für Bauherren",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [
+  {
+   "id": "basis",
+   "name": "Basis-Screens"
+  },
+  {
+   "id": "abnahme",
+   "name": "Abnahme-Protokoll"
+  },
+  {
+   "id": "elektro",
+   "name": "Abnahme Elektro"
+  },
+  {
+   "id": "sanitaer",
+   "name": "Abnahme Sanitär & Heizung"
+  },
+  {
+   "id": "estrich",
+   "name": "Abnahme Estrich"
+  },
+  {
+   "id": "fliesen",
+   "name": "Abnahme Fliesen"
+  },
+  {
+   "id": "maler",
+   "name": "Abnahme Maler"
+  },
+  {
+   "id": "fruehe",
+   "name": "Abnahme Erdarbeiten, Rohbau, Zimmerer"
+  }
+ ],
+ "boards": {
+  "Main.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "iOS · Login (hell)"
+  },
+  "IosHome.dc.html": {
+   "x": 470,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "iOS · Übersicht (hell)"
+  },
+  "IosGewerk.dc.html": {
+   "x": 940,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "iOS · Gewerk-Detail (hell)"
+  },
+  "IosProfil.dc.html": {
+   "x": 1410,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "iOS · Profil & Einstellungen (hell)"
+  },
+  "MainDark.dc.html": {
+   "x": 0,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "title": "iOS · Login (dunkel)"
+  },
+  "IosHomeDark.dc.html": {
+   "x": 470,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "title": "iOS · Übersicht (dunkel)"
+  },
+  "IosGewerkDark.dc.html": {
+   "x": 940,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "title": "iOS · Gewerk-Detail (dunkel)"
+  },
+  "IosProfilDark.dc.html": {
+   "x": 1410,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "title": "iOS · Profil & Einstellungen (dunkel)"
+  },
+  "AndLogin.dc.html": {
+   "x": 0,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "title": "Android · Login (hell)"
+  },
+  "AndHome.dc.html": {
+   "x": 470,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "title": "Android · Übersicht (hell)"
+  },
+  "AndGewerk.dc.html": {
+   "x": 940,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "title": "Android · Gewerk-Detail (hell)"
+  },
+  "AndProfil.dc.html": {
+   "x": 1410,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "title": "Android · Profil & Einstellungen (hell)"
+  },
+  "AndLoginDark.dc.html": {
+   "x": 0,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "title": "Android · Login (dunkel)"
+  },
+  "AndHomeDark.dc.html": {
+   "x": 470,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "title": "Android · Übersicht (dunkel)"
+  },
+  "AndGewerkDark.dc.html": {
+   "x": 940,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "title": "Android · Gewerk-Detail (dunkel)"
+  },
+  "AndProfilDark.dc.html": {
+   "x": 1410,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "title": "Android · Profil & Einstellungen (dunkel)"
+  },
+  "IosAbnGewerke.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "iOS · 1 Abnahmen je Gewerk (hell)"
+  },
+  "IosAbnElemente.dc.html": {
+   "x": 470,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "iOS · 2 Abnahme Fenster – Elemente (hell)"
+  },
+  "IosAbnPruefung.dc.html": {
+   "x": 940,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "iOS · 3 Prüfschritt (hell)"
+  },
+  "IosAbnMangel.dc.html": {
+   "x": 1410,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "iOS · 4 Mangel erfassen (hell)"
+  },
+  "IosAbnSignatur.dc.html": {
+   "x": 1880,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "iOS · 5 Abnahme & Unterschrift (hell)"
+  },
+  "IosAbnMaengel.dc.html": {
+   "x": 2350,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "iOS · 6 Offene Mängel & Fristen (hell)"
+  },
+  "IosAbnGewerkeDark.dc.html": {
+   "x": 0,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "iOS · 1 Abnahmen je Gewerk (dunkel)"
+  },
+  "IosAbnElementeDark.dc.html": {
+   "x": 470,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "iOS · 2 Abnahme Fenster – Elemente (dunkel)"
+  },
+  "IosAbnPruefungDark.dc.html": {
+   "x": 940,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "iOS · 3 Prüfschritt (dunkel)"
+  },
+  "IosAbnMangelDark.dc.html": {
+   "x": 1410,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "iOS · 4 Mangel erfassen (dunkel)"
+  },
+  "IosAbnSignaturDark.dc.html": {
+   "x": 1880,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "iOS · 5 Abnahme & Unterschrift (dunkel)"
+  },
+  "IosAbnMaengelDark.dc.html": {
+   "x": 2350,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "iOS · 6 Offene Mängel & Fristen (dunkel)"
+  },
+  "AndAbnGewerke.dc.html": {
+   "x": 0,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "Android · 1 Abnahmen je Gewerk (hell)"
+  },
+  "AndAbnElemente.dc.html": {
+   "x": 470,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "Android · 2 Abnahme Fenster – Elemente (hell)"
+  },
+  "AndAbnPruefung.dc.html": {
+   "x": 940,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "Android · 3 Prüfschritt (hell)"
+  },
+  "AndAbnMangel.dc.html": {
+   "x": 1410,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "Android · 4 Mangel erfassen (hell)"
+  },
+  "AndAbnSignatur.dc.html": {
+   "x": 1880,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "Android · 5 Abnahme & Unterschrift (hell)"
+  },
+  "AndAbnMaengel.dc.html": {
+   "x": 2350,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "Android · 6 Offene Mängel & Fristen (hell)"
+  },
+  "AndAbnGewerkeDark.dc.html": {
+   "x": 0,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "Android · 1 Abnahmen je Gewerk (dunkel)"
+  },
+  "AndAbnElementeDark.dc.html": {
+   "x": 470,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "Android · 2 Abnahme Fenster – Elemente (dunkel)"
+  },
+  "AndAbnPruefungDark.dc.html": {
+   "x": 940,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "Android · 3 Prüfschritt (dunkel)"
+  },
+  "AndAbnMangelDark.dc.html": {
+   "x": 1410,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "Android · 4 Mangel erfassen (dunkel)"
+  },
+  "AndAbnSignaturDark.dc.html": {
+   "x": 1880,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "Android · 5 Abnahme & Unterschrift (dunkel)"
+  },
+  "AndAbnMaengelDark.dc.html": {
+   "x": 2350,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "abnahme",
+   "title": "Android · 6 Offene Mängel & Fristen (dunkel)"
+  },
+  "IosElUebersicht.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "elektro",
+   "title": "iOS · E1 Elektro – Übersicht (hell)"
+  },
+  "IosElRaum.dc.html": {
+   "x": 470,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "elektro",
+   "title": "iOS · E2 Raumprüfung Küche (hell)"
+  },
+  "IosElVerteiler.dc.html": {
+   "x": 940,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "elektro",
+   "title": "iOS · E3 Zählerschrank & FI-Test (hell)"
+  },
+  "IosElRauchmelder.dc.html": {
+   "x": 1410,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "elektro",
+   "title": "iOS · E4 Rauchwarnmelder (hell)"
+  },
+  "IosElUebersichtDark.dc.html": {
+   "x": 0,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "elektro",
+   "title": "iOS · E1 Elektro – Übersicht (dunkel)"
+  },
+  "IosElRaumDark.dc.html": {
+   "x": 470,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "elektro",
+   "title": "iOS · E2 Raumprüfung Küche (dunkel)"
+  },
+  "IosElVerteilerDark.dc.html": {
+   "x": 940,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "elektro",
+   "title": "iOS · E3 Zählerschrank & FI-Test (dunkel)"
+  },
+  "IosElRauchmelderDark.dc.html": {
+   "x": 1410,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "elektro",
+   "title": "iOS · E4 Rauchwarnmelder (dunkel)"
+  },
+  "AndElUebersicht.dc.html": {
+   "x": 0,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "elektro",
+   "title": "Android · E1 Elektro – Übersicht (hell)"
+  },
+  "AndElRaum.dc.html": {
+   "x": 470,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "elektro",
+   "title": "Android · E2 Raumprüfung Küche (hell)"
+  },
+  "AndElVerteiler.dc.html": {
+   "x": 940,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "elektro",
+   "title": "Android · E3 Zählerschrank & FI-Test (hell)"
+  },
+  "AndElRauchmelder.dc.html": {
+   "x": 1410,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "elektro",
+   "title": "Android · E4 Rauchwarnmelder (hell)"
+  },
+  "AndElUebersichtDark.dc.html": {
+   "x": 0,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "elektro",
+   "title": "Android · E1 Elektro – Übersicht (dunkel)"
+  },
+  "AndElRaumDark.dc.html": {
+   "x": 470,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "elektro",
+   "title": "Android · E2 Raumprüfung Küche (dunkel)"
+  },
+  "AndElVerteilerDark.dc.html": {
+   "x": 940,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "elektro",
+   "title": "Android · E3 Zählerschrank & FI-Test (dunkel)"
+  },
+  "AndElRauchmelderDark.dc.html": {
+   "x": 1410,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "elektro",
+   "title": "Android · E4 Rauchwarnmelder (dunkel)"
+  },
+  "IosSanUebersicht.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "sanitaer",
+   "title": "iOS · S1 Sanitär & Heizung – Übersicht (hell)"
+  },
+  "IosSanGefaelle.dc.html": {
+   "x": 470,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "sanitaer",
+   "title": "iOS · S2 Gefälle Abwasser (hell)",
+   "is_interactive": true
+  },
+  "IosSanDruck.dc.html": {
+   "x": 940,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "sanitaer",
+   "title": "iOS · S3 Druckprobe Trinkwasser (hell)"
+  },
+  "IosSanBad.dc.html": {
+   "x": 1410,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "sanitaer",
+   "title": "iOS · S4 Bad OG – Objekte (hell)"
+  },
+  "IosSanUebersichtDark.dc.html": {
+   "x": 0,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "sanitaer",
+   "title": "iOS · S1 Sanitär & Heizung – Übersicht (dunkel)"
+  },
+  "IosSanGefaelleDark.dc.html": {
+   "x": 470,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "sanitaer",
+   "title": "iOS · S2 Gefälle Abwasser (dunkel)",
+   "is_interactive": true
+  },
+  "IosSanDruckDark.dc.html": {
+   "x": 940,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "sanitaer",
+   "title": "iOS · S3 Druckprobe Trinkwasser (dunkel)"
+  },
+  "IosSanBadDark.dc.html": {
+   "x": 1410,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "sanitaer",
+   "title": "iOS · S4 Bad OG – Objekte (dunkel)"
+  },
+  "AndSanUebersicht.dc.html": {
+   "x": 0,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "sanitaer",
+   "title": "Android · S1 Sanitär & Heizung – Übersicht (hell)"
+  },
+  "AndSanGefaelle.dc.html": {
+   "x": 470,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "sanitaer",
+   "title": "Android · S2 Gefälle Abwasser (hell)",
+   "is_interactive": true
+  },
+  "AndSanDruck.dc.html": {
+   "x": 940,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "sanitaer",
+   "title": "Android · S3 Druckprobe Trinkwasser (hell)"
+  },
+  "AndSanBad.dc.html": {
+   "x": 1410,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "sanitaer",
+   "title": "Android · S4 Bad OG – Objekte (hell)"
+  },
+  "AndSanUebersichtDark.dc.html": {
+   "x": 0,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "sanitaer",
+   "title": "Android · S1 Sanitär & Heizung – Übersicht (dunkel)"
+  },
+  "AndSanGefaelleDark.dc.html": {
+   "x": 470,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "sanitaer",
+   "title": "Android · S2 Gefälle Abwasser (dunkel)",
+   "is_interactive": true
+  },
+  "AndSanDruckDark.dc.html": {
+   "x": 940,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "sanitaer",
+   "title": "Android · S3 Druckprobe Trinkwasser (dunkel)"
+  },
+  "AndSanBadDark.dc.html": {
+   "x": 1410,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "sanitaer",
+   "title": "Android · S4 Bad OG – Objekte (dunkel)"
+  },
+  "IosEsUebersicht.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "estrich",
+   "title": "iOS · ES1 Estrich – Übersicht (hell)"
+  },
+  "IosEsEbenheit.dc.html": {
+   "x": 470,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "estrich",
+   "title": "iOS · ES2 Ebenheit messen (hell)",
+   "is_interactive": true
+  },
+  "IosEsBelegreife.dc.html": {
+   "x": 940,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "estrich",
+   "title": "iOS · ES3 Aufheizen & Belegreife (hell)"
+  },
+  "IosEsUebersichtDark.dc.html": {
+   "x": 0,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "estrich",
+   "title": "iOS · ES1 Estrich – Übersicht (dunkel)"
+  },
+  "IosEsEbenheitDark.dc.html": {
+   "x": 470,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "estrich",
+   "title": "iOS · ES2 Ebenheit messen (dunkel)",
+   "is_interactive": true
+  },
+  "IosEsBelegreifeDark.dc.html": {
+   "x": 940,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "estrich",
+   "title": "iOS · ES3 Aufheizen & Belegreife (dunkel)"
+  },
+  "AndEsUebersicht.dc.html": {
+   "x": 0,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "estrich",
+   "title": "Android · ES1 Estrich – Übersicht (hell)"
+  },
+  "AndEsEbenheit.dc.html": {
+   "x": 470,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "estrich",
+   "title": "Android · ES2 Ebenheit messen (hell)",
+   "is_interactive": true
+  },
+  "AndEsBelegreife.dc.html": {
+   "x": 940,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "estrich",
+   "title": "Android · ES3 Aufheizen & Belegreife (hell)"
+  },
+  "AndEsUebersichtDark.dc.html": {
+   "x": 0,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "estrich",
+   "title": "Android · ES1 Estrich – Übersicht (dunkel)"
+  },
+  "AndEsEbenheitDark.dc.html": {
+   "x": 470,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "estrich",
+   "title": "Android · ES2 Ebenheit messen (dunkel)",
+   "is_interactive": true
+  },
+  "AndEsBelegreifeDark.dc.html": {
+   "x": 940,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "estrich",
+   "title": "Android · ES3 Aufheizen & Belegreife (dunkel)"
+  },
+  "IosFlUebersicht.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "fliesen",
+   "title": "iOS · FL1 Fliesen – Übersicht (hell)"
+  },
+  "IosFlBad.dc.html": {
+   "x": 470,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "fliesen",
+   "title": "iOS · FL2 Raumprüfung Bad (hell)"
+  },
+  "IosFlUebersichtDark.dc.html": {
+   "x": 0,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "fliesen",
+   "title": "iOS · FL1 Fliesen – Übersicht (dunkel)"
+  },
+  "IosFlBadDark.dc.html": {
+   "x": 470,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "fliesen",
+   "title": "iOS · FL2 Raumprüfung Bad (dunkel)"
+  },
+  "AndFlUebersicht.dc.html": {
+   "x": 0,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "fliesen",
+   "title": "Android · FL1 Fliesen – Übersicht (hell)"
+  },
+  "AndFlBad.dc.html": {
+   "x": 470,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "fliesen",
+   "title": "Android · FL2 Raumprüfung Bad (hell)"
+  },
+  "AndFlUebersichtDark.dc.html": {
+   "x": 0,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "fliesen",
+   "title": "Android · FL1 Fliesen – Übersicht (dunkel)"
+  },
+  "AndFlBadDark.dc.html": {
+   "x": 470,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "fliesen",
+   "title": "Android · FL2 Raumprüfung Bad (dunkel)"
+  },
+  "IosMaUebersicht.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "maler",
+   "title": "iOS · MA1 Maler – Übersicht (hell)"
+  },
+  "IosMaRaum.dc.html": {
+   "x": 470,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "maler",
+   "title": "iOS · MA2 Raumprüfung Wohnen (hell)"
+  },
+  "IosMaUebersichtDark.dc.html": {
+   "x": 0,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "maler",
+   "title": "iOS · MA1 Maler – Übersicht (dunkel)"
+  },
+  "IosMaRaumDark.dc.html": {
+   "x": 470,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "maler",
+   "title": "iOS · MA2 Raumprüfung Wohnen (dunkel)"
+  },
+  "AndMaUebersicht.dc.html": {
+   "x": 0,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "maler",
+   "title": "Android · MA1 Maler – Übersicht (hell)"
+  },
+  "AndMaRaum.dc.html": {
+   "x": 470,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "maler",
+   "title": "Android · MA2 Raumprüfung Wohnen (hell)"
+  },
+  "AndMaUebersichtDark.dc.html": {
+   "x": 0,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "maler",
+   "title": "Android · MA1 Maler – Übersicht (dunkel)"
+  },
+  "AndMaRaumDark.dc.html": {
+   "x": 470,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "maler",
+   "title": "Android · MA2 Raumprüfung Wohnen (dunkel)"
+  },
+  "IosZeitplan.dc.html": {
+   "x": 1880,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "iOS · Zeitplan (hell)"
+  },
+  "IosZeitplanDark.dc.html": {
+   "x": 1880,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "title": "iOS · Zeitplan (dunkel)"
+  },
+  "AndZeitplan.dc.html": {
+   "x": 1880,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "title": "Android · Zeitplan (hell)"
+  },
+  "AndZeitplanDark.dc.html": {
+   "x": 1880,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "title": "Android · Zeitplan (dunkel)"
+  },
+  "IosErd.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "fruehe",
+   "title": "iOS · Erdarbeiten – Protokoll (hell)"
+  },
+  "IosRohbau.dc.html": {
+   "x": 470,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "fruehe",
+   "title": "iOS · Rohbau – Übersicht (hell)"
+  },
+  "IosRohbauMasse.dc.html": {
+   "x": 940,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "fruehe",
+   "title": "iOS · Rohbau – Maße & Lot (hell)",
+   "is_interactive": true
+  },
+  "IosZimmerer.dc.html": {
+   "x": 1410,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "page": "fruehe",
+   "title": "iOS · Zimmerer – Dachstuhl (hell)"
+  },
+  "IosErdDark.dc.html": {
+   "x": 0,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "fruehe",
+   "title": "iOS · Erdarbeiten – Protokoll (dunkel)"
+  },
+  "IosRohbauDark.dc.html": {
+   "x": 470,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "fruehe",
+   "title": "iOS · Rohbau – Übersicht (dunkel)"
+  },
+  "IosRohbauMasseDark.dc.html": {
+   "x": 940,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "fruehe",
+   "title": "iOS · Rohbau – Maße & Lot (dunkel)",
+   "is_interactive": true
+  },
+  "IosZimmererDark.dc.html": {
+   "x": 1410,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "page": "fruehe",
+   "title": "iOS · Zimmerer – Dachstuhl (dunkel)"
+  },
+  "AndErd.dc.html": {
+   "x": 0,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "fruehe",
+   "title": "Android · Erdarbeiten – Protokoll (hell)"
+  },
+  "AndRohbau.dc.html": {
+   "x": 470,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "fruehe",
+   "title": "Android · Rohbau – Übersicht (hell)"
+  },
+  "AndRohbauMasse.dc.html": {
+   "x": 940,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "fruehe",
+   "title": "Android · Rohbau – Maße & Lot (hell)",
+   "is_interactive": true
+  },
+  "AndZimmerer.dc.html": {
+   "x": 1410,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "page": "fruehe",
+   "title": "Android · Zimmerer – Dachstuhl (hell)"
+  },
+  "AndErdDark.dc.html": {
+   "x": 0,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "fruehe",
+   "title": "Android · Erdarbeiten – Protokoll (dunkel)"
+  },
+  "AndRohbauDark.dc.html": {
+   "x": 470,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "fruehe",
+   "title": "Android · Rohbau – Übersicht (dunkel)"
+  },
+  "AndRohbauMasseDark.dc.html": {
+   "x": 940,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "fruehe",
+   "title": "Android · Rohbau – Maße & Lot (dunkel)",
+   "is_interactive": true
+  },
+  "AndZimmererDark.dc.html": {
+   "x": 1410,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "page": "fruehe",
+   "title": "Android · Zimmerer – Dachstuhl (dunkel)"
+  },
+  "IosDokumente.dc.html": {
+   "x": 2350,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "iOS · Dokumente (hell)"
+  },
+  "IosDokumenteDark.dc.html": {
+   "x": 2350,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "title": "iOS · Dokumente (dunkel)"
+  },
+  "AndDokumente.dc.html": {
+   "x": 2350,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "title": "Android · Dokumente (hell)"
+  },
+  "AndDokumenteDark.dc.html": {
+   "x": 2350,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "title": "Android · Dokumente (dunkel)"
+  },
+  "IosVergleich.dc.html": {
+   "x": 2820,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "iOS · Angebote vergleichen (hell)"
+  },
+  "IosVergleichDark.dc.html": {
+   "x": 2820,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "title": "iOS · Angebote vergleichen (dunkel)"
+  },
+  "AndVergleich.dc.html": {
+   "x": 2820,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "title": "Android · Angebote vergleichen (hell)"
+  },
+  "AndVergleichDark.dc.html": {
+   "x": 2820,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "title": "Android · Angebote vergleichen (dunkel)"
+  },
+  "IosDokViewer.dc.html": {
+   "x": 3290,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "iOS · Dokument ansehen (hell)"
+  },
+  "IosDokViewerDark.dc.html": {
+   "x": 3290,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "title": "iOS · Dokument ansehen (dunkel)"
+  },
+  "AndDokViewer.dc.html": {
+   "x": 3290,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "title": "Android · Dokument ansehen (hell)"
+  },
+  "AndDokViewerDark.dc.html": {
+   "x": 3290,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "title": "Android · Dokument ansehen (dunkel)"
+  },
+  "IosMitteilungen.dc.html": {
+   "x": 3760,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "iOS · Mitteilungen (hell)"
+  },
+  "IosMitteilungenDark.dc.html": {
+   "x": 3760,
+   "y": 964,
+   "w": 390,
+   "h": 844,
+   "title": "iOS · Mitteilungen (dunkel)"
+  },
+  "AndMitteilungen.dc.html": {
+   "x": 3760,
+   "y": 2228,
+   "w": 390,
+   "h": 844,
+   "title": "Android · Mitteilungen (hell)"
+  },
+  "AndMitteilungenDark.dc.html": {
+   "x": 3760,
+   "y": 3192,
+   "w": 390,
+   "h": 844,
+   "title": "Android · Mitteilungen (dunkel)"
+  }
+ },
+ "order": [
+  "Main.dc.html",
+  "IosHome.dc.html",
+  "IosGewerk.dc.html",
+  "IosProfil.dc.html",
+  "MainDark.dc.html",
+  "IosHomeDark.dc.html",
+  "IosGewerkDark.dc.html",
+  "IosProfilDark.dc.html",
+  "AndLogin.dc.html",
+  "AndHome.dc.html",
+  "AndGewerk.dc.html",
+  "AndProfil.dc.html",
+  "AndLoginDark.dc.html",
+  "AndHomeDark.dc.html",
+  "AndGewerkDark.dc.html",
+  "AndProfilDark.dc.html",
+  "IosAbnGewerke.dc.html",
+  "IosAbnElemente.dc.html",
+  "IosAbnPruefung.dc.html",
+  "IosAbnMangel.dc.html",
+  "IosAbnSignatur.dc.html",
+  "IosAbnMaengel.dc.html",
+  "IosAbnGewerkeDark.dc.html",
+  "IosAbnElementeDark.dc.html",
+  "IosAbnPruefungDark.dc.html",
+  "IosAbnMangelDark.dc.html",
+  "IosAbnSignaturDark.dc.html",
+  "IosAbnMaengelDark.dc.html",
+  "AndAbnGewerke.dc.html",
+  "AndAbnElemente.dc.html",
+  "AndAbnPruefung.dc.html",
+  "AndAbnMangel.dc.html",
+  "AndAbnSignatur.dc.html",
+  "AndAbnMaengel.dc.html",
+  "AndAbnGewerkeDark.dc.html",
+  "AndAbnElementeDark.dc.html",
+  "AndAbnPruefungDark.dc.html",
+  "AndAbnMangelDark.dc.html",
+  "AndAbnSignaturDark.dc.html",
+  "AndAbnMaengelDark.dc.html",
+  "IosElUebersicht.dc.html",
+  "IosElRaum.dc.html",
+  "IosElVerteiler.dc.html",
+  "IosElRauchmelder.dc.html",
+  "IosElUebersichtDark.dc.html",
+  "IosElRaumDark.dc.html",
+  "IosElVerteilerDark.dc.html",
+  "IosElRauchmelderDark.dc.html",
+  "AndElUebersicht.dc.html",
+  "AndElRaum.dc.html",
+  "AndElVerteiler.dc.html",
+  "AndElRauchmelder.dc.html",
+  "AndElUebersichtDark.dc.html",
+  "AndElRaumDark.dc.html",
+  "AndElVerteilerDark.dc.html",
+  "AndElRauchmelderDark.dc.html",
+  "IosSanUebersicht.dc.html",
+  "IosSanGefaelle.dc.html",
+  "IosSanDruck.dc.html",
+  "IosSanBad.dc.html",
+  "IosSanUebersichtDark.dc.html",
+  "IosSanGefaelleDark.dc.html",
+  "IosSanDruckDark.dc.html",
+  "IosSanBadDark.dc.html",
+  "AndSanUebersicht.dc.html",
+  "AndSanGefaelle.dc.html",
+  "AndSanDruck.dc.html",
+  "AndSanBad.dc.html",
+  "AndSanUebersichtDark.dc.html",
+  "AndSanGefaelleDark.dc.html",
+  "AndSanDruckDark.dc.html",
+  "AndSanBadDark.dc.html",
+  "IosEsUebersicht.dc.html",
+  "IosEsEbenheit.dc.html",
+  "IosEsBelegreife.dc.html",
+  "IosEsUebersichtDark.dc.html",
+  "IosEsEbenheitDark.dc.html",
+  "IosEsBelegreifeDark.dc.html",
+  "AndEsUebersicht.dc.html",
+  "AndEsEbenheit.dc.html",
+  "AndEsBelegreife.dc.html",
+  "AndEsUebersichtDark.dc.html",
+  "AndEsEbenheitDark.dc.html",
+  "AndEsBelegreifeDark.dc.html",
+  "IosFlUebersicht.dc.html",
+  "IosFlBad.dc.html",
+  "IosFlUebersichtDark.dc.html",
+  "IosFlBadDark.dc.html",
+  "AndFlUebersicht.dc.html",
+  "AndFlBad.dc.html",
+  "AndFlUebersichtDark.dc.html",
+  "AndFlBadDark.dc.html",
+  "IosMaUebersicht.dc.html",
+  "IosMaRaum.dc.html",
+  "IosMaUebersichtDark.dc.html",
+  "IosMaRaumDark.dc.html",
+  "AndMaUebersicht.dc.html",
+  "AndMaRaum.dc.html",
+  "AndMaUebersichtDark.dc.html",
+  "AndMaRaumDark.dc.html",
+  "IosZeitplan.dc.html",
+  "IosZeitplanDark.dc.html",
+  "AndZeitplan.dc.html",
+  "AndZeitplanDark.dc.html",
+  "IosErd.dc.html",
+  "IosRohbau.dc.html",
+  "IosRohbauMasse.dc.html",
+  "IosZimmerer.dc.html",
+  "IosErdDark.dc.html",
+  "IosRohbauDark.dc.html",
+  "IosRohbauMasseDark.dc.html",
+  "IosZimmererDark.dc.html",
+  "AndErd.dc.html",
+  "AndRohbau.dc.html",
+  "AndRohbauMasse.dc.html",
+  "AndZimmerer.dc.html",
+  "AndErdDark.dc.html",
+  "AndRohbauDark.dc.html",
+  "AndRohbauMasseDark.dc.html",
+  "AndZimmererDark.dc.html",
+  "IosDokumente.dc.html",
+  "IosDokumenteDark.dc.html",
+  "AndDokumente.dc.html",
+  "AndDokumenteDark.dc.html",
+  "IosVergleich.dc.html",
+  "IosVergleichDark.dc.html",
+  "AndVergleich.dc.html",
+  "AndVergleichDark.dc.html",
+  "IosDokViewer.dc.html",
+  "IosDokViewerDark.dc.html",
+  "AndDokViewer.dc.html",
+  "AndDokViewerDark.dc.html",
+  "IosMitteilungen.dc.html",
+  "IosMitteilungenDark.dc.html",
+  "AndMitteilungen.dc.html",
+  "AndMitteilungenDark.dc.html"
+ ],
+ "notes": {
+  "titleIos": {
+   "x": 0,
+   "y": -300,
+   "text": "iOS · Hell & Dunkel",
+   "kind": "title1",
+   "maxW": 4150
+  },
+  "titleAnd": {
+   "x": 0,
+   "y": 1928,
+   "text": "Android (Material 3) · Hell & Dunkel",
+   "kind": "title1",
+   "maxW": 4150
+  },
+  "titleFrIos": {
+   "x": 0,
+   "y": -300,
+   "text": "Abnahme Erdarbeiten, Rohbau, Zimmerer · iOS",
+   "kind": "title1",
+   "maxW": 1800,
+   "page": "fruehe"
+  },
+  "titleFrAnd": {
+   "x": 0,
+   "y": 1928,
+   "text": "Abnahme Erdarbeiten, Rohbau, Zimmerer · Android",
+   "kind": "title1",
+   "maxW": 1800,
+   "page": "fruehe"
+  },
+  "titleAbnIos": {
+   "x": 0,
+   "y": -300,
+   "text": "Abnahme-Protokoll · iOS",
+   "kind": "title1",
+   "maxW": 2740,
+   "page": "abnahme"
+  },
+  "titleAbnAnd": {
+   "x": 0,
+   "y": 1928,
+   "text": "Abnahme-Protokoll · Android (Material 3)",
+   "kind": "title1",
+   "maxW": 2740,
+   "page": "abnahme"
+  },
+  "titleElIos": {
+   "x": 0,
+   "y": -300,
+   "text": "Abnahme Elektro · iOS",
+   "kind": "title1",
+   "maxW": 1800,
+   "page": "elektro"
+  },
+  "titleElAnd": {
+   "x": 0,
+   "y": 1928,
+   "text": "Abnahme Elektro · Android (Material 3)",
+   "kind": "title1",
+   "maxW": 1800,
+   "page": "elektro"
+  },
+  "titleSanIos": {
+   "x": 0,
+   "y": -300,
+   "text": "Abnahme Sanitär & Heizung · iOS",
+   "kind": "title1",
+   "maxW": 1800,
+   "page": "sanitaer"
+  },
+  "titleSanAnd": {
+   "x": 0,
+   "y": 1928,
+   "text": "Abnahme Sanitär & Heizung · Android (Material 3)",
+   "kind": "title1",
+   "maxW": 1800,
+   "page": "sanitaer"
+  },
+  "titleEsIos": {
+   "x": 0,
+   "y": -300,
+   "text": "Abnahme Estrich · iOS",
+   "kind": "title1",
+   "maxW": 1330,
+   "page": "estrich"
+  },
+  "titleEsAnd": {
+   "x": 0,
+   "y": 1928,
+   "text": "Abnahme Estrich · Android",
+   "kind": "title1",
+   "maxW": 1330,
+   "page": "estrich"
+  },
+  "titleFlIos": {
+   "x": 0,
+   "y": -300,
+   "text": "Abnahme Fliesen · iOS",
+   "kind": "title1",
+   "maxW": 860,
+   "page": "fliesen"
+  },
+  "titleFlAnd": {
+   "x": 0,
+   "y": 1928,
+   "text": "Abnahme Fliesen · Android",
+   "kind": "title1",
+   "maxW": 860,
+   "page": "fliesen"
+  },
+  "titleMaIos": {
+   "x": 0,
+   "y": -300,
+   "text": "Abnahme Maler · iOS",
+   "kind": "title1",
+   "maxW": 860,
+   "page": "maler"
+  },
+  "titleMaAnd": {
+   "x": 0,
+   "y": 1928,
+   "text": "Abnahme Maler · Android",
+   "kind": "title1",
+   "maxW": 860,
+   "page": "maler"
+  },
+  "platzhalter": {
+   "x": 4230,
+   "y": 0,
+   "text": "Hinweis zum Klick-Prototyp: Verlinkt sind die Hauptwege – Übersicht → Gewerk → Angebote vergleichen → Dokument, Mitteilungen, Dokumente und alle Abnahme-Flows. Weitere Buttons (z. B. „Beauftragen“, „Rückfrage“, „Erinnern“) sind bewusst Platzhalter und noch nicht im Mock.",
+   "w": 320,
+   "fill": "orange"
+  }
+ },
+ "designSystems": []
+}

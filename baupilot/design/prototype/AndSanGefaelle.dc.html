@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot Android – Gefälle Abwasserleitung</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9C4300}a:hover{color:#753400}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Roboto, system-ui, sans-serif; overflow: hidden">
+  <header style="height: 64px; margin-top: 32px; padding: 0 16px 0 4px; display: flex; align-items: center; gap: 4px">
+    <a href="AndSanUebersicht.dc.html" aria-label="Zurück" style="width: 48px; height: 48px; border-radius: 24px; color: {{t.text}}; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+    </a>
+    <div style="flex: 1; display: flex; flex-direction: column">
+      <span style="font-size: 20px">Gefälle Abwasser</span>
+      <span style="font-size: 13px; color: {{t.muted}}">A3 · Bad OG → Fallleitung · DN 50</span>
+    </div>
+    <span style="font-size: 14px; font-weight: 500; color: {{t.muted}}">3 / 4</span>
+  </header>
+
+  <div style="padding: 8px 16px 0; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+      <sc-for list="{{sections}}" as="s" hint-placeholder-count="4">
+        <div style="height: 52px; border-radius: 12px; background: {{s.bg}}; color: {{s.fg}}; border: {{s.border}}; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px">
+          <span style="font-size: 14px; font-weight: 500">{{s.id}}</span>
+          <span style="font-size: 11px">{{s.label}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="border-radius: 16px; background: {{t.surfaceContainer}}; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+      <p style="margin: 0; font-size: 14px; line-height: 20px; color: {{t.muted}}">Digitale Wasserwaage aufs Rohr legen und Prozent ablesen – oder Höhe am Anfang und Ende messen und hier eintragen.</p>
+
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 500; color: {{t.muted}}">Länge</span>
+          <div style="display: flex; align-items: center; justify-content: space-between; height: 48px; border-radius: 24px; border: 1px solid {{t.outline}}; padding: 0 4px">
+            <button type="button" aria-label="Länge verringern" onClick="{{lenDown}}" style="width: 40px; height: 40px; border: 0; border-radius: 20px; background: {{t.secondaryContainer}}; color: {{t.onSecondaryContainer}}; font: inherit; font-size: 20px">−</button>
+            <span style="font-size: 16px; font-weight: 500">{{lenLabel}}</span>
+            <button type="button" aria-label="Länge erhöhen" onClick="{{lenUp}}" style="width: 40px; height: 40px; border: 0; border-radius: 20px; background: {{t.secondaryContainer}}; color: {{t.onSecondaryContainer}}; font: inherit; font-size: 20px">+</button>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 500; color: {{t.muted}}">Höhenunterschied</span>
+          <div style="display: flex; align-items: center; justify-content: space-between; height: 48px; border-radius: 24px; border: 1px solid {{t.outline}}; padding: 0 4px">
+            <button type="button" aria-label="Höhenunterschied verringern" onClick="{{dropDown}}" style="width: 40px; height: 40px; border: 0; border-radius: 20px; background: {{t.secondaryContainer}}; color: {{t.onSecondaryContainer}}; font: inherit; font-size: 20px">−</button>
+            <span style="font-size: 16px; font-weight: 500">{{dropLabel}}</span>
+            <button type="button" aria-label="Höhenunterschied erhöhen" onClick="{{dropUp}}" style="width: 40px; height: 40px; border: 0; border-radius: 20px; background: {{t.secondaryContainer}}; color: {{t.onSecondaryContainer}}; font: inherit; font-size: 20px">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 12px; background: {{res.bg}}; color: {{res.fg}}">
+        <svg aria-hidden="true" width="92" height="44" viewBox="0 0 92 44" style="flex-shrink: 0"><line x1="2" y1="12" x2="90" y2="12" stroke="{{res.fg}}" stroke-width="1" stroke-dasharray="3 3" opacity="0.6"></line><text x="2" y="8" font-size="8" font-weight="600" fill="{{res.fg}}" opacity="0.8">waagerecht</text><line x1="4" y1="12" x2="78" y2="{{res.y2}}" stroke="{{res.fg}}" stroke-width="7" stroke-linecap="round"></line><line x1="86" y1="12" x2="86" y2="{{res.y2}}" stroke="{{res.fg}}" stroke-width="1.5"></line><text x="76" y="42" font-size="9" font-weight="700" fill="{{res.fg}}">Δh</text></svg>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 26px; font-weight: 500">{{res.pct}}</span>
+          <span style="font-size: 13px; font-weight: 500; white-space: nowrap">{{res.text}}</span>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px">
+        <button type="button" aria-label="Foto aufnehmen" style="width: 48px; height: 48px; flex-shrink: 0; border-radius: 24px; border: 1px solid {{t.outline}}; background: transparent; color: {{t.primary}}; display: flex; align-items: center; justify-content: center">
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
+        </button>
+        <a href="AndAbnMangel.dc.html" style="flex: 1; height: 48px; border-radius: 24px; border: 1px solid {{t.outline}}; color: {{t.err}}; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; text-decoration: none">Mangel</a>
+        <button type="button" style="flex: 1; height: 48px; border-radius: 24px; border: 0; background: {{t.primary}}; color: {{t.onPrimary}}; font: inherit; font-size: 15px; font-weight: 500">Speichern</button>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 12px; padding: 4px 4px">
+      <svg aria-hidden="true" style="flex-shrink: 0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{t.muted}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16v-4M12 8h.01"></path></svg>
+      <span style="font-size: 13px; line-height: 18px; color: {{t.muted}}">Jetzt prüfen: Nach Estrich und Verkleidung lässt sich fehlendes Gefälle kaum noch korrigieren.</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"soll":{"editor":"float","default":1,"min":0.5,"max":3,"step":0.1,"unit":"%"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { lenDm: 20, dropMm: 25 };
+  }
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const soll = this.props.soll ?? 1;
+    const t = d
+      ? { bg: '#16130F', text: '#ECE0D8', muted: '#D7C3B8', outline: '#A08D83', primary: '#FFB68E', onPrimary: '#532200', primaryContainer: '#753400', onPrimaryContainer: '#FFDBCA', secondaryContainer: '#5C4032', onSecondaryContainer: '#FFDBCA', surfaceContainer: '#231F1B', err: '#FFB4AB', okBg: '#1F3A22', okFg: '#A6F0A6', errBg: '#5C1B16', errFg: '#FFDAD6', openBg: '#2E2925' }
+      : { bg: '#FFF8F5', text: '#221A15', muted: '#52443C', outline: '#85736A', primary: '#9C4300', onPrimary: '#FFFFFF', primaryContainer: '#FFDBCA', onPrimaryContainer: '#331200', secondaryContainer: '#FFDBCA', onSecondaryContainer: '#2B160B', surfaceContainer: '#F7ECE6', err: '#BA1A1A', okBg: '#D7F5D3', okFg: '#14501C', errBg: '#FFDAD6', errFg: '#410002', openBg: '#F1E6DF' };
+    const { lenDm, dropMm } = this.state;
+    const de = (n, k) => n.toFixed(k).replace('.', ',');
+    const pct = dropMm / lenDm;
+    const good = pct >= soll;
+    const angle = Math.atan((pct / 100) * 8) * 180 / Math.PI;
+    const S = {
+      ok: { label: '', bg: t.okBg, fg: t.okFg, border: '0' },
+      m: { label: '', bg: t.errBg, fg: t.errFg, border: '0' },
+      now: { label: 'jetzt', bg: t.primaryContainer, fg: t.onPrimaryContainer, border: '2px solid ' + t.primary },
+      open: { label: 'offen', bg: t.openBg, fg: t.muted, border: '0' }
+    };
+    const sections = [['A1', 'ok', '1,4 %'], ['A2', 'm', '0,4 %'], ['A3', 'now'], ['A4', 'open']]
+      .map(([id, k, v]) => ({ id, ...S[k], label: v || S[k].label }));
+    return {
+      t,
+      sections,
+      lenLabel: de(lenDm / 10, 1) + ' m',
+      dropLabel: de(dropMm / 10, 1) + ' cm',
+      lenDown: () => this.setState({ lenDm: Math.max(5, lenDm - 5) }),
+      lenUp: () => this.setState({ lenDm: Math.min(100, lenDm + 5) }),
+      dropDown: () => this.setState({ dropMm: Math.max(0, dropMm - 5) }),
+      dropUp: () => this.setState({ dropMm: Math.min(300, dropMm + 5) }),
+      res: {
+        pct: de(pct, 2) + ' %',
+        text: (good ? 'Ausreichend' : 'Zu flach') + ' · Soll ≥ ' + de(soll, 1) + ' %',
+        bg: good ? t.okBg : t.errBg,
+        fg: good ? t.okFg : t.errFg,
+        y2: (12 + Math.min(26, Math.max(2, pct * 10))).toFixed(1)
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

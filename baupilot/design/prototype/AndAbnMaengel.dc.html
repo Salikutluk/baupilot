@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot Android – Offene Mängel und Fristen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9C4300}a:hover{color:#753400}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Roboto, system-ui, sans-serif; overflow: hidden">
+  <header style="height: 64px; margin-top: 32px; padding: 0 4px 0 16px; display: flex; align-items: center">
+    <span style="flex: 1; font-size: 22px">Abnahmen</span>
+    <a href="#" style="height: 48px; padding: 0 12px; border-radius: 24px; display: flex; align-items: center; font-size: 14px; font-weight: 500; color: {{t.primary}}; text-decoration: none">Vorlagen</a>
+  </header>
+
+  <div role="tablist" aria-label="Ansicht" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-bottom: 1px solid {{t.divider}}">
+    <a href="AndAbnGewerke.dc.html" role="tab" aria-selected="false" style="height: 48px; font-size: 14px; font-weight: 500; color: {{t.muted}}; text-decoration: none; display: flex; align-items: center; justify-content: center">Gewerke</a>
+    <button type="button" role="tab" aria-selected="true" style="height: 48px; border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 500; color: {{t.primary}}; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 12px; padding: 0">Offene Mängel (3)<span style="width: 96px; height: 3px; border-radius: 3px 3px 0 0; background: {{t.primary}}"></span></button>
+  </div>
+
+  <div style="padding: 12px 16px 0; display: flex; flex-direction: column; gap: 8px">
+    <sc-for list="{{open}}" as="m" hint-placeholder-count="3">
+      <article style="border-radius: 12px; background: {{m.cardBg}}; border: 1px solid {{m.border}}; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <span style="font-size: 12px; font-weight: 500; letter-spacing: 0.4px; color: {{t.muted}}">{{m.gewerk}}</span>
+          <span style="font-size: 12px; font-weight: 500; padding: 4px 8px; border-radius: 8px; background: {{m.bg}}; color: {{m.fg}}">{{m.due}}</span>
+        </div>
+        <span style="font-size: 16px">{{m.title}}</span>
+        <span style="font-size: 14px; color: {{t.muted}}">{{m.meta}}</span>
+        <sc-if value="{{m.late}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px">
+            <button type="button" style="height: 48px; padding: 0 16px; border-radius: 24px; border: 1px solid {{t.outline}}; background: transparent; color: {{t.primary}}; font: inherit; font-size: 14px; font-weight: 500">Erinnern</button>
+            <button type="button" style="height: 48px; padding: 0 16px; border-radius: 24px; border: 0; background: {{t.primary}}; color: {{t.onPrimary}}; font: inherit; font-size: 14px; font-weight: 500">Behoben prüfen</button>
+          </div>
+        </sc-if>
+      </article>
+    </sc-for>
+    <a href="#" style="display: flex; align-items: center; gap: 16px; min-height: 56px; padding: 0 4px; color: {{t.text}}; text-decoration: none">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{t.okFg}}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+      <span style="flex: 1; font-size: 16px">Behobene Mängel</span>
+      <span style="font-size: 14px; color: {{t.muted}}">3</span>
+    </a>
+  </div>
+
+  <nav aria-label="Hauptnavigation" style="position: absolute; left: 0; right: 0; bottom: 0; height: 80px; box-sizing: border-box; padding-top: 12px; background: {{t.surfaceContainer}}; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
+    <sc-for list="{{tabs}}" as="b" hint-placeholder-count="5">
+      <a href="{{b.href}}" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{b.color}}; font-size: 12px; font-weight: {{b.weight}}">
+        <span style="width: 56px; height: 32px; border-radius: 16px; background: {{b.pill}}; display: flex; align-items: center; justify-content: center">
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{b.icon}}"></path></svg>
+        </span>
+        {{b.label}}
+      </a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#16130F', text: '#ECE0D8', muted: '#D7C3B8', outline: '#A08D83', outlineVariant: '#52443C', divider: '#3A332E', primary: '#FFB68E', onPrimary: '#532200', secondaryContainer: '#5C4032', surfaceContainer: '#231F1B', surfaceContainerHigh: '#2E2925', err: '#FFB4AB', errBg: '#5C1B16', errFg: '#FFDAD6', errCard: '#2A1A17', warnBg: '#3D3110', warnFg: '#F5D27A', okFg: '#A6F0A6' }
+      : { bg: '#FFF8F5', text: '#221A15', muted: '#52443C', outline: '#85736A', outlineVariant: '#D7C3B8', divider: '#E4D7CF', primary: '#9C4300', onPrimary: '#FFFFFF', secondaryContainer: '#FFDBCA', surfaceContainer: '#F7ECE6', surfaceContainerHigh: '#F1E6DF', err: '#BA1A1A', errBg: '#FFDAD6', errFg: '#410002', errCard: '#FFF1EF', warnBg: '#FCEBC0', warnFg: '#6B4A00', okFg: '#14501C' };
+    const late = { bg: t.errBg, fg: t.errFg, late: true, border: t.err, cardBg: t.errCard };
+    const soon = { bg: t.warnBg, fg: t.warnFg, late: false, border: t.outlineVariant, cardBg: 'transparent' };
+    const later = { bg: t.surfaceContainerHigh, fg: t.muted, late: false, border: t.outlineVariant, cardBg: 'transparent' };
+    const tab = (label, icon, href, on) => ({ label, icon, href, color: on ? t.text : t.muted, weight: on ? '700' : '500', pill: on ? t.secondaryContainer : 'transparent' });
+    return {
+      t,
+      open: [
+        { gewerk: 'ROHBAU', title: 'Riss in Kellerwand Nord', due: '3 Tage überfällig', meta: 'Frist 15.12.2026', ...late },
+        { gewerk: 'DACHDECKER', title: 'Ortgang links nicht verklebt', due: 'noch 21 Tage', meta: 'Frist 08.01.2027 · 2 Fotos', ...soon },
+        { gewerk: 'FENSTER & TÜREN', title: 'F2 · Flügel fällt zu', due: 'noch 28 Tage', meta: 'Frist 15.01.2027 · 2 Fotos', ...later }
+      ],
+      tabs: [
+        tab('Übersicht', 'M3 11l9-7 9 7M5 10v10h14V10', 'AndHome.dc.html', false),
+        tab('Zeitplan', 'M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', 'AndZeitplan.dc.html', false),
+        tab('Abnahmen', 'M9 3h6v4H9zM9 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3M9 14l2 2 4-4', 'AndAbnGewerke.dc.html', true),
+        tab('Dokumente', 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', 'AndDokumente.dc.html', false),
+        tab('Profil', 'M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10z', 'AndProfil.dc.html', false)
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

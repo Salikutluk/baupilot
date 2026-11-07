@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot Android – Elektro Raumprüfung Küche</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9C4300}a:hover{color:#753400}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Roboto, system-ui, sans-serif; overflow: hidden">
+  <header style="height: 64px; margin-top: 32px; padding: 0 16px 0 4px; display: flex; align-items: center; gap: 4px">
+    <a href="AndElUebersicht.dc.html" aria-label="Schließen" style="width: 48px; height: 48px; border-radius: 24px; color: {{t.text}}; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </a>
+    <div style="flex: 1; display: flex; flex-direction: column">
+      <span style="font-size: 20px">Küche</span>
+      <span style="font-size: 13px; color: {{t.muted}}">EG · Plan: 8 Steckdosen, 3 Auslässe</span>
+    </div>
+    <span style="font-size: 14px; font-weight: 500; color: {{t.muted}}">2 / 5</span>
+  </header>
+  <div style="height: 4px; margin: 0 16px; border-radius: 2px; background: {{t.track}}">
+    <div style="width: 30%; height: 4px; border-radius: 2px; background: {{t.primary}}"></div>
+  </div>
+
+  <div style="padding: 16px 16px 0; display: flex; flex-direction: column">
+    <div style="display: flex; gap: 16px; min-height: 52px">
+      <div style="display: flex; flex-direction: column; align-items: center; width: 24px">
+        <span style="width: 24px; height: 24px; border-radius: 12px; background: {{t.primary}}; color: {{t.onPrimary}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+        </span>
+        <span style="flex: 1; width: 1px; background: {{t.outlineVariant}}"></span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 2px; padding-top: 2px">
+        <span style="font-size: 15px">Anzahl &amp; Position laut Plan</span>
+        <span style="font-size: 13px; color: {{t.okFg}}">8 von 8 Steckdosen vorhanden</span>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 16px">
+      <div style="display: flex; flex-direction: column; align-items: center; width: 24px">
+        <span style="width: 24px; height: 24px; border-radius: 12px; background: {{t.primary}}; color: {{t.onPrimary}}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; flex-shrink: 0">2</span>
+        <span style="flex: 1; width: 1px; background: {{t.outlineVariant}}"></span>
+      </div>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 12px; padding-bottom: 16px">
+        <h2 style="margin: 2px 0 0; font-size: 18px; font-weight: 500">Jede Steckdose testen</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: {{t.muted}}">Steckdosentester einstecken. Zeigt er „korrekt“, ist die Dose richtig angeschlossen. Dosen nicht öffnen – nur einstecken und ablesen.</p>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+          <sc-for list="{{sockets}}" as="s" hint-placeholder-count="8">
+            <button type="button" aria-label="{{s.aria}}" style="height: 52px; border-radius: 12px; border: {{s.border}}; background: {{s.bg}}; color: {{s.fg}}; font: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px">
+              <span style="font-size: 14px; font-weight: 500">{{s.id}}</span>
+              <span style="font-size: 11px">{{s.label}}</span>
+            </button>
+          </sc-for>
+        </div>
+        <span style="font-size: 13px; color: {{t.muted}}">5 von 8 getestet · <span style="color: {{t.err}}; font-weight: 500">S4: Mangel erfasst</span></span>
+        <div style="display: flex; gap: 8px">
+          <a href="AndAbnMangel.dc.html" style="flex: 1; height: 48px; border-radius: 24px; border: 1px solid {{t.outline}}; color: {{t.err}}; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; text-decoration: none">Mangel</a>
+          <button type="button" style="flex: 1; height: 48px; border-radius: 24px; border: 0; background: {{t.primary}}; color: {{t.onPrimary}}; font: inherit; font-size: 15px; font-weight: 500">S6 in Ordnung</button>
+        </div>
+      </div>
+    </div>
+
+    <sc-for list="{{next}}" as="s" hint-placeholder-count="3">
+      <div style="display: flex; gap: 16px; min-height: 48px">
+        <div style="display: flex; flex-direction: column; align-items: center; width: 24px">
+          <span style="width: 24px; height: 24px; box-sizing: border-box; border-radius: 12px; border: 1px solid {{t.outline}}; color: {{t.muted}}; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0">{{s.n}}</span>
+          <span style="flex: 1; width: 1px; background: {{s.line}}"></span>
+        </div>
+        <span style="font-size: 15px; color: {{t.muted}}; padding-top: 2px">{{s.label}}</span>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#16130F', text: '#ECE0D8', muted: '#D7C3B8', outline: '#A08D83', outlineVariant: '#52443C', primary: '#FFB68E', onPrimary: '#532200', track: '#3E3630', err: '#FFB4AB', okBg: '#1F3A22', okFg: '#A6F0A6', errBg: '#5C1B16', errFg: '#FFDAD6', nowBg: '#753400', nowFg: '#FFDBCA', openBg: '#2E2925' }
+      : { bg: '#FFF8F5', text: '#221A15', muted: '#52443C', outline: '#85736A', outlineVariant: '#D7C3B8', primary: '#9C4300', onPrimary: '#FFFFFF', track: '#F0E0D6', err: '#BA1A1A', okBg: '#D7F5D3', okFg: '#14501C', errBg: '#FFDAD6', errFg: '#410002', nowBg: '#FFDBCA', nowFg: '#331200', openBg: '#F1E6DF' };
+    const K = {
+      ok: { label: 'korrekt', bg: t.okBg, fg: t.okFg, border: '0' },
+      err: { label: 'Fehler', bg: t.errBg, fg: t.errFg, border: '0' },
+      now: { label: 'jetzt', bg: t.nowBg, fg: t.nowFg, border: '2px solid ' + t.primary },
+      open: { label: 'offen', bg: t.openBg, fg: t.muted, border: '0' }
+    };
+    const sockets = ['ok', 'ok', 'ok', 'err', 'ok', 'now', 'open', 'open'].map((k, i) => ({ id: 'S' + (i + 1), ...K[k], aria: 'Steckdose S' + (i + 1) + ': ' + K[k].label }));
+    return {
+      t,
+      sockets,
+      next: [
+        { n: '3', label: 'Schalter schalten das richtige Licht', line: t.outlineVariant },
+        { n: '4', label: 'Herd, Spülmaschine & Dunstabzug', line: t.outlineVariant },
+        { n: '5', label: 'Abdeckungen gerade, keine offenen Dosen', line: 'transparent' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

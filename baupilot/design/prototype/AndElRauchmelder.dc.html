@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot Android – Rauchwarnmelder</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9C4300}a:hover{color:#753400}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Roboto, system-ui, sans-serif; overflow: hidden">
+  <header style="height: 64px; margin-top: 32px; padding: 0 16px 0 4px; display: flex; align-items: center; gap: 4px">
+    <a href="AndElUebersicht.dc.html" aria-label="Zurück" style="width: 48px; height: 48px; border-radius: 24px; color: {{t.text}}; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+    </a>
+    <span style="flex: 1; font-size: 20px">Rauchwarnmelder</span>
+    <span style="font-size: 14px; font-weight: 500; color: {{t.muted}}">3 / 5</span>
+  </header>
+
+  <div style="padding: 4px 16px 0; display: flex; flex-direction: column; gap: 14px">
+    <p style="margin: 0; font-size: 14px; line-height: 20px; color: {{t.muted}}">Pflicht in Schlaf- und Kinderzimmern und in Fluren, die als Fluchtweg dienen.</p>
+
+    <div style="border-radius: 16px; background: {{t.primaryContainer}}; color: {{t.onPrimaryContainer}}; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <h2 style="margin: 0; font-size: 20px; font-weight: 500">Flur OG</h2>
+        <span style="font-size: 13px; font-weight: 500">Jetzt prüfen</span>
+      </div>
+      <sc-for list="{{checks}}" as="c" hint-placeholder-count="2">
+        <div style="display: flex; align-items: flex-start; gap: 12px">
+          <span style="width: 22px; height: 22px; box-sizing: border-box; border-radius: 4px; border: 2px solid {{c.ring}}; background: {{c.fill}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px">
+            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{c.tick}}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+          </span>
+          <span style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 15px; font-weight: 500">{{c.label}}</span>
+            <span style="font-size: 13px; line-height: 18px">{{c.hint}}</span>
+          </span>
+        </div>
+      </sc-for>
+      <div style="display: flex; gap: 8px">
+        <a href="AndAbnMangel.dc.html" style="flex: 1; height: 48px; border-radius: 24px; border: 1px solid {{t.onPrimaryContainer}}; color: {{t.onPrimaryContainer}}; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; text-decoration: none">Kein Piepton</a>
+        <button type="button" style="flex: 1; height: 48px; border-radius: 24px; border: 0; background: {{t.primary}}; color: {{t.onPrimary}}; font: inherit; font-size: 15px; font-weight: 500">Piept – OK</button>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column">
+      <sc-for list="{{rooms}}" as="r" hint-placeholder-count="5">
+        <div style="display: flex; align-items: center; gap: 16px; min-height: 48px">
+          <span style="width: 10px; height: 10px; border-radius: 5px; background: {{r.dot}}; flex-shrink: 0; margin-left: 7px"></span>
+          <span style="flex: 1; font-size: 16px">{{r.name}}</span>
+          <span style="font-size: 13px; font-weight: 500; color: {{r.fg}}">{{r.status}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 16px; min-height: 56px; border-top: 1px solid {{t.outlineVariant}}; padding-top: 8px">
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 16px">Jährlich an Test erinnern</span>
+        <span style="font-size: 13px; color: {{t.muted}}">Batterien laut Hersteller bis 2037</span>
+      </div>
+      <button type="button" role="switch" aria-checked="true" aria-label="Jährlich an Test erinnern" style="width: 52px; height: 32px; box-sizing: border-box; border-radius: 16px; border: 2px solid {{t.primary}}; background: {{t.primary}}; padding: 0 4px; display: flex; align-items: center; justify-content: flex-end">
+        <span style="width: 24px; height: 24px; border-radius: 12px; background: {{t.onPrimary}}"></span>
+      </button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#16130F', text: '#ECE0D8', muted: '#D7C3B8', outline: '#A08D83', outlineVariant: '#52443C', primary: '#FFB68E', onPrimary: '#532200', primaryContainer: '#753400', onPrimaryContainer: '#FFDBCA', ok: '#7FD889', okFg: '#A6F0A6' }
+      : { bg: '#FFF8F5', text: '#221A15', muted: '#52443C', outline: '#85736A', outlineVariant: '#D7C3B8', primary: '#9C4300', onPrimary: '#FFFFFF', primaryContainer: '#FFDBCA', onPrimaryContainer: '#331200', ok: '#2E7D32', okFg: '#14501C' };
+    const chk = (label, hint, done) => ({ label, hint, ring: t.onPrimaryContainer, fill: done ? t.onPrimaryContainer : 'transparent', tick: done ? t.primaryContainer : 'transparent' });
+    const R = { ok: ['Getestet', t.ok, t.okFg], now: ['Jetzt', t.primary, t.primary], open: ['Offen', t.outline, t.muted] };
+    return {
+      t,
+      checks: [
+        chk('Melder an der Decke montiert', 'Mittig im Flur, mind. 50 cm Abstand zu Wand und Lampe.', true),
+        chk('Testknopf drücken', 'Ca. 3 Sekunden halten – der Melder muss laut piepen.', false)
+      ],
+      rooms: [['Schlafen', 'ok'], ['Kind 1', 'ok'], ['Kind 2', 'ok'], ['Flur OG', 'now'], ['Flur EG', 'open']]
+        .map(([name, k]) => ({ name, status: R[k][0], dot: R[k][1], fg: R[k][2] }))
+    };
+  }
+}
+</script>
+</body>
+</html>

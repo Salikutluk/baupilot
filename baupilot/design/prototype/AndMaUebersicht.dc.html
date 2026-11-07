@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot Android – Abnahme Maler</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9C4300}a:hover{color:#753400}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Roboto, system-ui, sans-serif; overflow: hidden">
+  <header style="height: 64px; margin-top: 32px; padding: 0 4px; display: flex; align-items: center; gap: 4px">
+    <a href="AndAbnGewerke.dc.html" aria-label="Zurück" style="width: 48px; height: 48px; border-radius: 24px; color: {{t.text}}; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+    </a>
+    <div style="flex: 1; display: flex; flex-direction: column">
+      <span style="font-size: 20px">Maler</span>
+      <span style="font-size: 13px; color: {{t.muted}}">Malerbetrieb Hoffmann · 12.04.2027</span>
+    </div>
+  </header>
+
+  <div style="margin: 8px 16px 0; padding: 14px 16px; border-radius: 12px; background: {{t.surfaceContainer}}; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+    <sc-for list="{{facts}}" as="f" hint-placeholder-count="3">
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 12px; font-weight: 500; color: {{t.muted}}">{{f.label}}</span>
+        <span style="font-size: 16px; font-weight: 500">{{f.value}}</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <sc-for list="{{groups}}" as="grp" hint-placeholder-count="2">
+    <section>
+      <h2 style="margin: 0; padding: 14px 16px 2px; font-size: 14px; font-weight: 500; color: {{t.primary}}">{{grp.title}}</h2>
+      <sc-for list="{{grp.rows}}" as="r" hint-placeholder-count="3">
+        <a href="{{r.href}}" style="display: flex; align-items: center; gap: 16px; min-height: 64px; padding: 0 16px; text-decoration: none; color: {{t.text}}">
+          <span style="width: 40px; height: 40px; border-radius: 20px; background: {{r.swatch}}; border: 1px solid {{t.outlineVariant}}; box-sizing: border-box; flex-shrink: 0"></span>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 16px">{{r.name}}</span>
+            <span style="font-size: 14px; color: {{t.muted}}">{{r.sub}}</span>
+          </div>
+          <span style="font-size: 13px; font-weight: 500; color: {{r.fg}}">{{r.status}}</span>
+        </a>
+      </sc-for>
+    </section>
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#16130F', text: '#ECE0D8', muted: '#D7C3B8', outlineVariant: '#52443C', primary: '#FFB68E', surfaceContainer: '#231F1B', okFg: '#A6F0A6', err: '#FFB4AB' }
+      : { bg: '#FFF8F5', text: '#221A15', muted: '#52443C', outlineVariant: '#D7C3B8', primary: '#9C4300', surfaceContainer: '#F7ECE6', okFg: '#14501C', err: '#BA1A1A' };
+    const S = { ok: ['In Ordnung', t.okFg], run: ['Läuft', t.primary], open: ['Offen', t.muted], m: ['1 Mangel', t.err] };
+    const C = { weiss: '#F7F6F2', sand: '#E6DCC8', salbei: '#B9C4B0' };
+    const rows = (rs) => rs.map(([name, sub, col, k, href]) => ({ name, sub, swatch: C[col], href: href || '#', status: S[k][0], fg: S[k][1] }));
+    return {
+      t,
+      facts: [
+        { label: 'Qualität', value: 'Q3' },
+        { label: 'Farbtöne', value: '3 bemustert' },
+        { label: 'Räume', value: '3 von 9' }
+      ],
+      groups: [
+        { title: 'Erdgeschoss', rows: rows([
+          ['Wohnen / Essen', 'Sand · Schritt 2 von 5', 'sand', 'run', 'AndMaRaum.dc.html'],
+          ['Küche', 'Weiß, Latex abwaschbar', 'weiss', 'ok'],
+          ['Flur & Treppenhaus', 'Weiß', 'weiss', 'm']
+        ]) },
+        { title: 'Obergeschoss', rows: rows([
+          ['Schlafen', 'Salbei, Akzentwand', 'salbei', 'ok'],
+          ['Kind 1 & Kind 2', 'Weiß', 'weiss', 'open'],
+          ['Bad OG', 'Weiß, feuchtraumgeeignet', 'weiss', 'open']
+        ]) }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

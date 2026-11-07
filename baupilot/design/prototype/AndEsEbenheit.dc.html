@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot Android – Estrich Ebenheit messen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9C4300}a:hover{color:#753400}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Roboto, system-ui, sans-serif; overflow: hidden">
+  <header style="height: 64px; margin-top: 32px; padding: 0 16px 0 4px; display: flex; align-items: center; gap: 4px">
+    <a href="AndEsUebersicht.dc.html" aria-label="Zurück" style="width: 48px; height: 48px; border-radius: 24px; color: {{t.text}}; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+    </a>
+    <div style="flex: 1; display: flex; flex-direction: column">
+      <span style="font-size: 20px">Ebenheit · Wohnen</span>
+      <span style="font-size: 13px; color: {{t.muted}}">Grenzwert laut Vertrag: {{limitLabel}} unter 2-m-Latte</span>
+    </div>
+    <span style="font-size: 14px; font-weight: 500; color: {{t.muted}}">5 / 7</span>
+  </header>
+
+  <div style="padding: 8px 16px 0; display: flex; flex-direction: column; gap: 14px">
+    <div style="border-radius: 16px; background: {{t.surfaceContainer}}; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+      <p style="margin: 0; font-size: 14px; line-height: 20px; color: {{t.muted}}">Richtlatte in mehreren Richtungen auflegen. Größten Spalt darunter mit dem Messkeil ablesen und eintragen.</p>
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span style="flex: 1; font-size: 16px">Spalt Messpunkt M{{nextId}}</span>
+        <div style="display: flex; align-items: center; gap: 4px; height: 48px; border-radius: 24px; border: 1px solid {{t.outline}}; padding: 0 4px">
+          <button type="button" aria-label="Spalt verringern" onClick="{{down}}" style="width: 40px; height: 40px; border: 0; border-radius: 20px; background: {{t.secondaryContainer}}; color: {{t.onSecondaryContainer}}; font: inherit; font-size: 20px">−</button>
+          <span style="min-width: 60px; text-align: center; font-size: 17px; font-weight: 500">{{gapLabel}}</span>
+          <button type="button" aria-label="Spalt erhöhen" onClick="{{up}}" style="width: 40px; height: 40px; border: 0; border-radius: 20px; background: {{t.secondaryContainer}}; color: {{t.onSecondaryContainer}}; font: inherit; font-size: 20px">+</button>
+        </div>
+      </div>
+      <div style="padding: 12px 16px; border-radius: 12px; background: {{res.bg}}; color: {{res.fg}}; font-size: 15px; font-weight: 500">{{res.text}}</div>
+      <div style="display: flex; gap: 8px">
+        <button type="button" aria-label="Foto aufnehmen" style="width: 48px; height: 48px; flex-shrink: 0; border-radius: 24px; border: 1px solid {{t.outline}}; background: transparent; color: {{t.primary}}; display: flex; align-items: center; justify-content: center">
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
+        </button>
+        <button type="button" onClick="{{save}}" style="flex: 1; height: 48px; border-radius: 24px; border: 0; background: {{t.primary}}; color: {{t.onPrimary}}; font: inherit; font-size: 15px; font-weight: 500">Messpunkt speichern</button>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <h2 style="margin: 0; font-size: 14px; font-weight: 500; color: {{t.primary}}">Gemessen ({{count}})</h2>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap">
+        <sc-for list="{{points}}" as="p" hint-placeholder-count="3">
+          <span style="height: 32px; padding: 0 12px; border-radius: 8px; background: {{p.bg}}; color: {{p.fg}}; display: flex; align-items: center; font-size: 14px; font-weight: 500">{{p.text}}</span>
+        </sc-for>
+      </div>
+      <a href="AndAbnMangel.dc.html" style="align-self: flex-start; min-height: 44px; display: flex; align-items: center; font-size: 14px; font-weight: 500; color: {{t.err}}; text-decoration: none">{{mangelLabel}}</a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"grenzwert":{"editor":"int","default":4,"min":1,"max":15,"unit":"mm"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { gap: 3, points: [2, 3, 6] };
+  }
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const limit = this.props.grenzwert ?? 4;
+    const t = d
+      ? { bg: '#16130F', text: '#ECE0D8', muted: '#D7C3B8', outline: '#A08D83', primary: '#FFB68E', onPrimary: '#532200', secondaryContainer: '#5C4032', onSecondaryContainer: '#FFDBCA', surfaceContainer: '#231F1B', err: '#FFB4AB', okBg: '#1F3A22', okFg: '#A6F0A6', errBg: '#5C1B16', errFg: '#FFDAD6' }
+      : { bg: '#FFF8F5', text: '#221A15', muted: '#52443C', outline: '#85736A', primary: '#9C4300', onPrimary: '#FFFFFF', secondaryContainer: '#FFDBCA', onSecondaryContainer: '#2B160B', surfaceContainer: '#F7ECE6', err: '#BA1A1A', okBg: '#D7F5D3', okFg: '#14501C', errBg: '#FFDAD6', errFg: '#410002' };
+    const { gap, points } = this.state;
+    const ok = gap <= limit;
+    const bad = points.filter((p) => p > limit).length;
+    return {
+      t,
+      limitLabel: limit + ' mm',
+      gapLabel: gap + ' mm',
+      nextId: points.length + 1,
+      count: points.length,
+      down: () => this.setState({ gap: Math.max(0, gap - 1) }),
+      up: () => this.setState({ gap: Math.min(20, gap + 1) }),
+      save: () => this.setState({ points: points.concat([gap]) }),
+      res: ok ? { text: 'Innerhalb der Toleranz', bg: t.okBg, fg: t.okFg } : { text: 'Über Grenzwert – als Mangel erfassen', bg: t.errBg, fg: t.errFg },
+      points: points.map((p, i) => ({ id: i + 1, text: 'M' + (i + 1) + ' · ' + p + ' mm', bg: p > limit ? t.errBg : t.okBg, fg: p > limit ? t.errFg : t.okFg })),
+      mangelLabel: bad ? bad + ' Messpunkt' + (bad > 1 ? 'e' : '') + ' über Grenzwert → Mangel erfassen' : 'Kein Messpunkt über Grenzwert'
+    };
+  }
+}
+</script>
+</body>
+</html>

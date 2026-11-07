@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot iOS – Mitteilungen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C2410C}a:hover{color:#9A3412}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Inter, -apple-system, system-ui, sans-serif; overflow: hidden">
+  <div style="padding: 50px 20px 40px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; justify-content: space-between; align-items: center; height: 44px">
+      <a href="IosHome.dc.html" style="display: flex; align-items: center; gap: 2px; color: {{t.accent}}; text-decoration: none; font-size: 17px; min-height: 44px; margin-left: -6px">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
+        Übersicht
+      </a>
+      <button type="button" style="min-height: 44px; border: 0; background: transparent; color: {{t.accent}}; font: inherit; font-size: 17px; padding: 0">Alle gelesen</button>
+    </div>
+    <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.6px">Mitteilungen</h1>
+
+    <sc-for list="{{groups}}" as="g" hint-placeholder-count="2">
+      <section style="display: flex; flex-direction: column; gap: 8px">
+        <h2 style="margin: 0 0 0 4px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: {{t.muted}}">{{g.title}}</h2>
+        <div style="background: {{t.surface}}; border-radius: 16px; overflow: hidden">
+          <sc-for list="{{g.items}}" as="n" hint-placeholder-count="3">
+            <a href="{{n.href}}" style="display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; text-decoration: none; color: {{t.text}}; border-top: {{n.divider}}">
+              <span style="width: 34px; height: 34px; border-radius: 10px; background: {{n.iconBg}}; color: {{n.iconFg}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+                <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="{{n.icon}}"></path></svg>
+              </span>
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+                <span style="display: flex; justify-content: space-between; gap: 8px">
+                  <span style="font-size: 15px; font-weight: {{n.weight}}">{{n.title}}</span>
+                  <span style="font-size: 13px; color: {{t.muted}}; white-space: nowrap">{{n.when}}</span>
+                </span>
+                <span style="font-size: 14px; line-height: 1.35; color: {{t.muted}}">{{n.text}}</span>
+              </span>
+              <span style="width: 8px; height: 8px; border-radius: 4px; background: {{n.dot}}; margin-top: 6px; flex-shrink: 0"></span>
+            </a>
+          </sc-for>
+        </div>
+      </section>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#121417', surface: '#1C1F23', text: '#F2F2F0', muted: '#A3A8AE', border: '#2A2E33', accent: '#FB923C', eSoft: '#3B1D1D', eFg: '#FCA5A5', aSoft: '#3A2414', aFg: '#FDBA74', iSoft: '#1A2740', iFg: '#93C5FD', oSoft: '#16301F', oFg: '#86EFAC' }
+      : { bg: '#F5F4F1', surface: '#FFFFFF', text: '#17191C', muted: '#5C6168', border: '#E2E0DB', accent: '#C2410C', eSoft: '#FDE7E7', eFg: '#991B1B', aSoft: '#FDEBDD', aFg: '#9A3412', iSoft: '#E3EBFC', iFg: '#1E40AF', oSoft: '#E3F4E8', oFg: '#166534' };
+    const line = '1px solid ' + t.border;
+    const K = {
+      frist: ['M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z', t.eSoft, t.eFg],
+      geld: ['M4 2v20l3-2 3 2 3-2 3 2 3-2 1 1V2zM8 8h8M8 12h8M8 16h5', t.aSoft, t.aFg],
+      angebot: ['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6', t.iSoft, t.iFg],
+      termin: ['M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', t.oSoft, t.oFg]
+    };
+    const list = (items) => items.map(([k, title, text, when, href, unread], i) => ({
+      title, text, when, href, icon: K[k][0], iconBg: K[k][1], iconFg: K[k][2],
+      weight: unread ? '700' : '600', dot: unread ? t.accent : 'transparent', divider: i ? line : '0'
+    }));
+    return {
+      t,
+      groups: [
+        { title: 'Heute', items: list([
+          ['frist', 'Frist überschritten', 'Rohbau · Riss in Kellerwand Nord, seit 3 Tagen offen', '08:10', 'IosAbnMaengel.dc.html', true],
+          ['geld', 'Rechnung bald fällig', 'Fenster & Türen · 2. Abschlag 18.400 € bis 22.12.', '07:30', 'IosDokumente.dc.html', true]
+        ]) },
+        { title: 'Diese Woche', items: list([
+          ['angebot', 'Neues Angebot', 'Fließestrich Hahn · 10.450 € – jetzt vergleichen', 'Mo', 'IosVergleich.dc.html', false],
+          ['angebot', 'Angebot fehlt noch', 'Bodenbau Lorenz · angefragt am 05.12.', 'Mo', 'IosGewerk.dc.html', false],
+          ['termin', 'Termin bestätigt', 'Elektro Schmitt · Rohinstallation ab KW 3', 'Di', '#', false]
+        ]) }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

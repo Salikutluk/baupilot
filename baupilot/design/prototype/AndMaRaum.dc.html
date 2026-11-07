@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot Android – Maler Raumprüfung Wohnen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9C4300}a:hover{color:#753400}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Roboto, system-ui, sans-serif; overflow: hidden">
+  <header style="height: 64px; margin-top: 32px; padding: 0 16px 0 4px; display: flex; align-items: center; gap: 4px">
+    <a href="AndMaUebersicht.dc.html" aria-label="Schließen" style="width: 48px; height: 48px; border-radius: 24px; color: {{t.text}}; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </a>
+    <div style="flex: 1; display: flex; flex-direction: column">
+      <span style="font-size: 20px">Wohnen / Essen</span>
+      <span style="font-size: 13px; color: {{t.muted}}">Wände Sand · Decke Weiß · Q3</span>
+    </div>
+    <span style="font-size: 14px; font-weight: 500; color: {{t.muted}}">2 / 5</span>
+  </header>
+  <div style="height: 4px; margin: 0 16px; border-radius: 2px; background: {{t.track}}">
+    <div style="width: 30%; height: 4px; border-radius: 2px; background: {{t.primary}}"></div>
+  </div>
+
+  <div style="padding: 14px 16px 0; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; align-items: center; gap: 16px; min-height: 44px">
+      <span style="width: 24px; height: 24px; border-radius: 12px; background: {{t.primary}}; color: {{t.onPrimary}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+      </span>
+      <span style="flex: 1; font-size: 15px">Farbton wie bemustert</span>
+      <span style="width: 20px; height: 20px; border-radius: 10px; background: #E6DCC8; border: 1px solid {{t.outlineVariant}}"></span>
+    </div>
+
+    <div style="border-radius: 16px; background: {{t.surfaceContainer}}; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span style="width: 24px; height: 24px; border-radius: 12px; background: {{t.primary}}; color: {{t.onPrimary}}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; flex-shrink: 0">2</span>
+        <h2 style="margin: 0; font-size: 18px; font-weight: 500">Streiflicht-Test</h2>
+      </div>
+      <div aria-hidden="true" style="height: 88px; border-radius: 12px; background: linear-gradient(100deg, {{t.lit}} 0%, {{t.wall}} 70%); position: relative; overflow: hidden">
+        <div style="position: absolute; left: 14px; top: 34px; width: 34px; height: 18px; border-radius: 4px; background: {{t.text}}"></div>
+        <div style="position: absolute; left: 48px; top: 39px; width: 8px; height: 8px; border-radius: 4px; background: #FDE68A"></div>
+        <div style="position: absolute; left: 62%; top: 22px; width: 2px; height: 44px; background: {{t.shadow}}; opacity: 0.6"></div>
+      </div>
+      <p style="margin: 0; font-size: 14px; line-height: 20px; color: {{t.muted}}">Raum abdunkeln, Taschenlampe flach an die Wand halten und langsam entlangführen. Leichte Schatten sind bei Q3 zulässig – Grate, Riefen und Ansätze nicht.</p>
+      <div role="tablist" aria-label="Flächen" style="display: flex; gap: 8px; flex-wrap: wrap">
+        <sc-for list="{{walls}}" as="w" hint-placeholder-count="5">
+          <button type="button" role="tab" aria-selected="{{w.sel}}" style="height: 32px; padding: 0 12px; border-radius: 8px; border: {{w.border}}; background: {{w.bg}}; color: {{w.fg}}; font: inherit; font-size: 14px; font-weight: 500">{{w.name}}</button>
+        </sc-for>
+      </div>
+      <div style="display: flex; gap: 8px">
+        <button type="button" aria-label="Foto aufnehmen" style="width: 48px; height: 48px; flex-shrink: 0; border-radius: 24px; border: 1px solid {{t.outline}}; background: transparent; color: {{t.primary}}; display: flex; align-items: center; justify-content: center">
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
+        </button>
+        <a href="AndAbnMangel.dc.html" style="flex: 1; height: 48px; border-radius: 24px; border: 1px solid {{t.outline}}; color: {{t.err}}; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; text-decoration: none">Mangel</a>
+        <button type="button" style="flex: 1; height: 48px; border-radius: 24px; border: 0; background: {{t.primary}}; color: {{t.onPrimary}}; font: inherit; font-size: 15px; font-weight: 500">In Ordnung</button>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column">
+      <sc-for list="{{next}}" as="s" hint-placeholder-count="3">
+        <div style="display: flex; align-items: center; gap: 16px; min-height: 40px">
+          <span style="width: 24px; height: 24px; box-sizing: border-box; border-radius: 12px; border: 1px solid {{t.outline}}; color: {{t.muted}}; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0">{{s.n}}</span>
+          <span style="font-size: 15px; color: {{t.muted}}">{{s.label}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#16130F', text: '#ECE0D8', muted: '#D7C3B8', outline: '#A08D83', outlineVariant: '#52443C', primary: '#FFB68E', onPrimary: '#532200', track: '#3E3630', surfaceContainer: '#231F1B', err: '#FFB4AB', okBg: '#1F3A22', okFg: '#A6F0A6', secondaryContainer: '#5C4032', onSecondaryContainer: '#FFDBCA', lit: '#E9DFCB', wall: '#6E675B', shadow: '#2B261F' }
+      : { bg: '#FFF8F5', text: '#221A15', muted: '#52443C', outline: '#85736A', outlineVariant: '#D7C3B8', primary: '#9C4300', onPrimary: '#FFFFFF', track: '#F0E0D6', surfaceContainer: '#F7ECE6', err: '#BA1A1A', okBg: '#D7F5D3', okFg: '#14501C', secondaryContainer: '#FFDBCA', onSecondaryContainer: '#2B160B', lit: '#FBF5E8', wall: '#A99C84', shadow: '#5E5444' };
+    const W = {
+      ok: { bg: t.okBg, fg: t.okFg, border: '0', sel: 'false' },
+      now: { bg: t.secondaryContainer, fg: t.onSecondaryContainer, border: '0', sel: 'true' },
+      open: { bg: 'transparent', fg: t.muted, border: '1px solid ' + t.outline, sel: 'false' }
+    };
+    return {
+      t,
+      walls: [['Nord ✓', 'ok'], ['Ost ✓', 'ok'], ['Süd', 'now'], ['West', 'open'], ['Decke', 'open']].map(([name, k]) => ({ name, ...W[k] })),
+      next: [
+        { n: '3', label: 'Kanten zu Decke, Fenster & Türen sauber' },
+        { n: '4', label: 'Keine Farbe auf Steckdosen & Boden' },
+        { n: '5', label: 'Gleichmäßig deckend, keine Läufer' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

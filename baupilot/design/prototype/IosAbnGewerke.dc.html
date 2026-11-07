@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot iOS – Abnahmen je Gewerk</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C2410C}a:hover{color:#9A3412}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Inter, -apple-system, system-ui, sans-serif; overflow: hidden">
+  <div style="padding: 58px 20px 100px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end">
+      <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.6px">Abnahmen</h1>
+      <a href="#" style="font-size: 15px; font-weight: 600; color: {{t.accent}}; text-decoration: none; min-height: 44px; display: flex; align-items: center">Vorlagen</a>
+    </div>
+
+    <div role="tablist" aria-label="Ansicht" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 2px; border-radius: 10px; background: {{t.chip}}">
+      <button type="button" role="tab" aria-selected="true" style="height: 34px; border: 0; border-radius: 8px; background: {{t.surface}}; color: {{t.text}}; font: inherit; font-size: 14px; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.12)">Gewerke</button>
+      <a href="IosAbnMaengel.dc.html" role="tab" aria-selected="false" style="height: 34px; border-radius: 8px; color: {{t.text}}; font-size: 14px; font-weight: 500; text-decoration: none; display: flex; align-items: center; justify-content: center">Offene Mängel (3)</a>
+    </div>
+
+    <div style="background: {{t.surface}}; border-radius: 16px; overflow: hidden">
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+        <a href="{{r.href}}" style="display: flex; align-items: center; gap: 12px; min-height: 54px; padding: 0 14px; text-decoration: none; color: {{t.text}}; border-top: {{r.divider}}; background: {{r.rowBg}}">
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 16px; font-weight: 600">{{r.name}}</span>
+            <span style="font-size: 13px; color: {{t.muted}}">{{r.sub}}</span>
+          </div>
+          <span style="font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 7px; background: {{r.bg}}; color: {{r.fg}}; white-space: nowrap">{{r.status}}</span>
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{t.muted}}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+        </a>
+      </sc-for>
+    </div>
+  </div>
+
+  <nav aria-label="Hauptnavigation" style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; box-sizing: border-box; padding: 8px 4px 0; background: {{t.bar}}; border-top: 1px solid {{t.border}}; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
+    <sc-for list="{{tabs}}" as="b" hint-placeholder-count="5">
+      <a href="{{b.href}}" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{b.color}}; font-size: 10px; font-weight: 600; min-height: 44px">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{b.icon}}"></path></svg>
+        {{b.label}}
+      </a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#121417', surface: '#1C1F23', text: '#F2F2F0', muted: '#A3A8AE', border: '#2A2E33', accent: '#FB923C', chip: '#262A2F', bar: '#17191CF2', aSoft: '#3A2414', aFg: '#FDBA74', oSoft: '#16301F', oFg: '#86EFAC', wSoft: '#3A2E0E', wFg: '#FCD34D', hi: '#22201C' }
+      : { bg: '#F5F4F1', surface: '#FFFFFF', text: '#17191C', muted: '#5C6168', border: '#E2E0DB', accent: '#C2410C', chip: '#ECEAE5', bar: '#FFFFFFF2', aSoft: '#FDEBDD', aFg: '#9A3412', oSoft: '#E3F4E8', oFg: '#166534', wSoft: '#FEF3C7', wFg: '#854D0E', hi: '#FFF7F1' };
+    const line = '1px solid ' + t.border;
+    const S = {
+      ok: ['Abgenommen', t.oSoft, t.oFg],
+      vb: ['Mit Vorbehalt', t.wSoft, t.wFg],
+      now: ['Heute', t.aSoft, t.aFg],
+      plan: ['Geplant', t.chip, t.muted]
+    };
+    const rows = [
+      ['Erdarbeiten', '9 Prüfschritte · abgenommen 14.04.', 'ok'],
+      ['Rohbau', '9 Prüfschritte · 1 Mangel offen', 'vb'],
+      ['Zimmerer', '8 Prüfschritte · abgenommen 27.11.', 'ok'],
+      ['Dachdecker', '8 Prüfschritte · 1 Mangel offen', 'vb'],
+      ['Fenster & Türen', '6 Prüfschritte je Element · 7 von 12', 'now'],
+      ['Elektro', '10 Prüfschritte · KW 3', 'plan'],
+      ['Sanitär & Heizung', '11 Prüfschritte · KW 5', 'plan'],
+      ['Estrich', '6 Prüfschritte · KW 8', 'plan'],
+      ['Fliesen', '6 Prüfschritte je Raum · KW 12', 'plan'],
+      ['Maler', '5 Prüfschritte je Raum · KW 15', 'plan']
+    ].map(([name, sub, k], i) => ({ name, sub, status: S[k][0], bg: S[k][1], fg: S[k][2], divider: i ? line : '0',
+      href: k === 'now' ? 'IosAbnElemente.dc.html' : ({ 'Erdarbeiten': 'IosErd.dc.html', 'Rohbau': 'IosRohbau.dc.html', 'Zimmerer': 'IosZimmerer.dc.html', 'Elektro': 'IosElUebersicht.dc.html', 'Sanitär & Heizung': 'IosSanUebersicht.dc.html', 'Estrich': 'IosEsUebersicht.dc.html', 'Fliesen': 'IosFlUebersicht.dc.html', 'Maler': 'IosMaUebersicht.dc.html' }[name] || '#'), rowBg: k === 'now' ? t.hi : 'transparent' }));
+    const tab = (label, icon, href, on) => ({ label, icon, href, color: on ? t.accent : t.muted });
+    return {
+      t,
+      rows,
+      tabs: [
+        tab('Übersicht', 'M3 11l9-7 9 7M5 10v10h14V10', 'IosHome.dc.html', false),
+        tab('Zeitplan', 'M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', 'IosZeitplan.dc.html', false),
+        tab('Abnahmen', 'M9 3h6v4H9zM9 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3M9 14l2 2 4-4', 'IosAbnGewerke.dc.html', true),
+        tab('Dokumente', 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', 'IosDokumente.dc.html', false),
+        tab('Profil', 'M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10z', 'IosProfil.dc.html', false)
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

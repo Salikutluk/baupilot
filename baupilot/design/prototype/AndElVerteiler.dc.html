@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot Android – Zählerschrank und FI-Test</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9C4300}a:hover{color:#753400}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Roboto, system-ui, sans-serif; overflow: hidden">
+  <header style="height: 64px; margin-top: 32px; padding: 0 16px 0 4px; display: flex; align-items: center; gap: 4px">
+    <a href="AndElUebersicht.dc.html" aria-label="Schließen" style="width: 48px; height: 48px; border-radius: 24px; color: {{t.text}}; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </a>
+    <span style="flex: 1; font-size: 20px">Zählerschrank</span>
+    <span style="font-size: 14px; font-weight: 500; color: {{t.muted}}">3 / 5</span>
+  </header>
+  <div style="height: 4px; margin: 0 16px; border-radius: 2px; background: {{t.track}}">
+    <div style="width: 50%; height: 4px; border-radius: 2px; background: {{t.primary}}"></div>
+  </div>
+
+  <div style="padding: 14px 16px 0; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; gap: 12px; padding: 12px 16px; border-radius: 12px; background: {{t.warnBg}}; color: {{t.warnFg}}">
+      <svg aria-hidden="true" style="flex-shrink: 0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"></path></svg>
+      <span style="font-size: 14px; line-height: 20px">Nur von außen prüfen. Keine Abdeckungen abschrauben – das macht der Elektriker.</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column">
+      <sc-for list="{{done}}" as="s" hint-placeholder-count="2">
+        <div style="display: flex; align-items: center; gap: 16px; min-height: 44px">
+          <span style="width: 24px; height: 24px; border-radius: 12px; background: {{t.primary}}; color: {{t.onPrimary}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+          </span>
+          <span style="flex: 1; font-size: 15px">{{s.label}}</span>
+          <span style="font-size: 13px; color: {{t.muted}}">{{s.meta}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="border-radius: 16px; background: {{t.surfaceContainer}}; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span style="width: 24px; height: 24px; border-radius: 12px; background: {{t.primary}}; color: {{t.onPrimary}}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; flex-shrink: 0">3</span>
+        <h2 style="margin: 0; font-size: 18px; font-weight: 500">FI-Schutzschalter testen</h2>
+      </div>
+      <ol style="margin: 0; padding-left: 20px; font-size: 14px; line-height: 20px; color: {{t.muted}}; display: flex; flex-direction: column; gap: 4px">
+        <li>Prüftaste „T“ am FI-Schalter drücken.</li>
+        <li>Der Hebel muss sofort nach unten springen.</li>
+        <li>Hebel wieder nach oben – Strom ist zurück.</li>
+      </ol>
+      <div style="display: flex; flex-direction: column; border-radius: 12px; background: {{t.bg}}">
+        <sc-for list="{{fis}}" as="f" hint-placeholder-count="2">
+          <div style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 12px; border-top: {{f.divider}}">
+            <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 15px">{{f.name}}</span>
+              <span style="font-size: 12px; color: {{t.muted}}">{{f.sub}}</span>
+            </span>
+            <span style="height: 28px; box-sizing: border-box; padding: 0 10px; border-radius: 8px; display: flex; align-items: center; font-size: 12px; font-weight: 500; background: {{f.bg}}; color: {{f.fg}}">{{f.status}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; gap: 8px">
+        <a href="AndAbnMangel.dc.html" style="flex: 1; height: 48px; border-radius: 24px; border: 1px solid {{t.outline}}; color: {{t.err}}; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; text-decoration: none">Löst nicht aus</a>
+        <button type="button" style="flex: 1; height: 48px; border-radius: 24px; border: 0; background: {{t.primary}}; color: {{t.onPrimary}}; font: inherit; font-size: 15px; font-weight: 500">FI 2 ausgelöst</button>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column">
+      <sc-for list="{{next}}" as="s" hint-placeholder-count="2">
+        <div style="display: flex; align-items: center; gap: 16px; min-height: 44px">
+          <span style="width: 24px; height: 24px; box-sizing: border-box; border-radius: 12px; border: 1px solid {{t.outline}}; color: {{t.muted}}; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0">{{s.n}}</span>
+          <span style="flex: 1; font-size: 15px; color: {{t.muted}}">{{s.label}}</span>
+          <span style="font-size: 12px; font-weight: 500; color: {{s.tagColor}}">{{s.tag}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#16130F', text: '#ECE0D8', muted: '#D7C3B8', outline: '#A08D83', outlineVariant: '#52443C', primary: '#FFB68E', onPrimary: '#532200', track: '#3E3630', surfaceContainer: '#231F1B', err: '#FFB4AB', okBg: '#1F3A22', okFg: '#A6F0A6', warnBg: '#3D3110', warnFg: '#F5D27A', openBg: '#2E2925' }
+      : { bg: '#FFF8F5', text: '#221A15', muted: '#52443C', outline: '#85736A', outlineVariant: '#D7C3B8', primary: '#9C4300', onPrimary: '#FFFFFF', track: '#F0E0D6', surfaceContainer: '#F7ECE6', err: '#BA1A1A', okBg: '#D7F5D3', okFg: '#14501C', warnBg: '#FCEBC0', warnFg: '#5C3F00', openBg: '#F1E6DF' };
+    const line = '1px solid ' + t.outlineVariant;
+    return {
+      t,
+      done: [
+        { label: 'Abdeckungen vollständig', meta: '1 Foto' },
+        { label: 'Jede Sicherung beschriftet', meta: '2 Fotos' }
+      ],
+      fis: [
+        { name: 'FI 1 · Erdgeschoss', sub: 'Küche, Wohnen, Gäste-WC, Außen', status: 'Ausgelöst', bg: t.okBg, fg: t.okFg },
+        { name: 'FI 2 · Obergeschoss', sub: 'Schlafen, Kinder, Bad', status: 'Jetzt testen', bg: t.openBg, fg: t.text }
+      ].map((f, i) => ({ ...f, divider: i ? line : '0' })),
+      next: [
+        { n: '4', label: 'Überspannungsschutz vorhanden', tag: '', tagColor: t.muted },
+        { n: '5', label: 'Prüfprotokoll VDE 0100-600 erhalten', tag: 'Pflicht', tagColor: t.err }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

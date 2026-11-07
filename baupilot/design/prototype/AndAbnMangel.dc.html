@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot Android – Mangel erfassen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9C4300}a:hover{color:#753400}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Roboto, system-ui, sans-serif; overflow: hidden">
+  <header style="height: 64px; margin-top: 32px; padding: 0 8px 0 4px; display: flex; align-items: center; gap: 4px">
+    <a href="AndAbnPruefung.dc.html" aria-label="Abbrechen" style="width: 48px; height: 48px; border-radius: 24px; color: {{t.text}}; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </a>
+    <span style="flex: 1; font-size: 20px">Mangel erfassen</span>
+    <a href="AndAbnElemente.dc.html" style="height: 40px; padding: 0 12px; border-radius: 20px; display: flex; align-items: center; font-size: 14px; font-weight: 500; color: {{t.primary}}; text-decoration: none">Sichern</a>
+  </header>
+
+  <div style="padding: 8px 16px 0; display: flex; flex-direction: column; gap: 18px">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; background: {{t.errBg}}; color: {{t.errFg}}">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg>
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 15px; font-weight: 500">F2 · Wohnen · Schritt 1</span>
+        <span style="font-size: 13px">Drehstellung: Flügel bleibt nicht stehen</span>
+      </div>
+    </div>
+
+    <div style="position: relative">
+      <label for="am-desc" style="position: absolute; top: -8px; left: 12px; padding: 0 4px; background: {{t.bg}}; font-size: 12px; color: {{t.primary}}">Beschreibung</label>
+      <textarea id="am-desc" rows="3" style="width: 100%; box-sizing: border-box; border-radius: 4px; border: 2px solid {{t.primary}}; background: transparent; color: {{t.text}}; padding: 14px; font: inherit; font-size: 16px; line-height: 22px; resize: none">Flügel fällt ab ca. 45° Öffnung selbstständig wieder zu.</textarea>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 14px; font-weight: 500; color: {{t.muted}}">Fotos (2)</span>
+      <div style="display: flex; gap: 8px">
+        <div style="width: 76px; height: 76px; border-radius: 12px; background: {{t.surfaceContainerHigh}}; display: flex; align-items: center; justify-content: center; color: {{t.muted}}">
+          <svg role="img" aria-label="Foto 1" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 15l5-5 4 4 3-3 6 6"></path></svg>
+        </div>
+        <div style="width: 76px; height: 76px; border-radius: 12px; background: {{t.surfaceContainerHigh}}; display: flex; align-items: center; justify-content: center; color: {{t.muted}}">
+          <svg role="img" aria-label="Foto 2" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 15l5-5 4 4 3-3 6 6"></path></svg>
+        </div>
+        <button type="button" aria-label="Foto aufnehmen" style="width: 76px; height: 76px; border-radius: 12px; border: 1px solid {{t.outline}}; background: transparent; color: {{t.primary}}; display: flex; align-items: center; justify-content: center">
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
+        </button>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 14px; font-weight: 500; color: {{t.muted}}">Schwere</span>
+      <div role="radiogroup" aria-label="Schwere" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); height: 40px; border: 1px solid {{t.outline}}; border-radius: 20px; overflow: hidden">
+        <button type="button" role="radio" aria-checked="false" style="border: 0; background: transparent; color: {{t.text}}; font: inherit; font-size: 14px; font-weight: 500">Gering</button>
+        <button type="button" role="radio" aria-checked="true" style="border: 0; border-left: 1px solid {{t.outline}}; border-right: 1px solid {{t.outline}}; background: {{t.secondaryContainer}}; color: {{t.onSecondaryContainer}}; font: inherit; font-size: 14px; font-weight: 500">✓ Mittel</button>
+        <button type="button" role="radio" aria-checked="false" style="border: 0; background: transparent; color: {{t.text}}; font: inherit; font-size: 14px; font-weight: 500">Erheblich</button>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="position: relative">
+        <label for="am-date" style="position: absolute; top: -8px; left: 12px; padding: 0 4px; background: {{t.bg}}; font-size: 12px; color: {{t.muted}}">Behebung bis</label>
+        <input id="am-date" type="text" value="15.01.2027" style="width: 100%; height: 56px; box-sizing: border-box; border-radius: 4px; border: 1px solid {{t.outline}}; background: transparent; color: {{t.text}}; padding: 0 48px 0 15px; font: inherit; font-size: 16px">
+        <svg aria-hidden="true" style="position: absolute; right: 14px; top: 16px" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.muted}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path></svg>
+      </div>
+      <div style="display: flex; gap: 8px">
+        <button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid {{t.outline}}; background: transparent; color: {{t.muted}}; font: inherit; font-size: 14px; font-weight: 500">+ 14 Tage</button>
+        <button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 0; background: {{t.secondaryContainer}}; color: {{t.onSecondaryContainer}}; font: inherit; font-size: 14px; font-weight: 500">+ 4 Wochen</button>
+        <button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid {{t.outline}}; background: transparent; color: {{t.muted}}; font: inherit; font-size: 14px; font-weight: 500">+ 6 Wochen</button>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column">
+      <div style="display: flex; align-items: center; gap: 16px; min-height: 56px">
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 16px">Zuständig</span>
+          <span style="font-size: 14px; color: {{t.muted}}">Fensterbau Weber GmbH</span>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px; min-height: 56px">
+        <span style="flex: 1; font-size: 16px">Handwerker per E-Mail informieren</span>
+        <button type="button" role="switch" aria-checked="true" aria-label="Handwerker per E-Mail informieren" style="width: 52px; height: 32px; box-sizing: border-box; border-radius: 16px; border: 2px solid {{t.primary}}; background: {{t.primary}}; padding: 0 4px; display: flex; align-items: center; justify-content: flex-end">
+          <span style="width: 24px; height: 24px; border-radius: 12px; background: {{t.onPrimary}}"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#16130F', text: '#ECE0D8', muted: '#D7C3B8', outline: '#A08D83', primary: '#FFB68E', onPrimary: '#532200', secondaryContainer: '#5C4032', onSecondaryContainer: '#FFDBCA', surfaceContainerHigh: '#2E2925', errBg: '#5C1B16', errFg: '#FFDAD6' }
+      : { bg: '#FFF8F5', text: '#221A15', muted: '#52443C', outline: '#85736A', primary: '#9C4300', onPrimary: '#FFFFFF', secondaryContainer: '#FFDBCA', onSecondaryContainer: '#2B160B', surfaceContainerHigh: '#F1E6DF', errBg: '#FFDAD6', errFg: '#410002' };
+    return { t };
+  }
+}
+</script>
+</body>
+</html>

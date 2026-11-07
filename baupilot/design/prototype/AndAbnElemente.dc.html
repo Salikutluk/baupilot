@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot Android – Abnahme Fenster und Türen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9C4300}a:hover{color:#753400}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Roboto, system-ui, sans-serif; overflow: hidden">
+  <header style="height: 64px; margin-top: 32px; padding: 0 4px; display: flex; align-items: center; gap: 4px">
+    <a href="AndAbnGewerke.dc.html" aria-label="Zurück" style="width: 48px; height: 48px; border-radius: 24px; color: {{t.text}}; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+    </a>
+    <div style="flex: 1; display: flex; flex-direction: column">
+      <span style="font-size: 20px">Fenster &amp; Türen</span>
+      <span style="font-size: 13px; color: {{t.muted}}">Fensterbau Weber GmbH · 18.12.2026</span>
+    </div>
+    <button type="button" aria-label="Prüfanleitung" style="width: 48px; height: 48px; border-radius: 24px; border: 0; background: transparent; color: {{t.muted}}; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"></path></svg>
+    </button>
+  </header>
+
+  <div style="padding: 8px 16px 0; display: flex; flex-direction: column; gap: 12px">
+    <div style="background: {{t.surfaceContainer}}; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <span style="font-size: 16px; font-weight: 500">7 von 12 geprüft</span>
+        <span style="font-size: 14px; color: {{t.muted}}">6 Schritte je Element</span>
+      </div>
+      <div style="display: flex; gap: 3px; height: 6px">
+        <sc-for list="{{segs}}" as="s" hint-placeholder-count="12">
+          <span style="flex: 1; border-radius: 3px; background: {{s.c}}"></span>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 8px">
+      <span style="height: 32px; box-sizing: border-box; padding: 0 12px 0 8px; border-radius: 8px; background: {{t.secondaryContainer}}; color: {{t.onSecondaryContainer}}; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>Alle 12</span>
+      <span style="height: 32px; box-sizing: border-box; padding: 0 12px; border-radius: 8px; border: 1px solid {{t.outline}}; color: {{t.muted}}; display: flex; align-items: center; font-size: 14px; font-weight: 500">Offen 5</span>
+      <span style="height: 32px; box-sizing: border-box; padding: 0 12px; border-radius: 8px; border: 1px solid {{t.outline}}; color: {{t.muted}}; display: flex; align-items: center; font-size: 14px; font-weight: 500">Mängel 1</span>
+    </div>
+  </div>
+
+  <sc-for list="{{floors}}" as="fl" hint-placeholder-count="2">
+    <section>
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 4px 0 16px"><h2 style="margin: 0; font-size: 14px; font-weight: 500; color: {{t.primary}}">{{fl.title}}</h2><a href="#" style="min-height: 48px; padding: 0 12px; display: flex; align-items: center; font-size: 14px; font-weight: 500; color: {{t.primary}}; text-decoration: none">{{fl.more}}</a></div>
+      <sc-for list="{{fl.items}}" as="e" hint-placeholder-count="3">
+        <a href="{{e.href}}" style="display: flex; align-items: center; gap: 16px; min-height: 60px; padding: 0 16px; text-decoration: none; color: {{t.text}}">
+          <span style="width: 40px; height: 40px; border-radius: 20px; background: {{e.avBg}}; color: {{e.avFg}}; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; flex-shrink: 0">{{e.id}}</span>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 16px">{{e.room}}</span>
+            <span style="font-size: 14px; color: {{t.muted}}">{{e.type}}</span>
+          </div>
+          <span style="font-size: 13px; font-weight: 500; color: {{e.fg}}">{{e.status}}</span>
+        </a>
+      </sc-for>
+    </section>
+  </sc-for>
+
+  <a href="AndAbnPruefung.dc.html" style="position: absolute; right: 16px; bottom: 24px; height: 56px; box-sizing: border-box; padding: 0 20px 0 16px; border-radius: 16px; background: {{t.primaryContainer}}; color: {{t.onPrimaryContainer}}; display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 15px; font-weight: 500; box-shadow: 0 3px 8px rgba(0,0,0,0.18)">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l14 8-14 8z"></path></svg>
+    Weiter: F8 · Schlafen
+  </a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#16130F', text: '#ECE0D8', muted: '#D7C3B8', outline: '#A08D83', primary: '#FFB68E', primaryContainer: '#753400', onPrimaryContainer: '#FFDBCA', secondaryContainer: '#5C4032', onSecondaryContainer: '#FFDBCA', surfaceContainer: '#231F1B', track: '#3E3630', ok: '#7FD889', okBg: '#1F3A22', okFg: '#A6F0A6', err: '#FFB4AB', errBg: '#5C1B16', errFg: '#FFDAD6', planBg: '#2E2823' }
+      : { bg: '#FFF8F5', text: '#221A15', muted: '#52443C', outline: '#85736A', primary: '#9C4300', primaryContainer: '#FFDBCA', onPrimaryContainer: '#331200', secondaryContainer: '#FFDBCA', onSecondaryContainer: '#2B160B', surfaceContainer: '#F7ECE6', track: '#E4D7CF', ok: '#2E7D32', okBg: '#D7F5D3', okFg: '#14501C', err: '#BA1A1A', errBg: '#FFDAD6', errFg: '#410002', planBg: '#F0E6E0' };
+    const S = { ok: ['In Ordnung', t.okBg, t.okFg, t.okFg], m: ['1 Mangel', t.errBg, t.errFg, t.err], run: ['Schritt 3/6', t.primaryContainer, t.onPrimaryContainer, t.primary], open: ['Offen', t.planBg, t.muted, t.muted] };
+    const items = (list) => list.map(([id, room, type, k]) => ({ id, room, type, status: S[k][0], avBg: S[k][1], avFg: S[k][2], fg: S[k][3], href: k === 'run' ? 'AndAbnPruefung.dc.html' : (k === 'm' ? 'AndAbnMangel.dc.html' : '#') }));
+    const segs = ['ok','m','ok','ok','ok','ok','ok','o','o','o','o','o'].map((k) => ({ c: k === 'ok' ? t.ok : k === 'm' ? t.err : t.track }));
+    return {
+      t,
+      segs,
+      floors: [
+        { title: 'Erdgeschoss', more: 'Alle 6', items: items([['F1', 'Wohnen', 'Hebe-Schiebe-Tür', 'ok'], ['F2', 'Wohnen', 'Dreh-Kipp, 1-flügelig', 'm'], ['F3', 'Küche', 'Dreh-Kipp, 1-flügelig', 'ok']]) },
+        { title: 'Obergeschoss', more: 'Alle 6', items: items([['F7', 'Kind 1', 'Dreh-Kipp, 1-flügelig', 'ok'], ['F8', 'Schlafen', 'Dreh-Kipp, 1-flügelig', 'run'], ['F9', 'Bad', 'Kipp, Ornamentglas', 'open']]) }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

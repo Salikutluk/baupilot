@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot Android – Gewerk Estrich</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9C4300}a:hover{color:#753400}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Roboto, system-ui, sans-serif; overflow: hidden">
+  <header style="height: 64px; margin-top: 32px; padding: 0 4px; display: flex; align-items: center; gap: 4px">
+    <a href="AndHome.dc.html" aria-label="Zurück" style="width: 48px; height: 48px; border-radius: 24px; color: {{t.text}}; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+    </a>
+    <span style="flex: 1; font-size: 22px">Estrich</span>
+    <button type="button" aria-label="Weitere Optionen" style="width: 48px; height: 48px; border-radius: 24px; border: 0; background: transparent; color: {{t.muted}}; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg>
+    </button>
+  </header>
+
+  <div style="padding: 4px 16px 0; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; gap: 8px; flex-wrap: wrap">
+      <span style="height: 32px; box-sizing: border-box; padding: 0 12px; border-radius: 8px; background: {{t.secondaryContainer}}; color: {{t.onSecondaryContainer}}; display: flex; align-items: center; font-size: 14px; font-weight: 500">Angebote einholen</span>
+      <span style="height: 32px; box-sizing: border-box; padding: 0 12px; border-radius: 8px; border: 1px solid {{t.outline}}; color: {{t.muted}}; display: flex; align-items: center; font-size: 14px; font-weight: 500">Phase 8 · Estrich</span>
+    </div>
+
+    <div style="background: {{t.surfaceContainer}}; border-radius: 16px; overflow: hidden">
+      <sc-for list="{{facts}}" as="f" hint-placeholder-count="3">
+        <div style="display: flex; align-items: center; gap: 16px; height: 56px; padding: 0 16px">
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{t.muted}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{f.icon}}"></path></svg>
+          <span style="flex: 1; font-size: 14px; color: {{t.muted}}">{{f.label}}</span>
+          <span style="font-size: 16px">{{f.value}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div role="tablist" aria-label="Bereiche" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-bottom: 1px solid {{t.divider}}">
+      <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="3">
+        <button type="button" role="tab" aria-selected="{{tb.selected}}" style="height: 48px; border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 500; color: {{tb.color}}; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 12px; padding: 0">
+          {{tb.label}}
+          <span style="width: 56px; height: 3px; border-radius: 3px 3px 0 0; background: {{tb.bar}}"></span>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <sc-for list="{{offers}}" as="o" hint-placeholder-count="3">
+        <a href="{{o.href}}" style="display: flex; align-items: center; gap: 16px; padding: 12px 16px; border-radius: 12px; border: 1px solid {{o.border}}; background: {{o.bg}}; text-decoration: none; color: {{t.text}}">
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 16px">{{o.firm}}</span>
+            <span style="font-size: 14px; color: {{t.muted}}">{{o.meta}}</span>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px">
+            <span style="font-size: 16px; font-weight: 500; color: {{o.priceColor}}">{{o.price}}</span>
+            <sc-if value="{{o.best}}" hint-placeholder-val="{{ false }}">
+              <span style="font-size: 12px; font-weight: 500; color: {{t.okFg}}">Günstigstes</span>
+            </sc-if>
+          </div>
+        </a>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; box-sizing: border-box; padding: 12px 16px 24px; background: {{t.surfaceContainer}}; display: flex; gap: 12px; align-items: center">
+    <button type="button" aria-label="Dokument hinzufügen" style="width: 56px; height: 56px; border-radius: 16px; border: 0; background: {{t.secondaryContainer}}; color: {{t.onSecondaryContainer}}; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.1l-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"></path></svg>
+    </button>
+    <a href="AndVergleich.dc.html" style="flex: 1; height: 48px; border-radius: 24px; background: {{t.primary}}; color: {{t.onPrimary}}; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; text-decoration: none">Angebote vergleichen</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#16130F', text: '#ECE0D8', muted: '#D7C3B8', outline: '#A08D83', divider: '#3A332E', primary: '#FFB68E', onPrimary: '#532200', secondaryContainer: '#5C4032', onSecondaryContainer: '#FFDBCA', surfaceContainer: '#231F1B', okFg: '#A6F0A6', okBg: '#1A2C1C', okBorder: '#4E8A52' }
+      : { bg: '#FFF8F5', text: '#221A15', muted: '#52443C', outline: '#85736A', divider: '#E4D7CF', primary: '#9C4300', onPrimary: '#FFFFFF', secondaryContainer: '#FFDBCA', onSecondaryContainer: '#2B160B', surfaceContainer: '#F7ECE6', okFg: '#14501C', okBg: '#EEF9EC', okBorder: '#7DBF84' };
+    const tab = (label, on) => ({ label, selected: on ? 'true' : 'false', color: on ? t.primary : t.muted, bar: on ? t.primary : 'transparent' });
+    const offers = [
+      { firm: 'Estrichbau Wagner', meta: 'PDF · 10.12.2026', price: '9.800 €', best: true },
+      { firm: 'Fließestrich Hahn', meta: 'PDF · 14.12.2026', price: '10.450 €', best: false },
+      { firm: 'Bodenbau Lorenz', meta: 'Angefragt am 05.12.', price: 'Ausstehend', best: false, pending: true }
+    ].map((o) => ({ ...o, border: o.best ? t.okBorder : t.divider, bg: o.best ? t.okBg : 'transparent', priceColor: o.pending ? t.muted : t.text, href: o.pending ? '#' : 'AndDokViewer.dc.html' }));
+    return {
+      t,
+      offers,
+      facts: [
+        { label: 'Zeitfenster', value: 'KW 8–9', icon: 'M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z' },
+        { label: 'Angebotsfrist', value: '15.01.2027', icon: 'M12 6v6l4 2M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z' },
+        { label: 'Wartet auf', value: 'Installateur', icon: 'M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7' }
+      ],
+      tabs: [tab('Angebote (3)', true), tab('Termine', false), tab('Notizen', false)]
+    };
+  }
+}
+</script>
+</body>
+</html>

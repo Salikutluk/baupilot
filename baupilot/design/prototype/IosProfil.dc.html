@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot iOS – Profil und Einstellungen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C2410C}a:hover{color:#9A3412}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Inter, -apple-system, system-ui, sans-serif; overflow: hidden">
+  <div style="padding: 58px 20px 100px; display: flex; flex-direction: column; gap: 18px">
+    <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.6px">Profil</h1>
+
+    <a href="#" style="background: {{t.surface}}; border-radius: 16px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: {{t.text}}">
+      <div style="width: 48px; height: 48px; border-radius: 24px; background: {{t.accent}}; color: {{t.onAccent}}; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700">MM</div>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 17px; font-weight: 600">Max Mustermann</span>
+        <span style="font-size: 14px; color: {{t.muted}}">max@beispiel.de · Bauherr</span>
+      </div>
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{t.muted}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+    </a>
+
+    <sc-for list="{{groups}}" as="grp" hint-placeholder-count="3">
+      <section style="display: flex; flex-direction: column; gap: 8px">
+        <h2 style="margin: 0 0 0 14px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: {{t.muted}}">{{grp.title}}</h2>
+        <div style="background: {{t.surface}}; border-radius: 16px; overflow: hidden">
+          <sc-for list="{{grp.rows}}" as="r" hint-placeholder-count="3">
+            <div style="display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 0 14px; border-top: {{r.divider}}">
+              <span style="flex: 1; font-size: 16px; color: {{r.color}}">{{r.label}}</span>
+              <sc-if value="{{r.isToggle}}" hint-placeholder-val="{{ false }}">
+                <button type="button" role="switch" aria-checked="{{r.checked}}" aria-label="{{r.label}}" style="width: 51px; height: 31px; border-radius: 16px; border: 0; padding: 2px; background: {{r.track}}; display: flex; justify-content: {{r.align}}">
+                  <span style="width: 27px; height: 27px; border-radius: 14px; background: #FFFFFF; box-shadow: 0 2px 4px rgba(0,0,0,0.2)"></span>
+                </button>
+              </sc-if>
+              <sc-if value="{{r.isLink}}" hint-placeholder-val="{{ true }}">
+                <span style="font-size: 15px; color: {{t.muted}}">{{r.value}}</span>
+                <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{t.muted}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+    </sc-for>
+  </div>
+
+  <nav aria-label="Hauptnavigation" style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; box-sizing: border-box; padding: 8px 4px 0; background: {{t.bar}}; border-top: 1px solid {{t.border}}; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
+    <sc-for list="{{tabs}}" as="b" hint-placeholder-count="5">
+      <a href="{{b.href}}" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{b.color}}; font-size: 10px; font-weight: 600; min-height: 44px">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{b.icon}}"></path></svg>
+        {{b.label}}
+      </a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#121417', surface: '#1C1F23', text: '#F2F2F0', muted: '#A3A8AE', border: '#2A2E33', accent: '#FB923C', onAccent: '#1A0E05', bar: '#17191CF2', on: '#4ADE80', off: '#3A3F45', danger: '#F87171' }
+      : { bg: '#F5F4F1', surface: '#FFFFFF', text: '#17191C', muted: '#5C6168', border: '#E2E0DB', accent: '#C2410C', onAccent: '#FFFFFF', bar: '#FFFFFFF2', on: '#15803D', off: '#D6D4CF', danger: '#B91C1C' };
+    const line = '1px solid ' + t.border;
+    const link = (label, value, color) => ({ label, value, isLink: true, isToggle: false, color: color || t.text });
+    const tog = (label, on) => ({ label, isToggle: true, isLink: false, checked: on ? 'true' : 'false', track: on ? t.on : t.off, align: on ? 'flex-end' : 'flex-start', color: t.text });
+    const rows = (rs) => rs.map((r, i) => ({ ...r, divider: i ? line : '0' }));
+    const tab = (label, icon, href, on) => ({ label, icon, href, color: on ? t.accent : t.muted });
+    return {
+      t,
+      groups: [
+        { title: 'Bauvorhaben', rows: rows([link('Projekt', 'Musterweg 12'), link('Baubeginn', 'März 2026'), link('Beteiligte', '4 Kontakte')]) },
+        { title: 'Benachrichtigungen', rows: rows([tog('Fristen & Termine', true), tog('Neue Dokumente', true), tog('Wochenrückblick', false)]) },
+        { title: 'App', rows: rows([link('Darstellung', 'System'), link('Daten exportieren', ''), link('Abmelden', '', t.danger)]) }
+      ],
+      tabs: [
+        tab('Übersicht', 'M3 11l9-7 9 7M5 10v10h14V10', 'IosHome.dc.html', false),
+        tab('Zeitplan', 'M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', 'IosZeitplan.dc.html', false),
+        tab('Abnahmen', 'M9 3h6v4H9zM9 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3M9 14l2 2 4-4', 'IosAbnGewerke.dc.html', false),
+        tab('Dokumente', 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', 'IosDokumente.dc.html', false),
+        tab('Profil', 'M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10z', 'IosProfil.dc.html', true)
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

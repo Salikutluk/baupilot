@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot Android – Fliesen Raumprüfung Bad</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9C4300}a:hover{color:#753400}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Roboto, system-ui, sans-serif; overflow: hidden">
+  <header style="height: 64px; margin-top: 32px; padding: 0 16px 0 4px; display: flex; align-items: center; gap: 4px">
+    <a href="AndFlUebersicht.dc.html" aria-label="Schließen" style="width: 48px; height: 48px; border-radius: 24px; color: {{t.text}}; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </a>
+    <div style="flex: 1; display: flex; flex-direction: column">
+      <span style="font-size: 20px">Bad OG</span>
+      <span style="font-size: 13px; color: {{t.muted}}">Feinsteinzeug 60×60 · Boden & Wand</span>
+    </div>
+    <span style="font-size: 14px; font-weight: 500; color: {{t.muted}}">3 / 6</span>
+  </header>
+  <div style="height: 4px; margin: 0 16px; border-radius: 2px; background: {{t.track}}">
+    <div style="width: 42%; height: 4px; border-radius: 2px; background: {{t.primary}}"></div>
+  </div>
+
+  <div style="padding: 14px 16px 0; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; flex-direction: column">
+      <sc-for list="{{done}}" as="s" hint-placeholder-count="2">
+        <div style="display: flex; align-items: center; gap: 16px; min-height: 44px">
+          <span style="width: 24px; height: 24px; border-radius: 12px; background: {{t.primary}}; color: {{t.onPrimary}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+          </span>
+          <span style="flex: 1; font-size: 15px">{{s.label}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="border-radius: 16px; background: {{t.surfaceContainer}}; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span style="width: 24px; height: 24px; border-radius: 12px; background: {{t.primary}}; color: {{t.onPrimary}}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; flex-shrink: 0">3</span>
+        <h2 style="margin: 0; font-size: 18px; font-weight: 500">Hohlstellen abklopfen</h2>
+      </div>
+      <p style="margin: 0; font-size: 14px; line-height: 20px; color: {{t.muted}}">Mit dem Griff eines Schraubendrehers leicht auf jede Bodenfliese klopfen. Klingt sie hohl, im Raster antippen.</p>
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 600; color: {{t.muted}}; margin-bottom: -6px"><span>↑ Wand mit Dusche</span><span style="display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border-radius: 2px; background: {{t.errBg}}; border: 2px solid {{t.err}}; box-sizing: border-box"></span>klingt hohl</span></div>
+      <div role="group" aria-label="Fliesenraster Boden, oben die Wand mit Dusche, unten die Tür" style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; padding: 8px; border-radius: 8px; background: {{t.grout}}">
+        <sc-for list="{{tiles}}" as="f" hint-placeholder-count="24">
+          <button type="button" aria-label="{{f.aria}}" style="height: 44px; border: {{f.border}}; border-radius: 2px; background: {{f.bg}}; color: {{f.fg}}; font: inherit; font-size: 10px; font-weight: 500; padding: 0">{{f.mark}}</button>
+        </sc-for>
+      </div>
+      <span style="font-size: 13px; font-weight: 500; color: {{t.err}}">2 Fliesen klingen hohl (vor der Dusche)</span>
+      <div style="display: flex; gap: 8px">
+        <a href="AndAbnMangel.dc.html" style="flex: 1; height: 48px; border-radius: 24px; background: {{t.errBtn}}; color: {{t.onErrBtn}}; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; text-decoration: none">Als Mangel</a>
+        <button type="button" style="flex: 1; height: 48px; border-radius: 24px; border: 1px solid {{t.outline}}; background: transparent; color: {{t.primary}}; font: inherit; font-size: 15px; font-weight: 500">Keine Hohlstellen</button>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column">
+      <sc-for list="{{next}}" as="s" hint-placeholder-count="3">
+        <div style="display: flex; align-items: center; gap: 16px; min-height: 40px">
+          <span style="width: 24px; height: 24px; box-sizing: border-box; border-radius: 12px; border: 1px solid {{t.outline}}; color: {{t.muted}}; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0">{{s.n}}</span>
+          <span style="font-size: 15px; color: {{t.muted}}">{{s.label}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#16130F', text: '#ECE0D8', muted: '#D7C3B8', outline: '#A08D83', primary: '#FFB68E', onPrimary: '#532200', track: '#3E3630', surfaceContainer: '#231F1B', err: '#FFB4AB', errBtn: '#FFB4AB', onErrBtn: '#690005', grout: '#3E3630', tile: '#5A4E46', errBg: '#5C1B16', errFg: '#FFDAD6' }
+      : { bg: '#FFF8F5', text: '#221A15', muted: '#52443C', outline: '#85736A', primary: '#9C4300', onPrimary: '#FFFFFF', track: '#F0E0D6', surfaceContainer: '#F7ECE6', err: '#BA1A1A', errBtn: '#BA1A1A', onErrBtn: '#FFFFFF', grout: '#D7C3B8', tile: '#FFFBF8', errBg: '#FFDAD6', errFg: '#410002' };
+    const hollow = [2, 3];
+    const tiles = Array.from({ length: 24 }, (_, i) => {
+      const h = hollow.includes(i);
+      return { mark: h ? 'hohl' : '', aria: 'Fliese ' + (i + 1) + (h ? ': hohl' : ''), bg: h ? t.errBg : t.tile, fg: t.errFg, border: h ? '2px solid ' + t.err : '0' };
+    });
+    return {
+      t,
+      tiles,
+      done: [{ label: 'Fliese & Verlegemuster wie bemustert' }, { label: 'Fugenbild gleichmäßig, Fugen voll' }],
+      next: [
+        { n: '4', label: 'Dusche: Wasser läuft zum Ablauf' },
+        { n: '5', label: 'Silikonfugen an Ecken & Wanne' },
+        { n: '6', label: 'Kanten, Schnitte & Schienen sauber' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

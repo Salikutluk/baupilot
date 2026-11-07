@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot Android – Mitteilungen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9C4300}a:hover{color:#753400}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Roboto, system-ui, sans-serif; overflow: hidden">
+  <header style="height: 64px; margin-top: 32px; padding: 0 4px; display: flex; align-items: center; gap: 4px">
+    <a href="AndHome.dc.html" aria-label="Zurück" style="width: 48px; height: 48px; border-radius: 24px; color: {{t.text}}; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+    </a>
+    <span style="flex: 1; font-size: 22px">Mitteilungen</span>
+    <button type="button" style="height: 48px; padding: 0 12px; border-radius: 24px; border: 0; background: transparent; color: {{t.primary}}; font: inherit; font-size: 14px; font-weight: 500">Alle gelesen</button>
+  </header>
+
+  <sc-for list="{{groups}}" as="g" hint-placeholder-count="2">
+    <section style="display: flex; flex-direction: column">
+      <h2 style="margin: 0; padding: 12px 16px 4px; font-size: 14px; font-weight: 500; color: {{t.primary}}">{{g.title}}</h2>
+      <sc-for list="{{g.items}}" as="n" hint-placeholder-count="3">
+        <a href="{{n.href}}" style="display: flex; align-items: flex-start; gap: 16px; padding: 12px 16px; text-decoration: none; color: {{t.text}}; background: {{n.bg}}">
+          <span style="width: 40px; height: 40px; border-radius: 20px; background: {{n.iconBg}}; color: {{n.iconFg}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{n.icon}}"></path></svg>
+          </span>
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <span style="display: flex; justify-content: space-between; gap: 8px">
+              <span style="font-size: 16px; font-weight: {{n.weight}}">{{n.title}}</span>
+              <span style="font-size: 12px; color: {{t.muted}}; white-space: nowrap">{{n.when}}</span>
+            </span>
+            <span style="font-size: 14px; line-height: 20px; color: {{t.muted}}">{{n.text}}</span>
+          </span>
+        </a>
+      </sc-for>
+    </section>
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#16130F', text: '#ECE0D8', muted: '#D7C3B8', primary: '#FFB68E', unread: '#2A221C', errBg: '#5C1B16', errFg: '#FFDAD6', secondaryContainer: '#5C4032', onSecondaryContainer: '#FFDBCA', infoBg: '#1E3150', infoFg: '#C7DBFF', okBg: '#1F3A22', okFg: '#A6F0A6' }
+      : { bg: '#FFF8F5', text: '#221A15', muted: '#52443C', primary: '#9C4300', unread: '#FCEDE5', errBg: '#FFDAD6', errFg: '#410002', secondaryContainer: '#FFDBCA', onSecondaryContainer: '#2B160B', infoBg: '#DCE6FF', infoFg: '#163C7A', okBg: '#D7F5D3', okFg: '#14501C' };
+    const K = {
+      frist: ['M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z', t.errBg, t.errFg],
+      geld: ['M4 2v20l3-2 3 2 3-2 3 2 3-2 1 1V2zM8 8h8M8 12h8M8 16h5', t.secondaryContainer, t.onSecondaryContainer],
+      angebot: ['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6', t.infoBg, t.infoFg],
+      termin: ['M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', t.okBg, t.okFg]
+    };
+    const list = (items) => items.map(([k, title, text, when, href, unread]) => ({
+      title, text, when, href, icon: K[k][0], iconBg: K[k][1], iconFg: K[k][2],
+      weight: unread ? '700' : '400', bg: unread ? t.unread : 'transparent'
+    }));
+    return {
+      t,
+      groups: [
+        { title: 'Heute', items: list([
+          ['frist', 'Frist überschritten', 'Rohbau · Riss in Kellerwand Nord, seit 3 Tagen offen', '08:10', 'AndAbnMaengel.dc.html', true],
+          ['geld', 'Rechnung bald fällig', 'Fenster & Türen · 2. Abschlag 18.400 € bis 22.12.', '07:30', 'AndDokumente.dc.html', true]
+        ]) },
+        { title: 'Diese Woche', items: list([
+          ['angebot', 'Neues Angebot', 'Fließestrich Hahn · 10.450 € – jetzt vergleichen', 'Mo', 'AndVergleich.dc.html', false],
+          ['angebot', 'Angebot fehlt noch', 'Bodenbau Lorenz · angefragt am 05.12.', 'Mo', 'AndGewerk.dc.html', false],
+          ['termin', 'Termin bestätigt', 'Elektro Schmitt · Rohinstallation ab KW 3', 'Di', '#', false]
+        ]) }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

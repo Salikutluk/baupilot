@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot Android – Abnahme Estrich</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9C4300}a:hover{color:#753400}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Roboto, system-ui, sans-serif; overflow: hidden">
+  <header style="height: 64px; margin-top: 32px; padding: 0 4px; display: flex; align-items: center; gap: 4px">
+    <a href="AndAbnGewerke.dc.html" aria-label="Zurück" style="width: 48px; height: 48px; border-radius: 24px; color: {{t.text}}; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+    </a>
+    <div style="flex: 1; display: flex; flex-direction: column">
+      <span style="font-size: 20px">Estrich</span>
+      <span style="font-size: 13px; color: {{t.muted}}">Estrichbau Wagner · 22.02.2027</span>
+    </div>
+  </header>
+
+  <div style="padding: 8px 16px 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+    <div style="border-radius: 12px; background: {{t.primaryContainer}}; color: {{t.onPrimaryContainer}}; padding: 12px; display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 12px; font-weight: 500">1 · Nach dem Einbau</span>
+      <span style="font-size: 15px; font-weight: 500">3 von 4 geprüft</span>
+      <span style="display: block; height: 4px; border-radius: 2px; background: {{t.track}}"><span style="display: block; width: 75%; height: 4px; border-radius: 2px; background: {{t.primary}}"></span></span>
+    </div>
+    <div style="border-radius: 12px; border: 1px solid {{t.outlineVariant}}; padding: 12px; display: flex; flex-direction: column; gap: 4px">
+      <span style="font-size: 12px; font-weight: 500; color: {{t.muted}}">2 · Belegreife</span>
+      <span style="font-size: 15px; font-weight: 500; color: {{t.muted}}">Aufheizen ab 01.03.</span>
+    </div>
+  </div>
+
+  <sc-for list="{{groups}}" as="grp" hint-placeholder-count="2">
+    <section>
+      <h2 style="margin: 0; padding: 14px 16px 2px; font-size: 14px; font-weight: 500; color: {{t.primary}}">{{grp.title}}</h2>
+      <sc-for list="{{grp.rows}}" as="r" hint-placeholder-count="3">
+        <a href="{{r.href}}" style="display: flex; align-items: center; gap: 16px; min-height: 64px; padding: 0 16px; text-decoration: none; color: {{t.text}}">
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 16px">{{r.name}}</span>
+            <span style="font-size: 14px; color: {{t.muted}}">{{r.sub}}</span>
+          </div>
+          <span style="height: 28px; box-sizing: border-box; padding: 0 10px; border-radius: 8px; display: flex; align-items: center; font-size: 12px; font-weight: 500; background: {{r.bg}}; color: {{r.fg}}; white-space: nowrap">{{r.status}}</span>
+        </a>
+      </sc-for>
+    </section>
+  </sc-for>
+
+  <div style="margin: 8px 16px 0; display: flex; gap: 12px; padding: 12px 16px; border-radius: 12px; background: {{t.warnBg}}; color: {{t.warnFg}}">
+    <svg aria-hidden="true" style="flex-shrink: 0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg>
+    <span style="font-size: 14px; line-height: 20px">Ohne CM-Messung und Aufheizprotokoll keinen Boden verlegen lassen.</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#16130F', text: '#ECE0D8', muted: '#D7C3B8', outlineVariant: '#52443C', primary: '#FFB68E', primaryContainer: '#753400', onPrimaryContainer: '#FFDBCA', track: '#5A2800', okBg: '#1F3A22', okFg: '#A6F0A6', errBg: '#5C1B16', errFg: '#FFDAD6', planBg: '#2E2823', warnBg: '#3D3110', warnFg: '#F5D27A' }
+      : { bg: '#FFF8F5', text: '#221A15', muted: '#52443C', outlineVariant: '#D7C3B8', primary: '#9C4300', primaryContainer: '#FFDBCA', onPrimaryContainer: '#331200', track: '#F5B892', okBg: '#D7F5D3', okFg: '#14501C', errBg: '#FFDAD6', errFg: '#410002', planBg: '#F0E6E0', warnBg: '#FCEBC0', warnFg: '#5C3F00' };
+    const S = { ok: ['In Ordnung', t.okBg, t.okFg], run: ['Läuft', t.primaryContainer, t.onPrimaryContainer], open: ['Offen', t.planBg, t.muted], m: ['1 Mangel', t.errBg, t.errFg], must: ['Pflicht', t.errBg, t.errFg] };
+    const rows = (rs) => rs.map(([name, sub, k, href]) => ({ name, sub, href: href || '#', status: S[k][0], bg: S[k][1], fg: S[k][2] }));
+    return {
+      t,
+      groups: [
+        { title: 'Direkt nach dem Einbau', rows: rows([
+          ['Höhe zum Meterriss', '7 Räume · alle auf Sollhöhe', 'ok'],
+          ['Randdämmstreifen', 'An allen Wänden & Pfosten', 'ok'],
+          ['Ebenheit', '2-m-Richtlatte · 4 von 7 Räumen', 'm', 'AndEsEbenheit.dc.html'],
+          ['Risse & Hohlstellen', 'Abklopfen, Ränder ansehen', 'open']
+        ]) },
+        { title: 'Trocknung & Belegreife', rows: rows([
+          ['Aufheizprotokoll', 'Fußbodenheizung · ab 01.03.', 'open', 'AndEsBelegreife.dc.html'],
+          ['CM-Messung', 'Durch den Bodenleger', 'must', 'AndEsBelegreife.dc.html']
+        ]) }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

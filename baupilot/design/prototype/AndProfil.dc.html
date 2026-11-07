@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot Android – Profil und Einstellungen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9C4300}a:hover{color:#753400}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Roboto, system-ui, sans-serif; overflow: hidden">
+  <header style="height: 64px; margin-top: 32px; padding: 0 16px; display: flex; align-items: center">
+    <span style="font-size: 22px">Profil</span>
+  </header>
+
+  <div style="padding: 0 16px; display: flex; align-items: center; gap: 16px; height: 80px">
+    <div style="width: 56px; height: 56px; border-radius: 28px; background: {{t.primaryContainer}}; color: {{t.onPrimaryContainer}}; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 500">MM</div>
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+      <span style="font-size: 18px">Max Mustermann</span>
+      <span style="font-size: 14px; color: {{t.muted}}">max@beispiel.de</span>
+    </div>
+    <a href="#" style="height: 40px; box-sizing: border-box; padding: 0 16px; border-radius: 20px; background: {{t.secondaryContainer}}; color: {{t.onSecondaryContainer}}; display: flex; align-items: center; font-size: 14px; font-weight: 500; text-decoration: none">Bearbeiten</a>
+  </div>
+
+  <sc-for list="{{groups}}" as="grp" hint-placeholder-count="3">
+    <section style="display: flex; flex-direction: column; border-top: 1px solid {{t.divider}}; padding: 4px 0">
+      <h2 style="margin: 0; padding: 12px 16px 4px; font-size: 14px; font-weight: 500; color: {{t.primary}}">{{grp.title}}</h2>
+      <sc-for list="{{grp.rows}}" as="r" hint-placeholder-count="3">
+        <div style="display: flex; align-items: center; gap: 16px; min-height: 56px; padding: 0 16px 0 16px">
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{r.iconColor}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{r.icon}}"></path></svg>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 16px; color: {{r.color}}">{{r.label}}</span>
+            <sc-if value="{{r.sub}}" hint-placeholder-val="{{ true }}">
+              <span style="font-size: 14px; color: {{t.muted}}">{{r.sub}}</span>
+            </sc-if>
+          </div>
+          <sc-if value="{{r.isToggle}}" hint-placeholder-val="{{ false }}">
+            <button type="button" role="switch" aria-checked="{{r.checked}}" aria-label="{{r.label}}" style="width: 52px; height: 32px; box-sizing: border-box; border-radius: 16px; border: 2px solid {{r.trackBorder}}; background: {{r.track}}; padding: 0 4px; display: flex; align-items: center; justify-content: {{r.align}}">
+              <span style="width: {{r.thumb}}; height: {{r.thumb}}; border-radius: 12px; background: {{r.thumbColor}}"></span>
+            </button>
+          </sc-if>
+        </div>
+      </sc-for>
+    </section>
+  </sc-for>
+
+  <nav aria-label="Hauptnavigation" style="position: absolute; left: 0; right: 0; bottom: 0; height: 80px; box-sizing: border-box; padding-top: 12px; background: {{t.surfaceContainer}}; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
+    <sc-for list="{{tabs}}" as="b" hint-placeholder-count="5">
+      <a href="{{b.href}}" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{b.color}}; font-size: 12px; font-weight: {{b.weight}}">
+        <span style="width: 56px; height: 32px; border-radius: 16px; background: {{b.pill}}; display: flex; align-items: center; justify-content: center">
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{b.icon}}"></path></svg>
+        </span>
+        {{b.label}}
+      </a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#16130F', text: '#ECE0D8', muted: '#D7C3B8', outline: '#A08D83', divider: '#3A332E', primary: '#FFB68E', onPrimary: '#532200', primaryContainer: '#753400', onPrimaryContainer: '#FFDBCA', secondaryContainer: '#5C4032', onSecondaryContainer: '#FFDBCA', surfaceContainer: '#231F1B', offTrack: '#38302B', error: '#FFB4AB' }
+      : { bg: '#FFF8F5', text: '#221A15', muted: '#52443C', outline: '#85736A', divider: '#E4D7CF', primary: '#9C4300', onPrimary: '#FFFFFF', primaryContainer: '#FFDBCA', onPrimaryContainer: '#331200', secondaryContainer: '#FFDBCA', onSecondaryContainer: '#2B160B', surfaceContainer: '#F7ECE6', offTrack: '#F2E3DA', error: '#BA1A1A' };
+    const item = (label, sub, icon, color) => ({ label, sub, icon, isToggle: false, color: color || t.text, iconColor: color || t.muted });
+    const tog = (label, sub, icon, on) => ({ label, sub, icon, isToggle: true, checked: on ? 'true' : 'false', color: t.text, iconColor: t.muted,
+      track: on ? t.primary : t.offTrack, trackBorder: on ? t.primary : t.outline, align: on ? 'flex-end' : 'flex-start',
+      thumb: on ? '24px' : '16px', thumbColor: on ? t.onPrimary : t.outline });
+    const tab = (label, icon, href, on) => ({ label, icon, href, color: on ? t.text : t.muted, weight: on ? '700' : '500', pill: on ? t.secondaryContainer : 'transparent' });
+    return {
+      t,
+      groups: [
+        { title: 'Bauvorhaben', rows: [
+          item('Einfamilienhaus Musterweg 12', 'Baubeginn März 2026', 'M3 11l9-7 9 7M5 10v10h14V10'),
+          item('Beteiligte', 'Architektin, Bauleitung, 2 weitere', 'M16 21v-2a4 4 0 0 0-8 0v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z')
+        ] },
+        { title: 'Benachrichtigungen', rows: [
+          tog('Fristen & Termine', 'Erinnerung 3 Tage vorher', 'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9', true),
+          tog('Neue Dokumente', '', 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6', true),
+          tog('Wochenrückblick', '', 'M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', false)
+        ] },
+        { title: 'App', rows: [
+          item('Design', 'Systemstandard', 'M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z'),
+          item('Abmelden', '', 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9', t.error)
+        ] }
+      ],
+      tabs: [
+        tab('Übersicht', 'M3 11l9-7 9 7M5 10v10h14V10', 'AndHome.dc.html', false),
+        tab('Zeitplan', 'M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', 'AndZeitplan.dc.html', false),
+        tab('Abnahmen', 'M9 3h6v4H9zM9 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3M9 14l2 2 4-4', 'AndAbnGewerke.dc.html', false),
+        tab('Dokumente', 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', 'AndDokumente.dc.html', false),
+        tab('Profil', 'M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10z', 'AndProfil.dc.html', true)
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

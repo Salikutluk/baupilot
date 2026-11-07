@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot Android – Bad OG Objekte prüfen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9C4300}a:hover{color:#753400}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Roboto, system-ui, sans-serif; overflow: hidden">
+  <header style="height: 64px; margin-top: 32px; padding: 0 16px 0 4px; display: flex; align-items: center; gap: 4px">
+    <a href="AndSanUebersicht.dc.html" aria-label="Zurück" style="width: 48px; height: 48px; border-radius: 24px; color: {{t.text}}; display: flex; align-items: center; justify-content: center">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+    </a>
+    <div style="flex: 1; display: flex; flex-direction: column">
+      <span style="font-size: 20px">Bad OG</span>
+      <span style="font-size: 13px; color: {{t.muted}}">Fertigmontage · 1 von 5 Objekten</span>
+    </div>
+  </header>
+
+  <div role="tablist" aria-label="Objekte" style="display: flex; gap: 8px; padding: 8px 16px 0; flex-wrap: wrap">
+    <sc-for list="{{objects}}" as="o" hint-placeholder-count="5">
+      <button type="button" role="tab" aria-selected="{{o.sel}}" style="height: 32px; padding: 0 12px; border-radius: 8px; border: {{o.border}}; background: {{o.bg}}; color: {{o.fg}}; font: inherit; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 6px">
+        <sc-if value="{{o.done}}" hint-placeholder-val="{{ false }}">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+        </sc-if>
+        {{o.name}}
+      </button>
+    </sc-for>
+  </div>
+
+  <div style="padding: 14px 16px 0; display: flex; flex-direction: column; gap: 12px">
+    <div style="border-radius: 16px; background: {{t.surfaceContainer}}; padding: 8px 16px; display: flex; flex-direction: column">
+      <h2 style="margin: 8px 0 4px; font-size: 18px; font-weight: 500">Waschtisch</h2>
+      <sc-for list="{{checks}}" as="c" hint-placeholder-count="5">
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 64px; border-top: {{c.divider}}">
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 15px">{{c.label}}</span>
+            <span style="font-size: 13px; line-height: 18px; color: {{t.muted}}">{{c.hint}}</span>
+          </div>
+          <div style="display: flex; border: 1px solid {{t.outline}}; border-radius: 20px; overflow: hidden; height: 40px">
+            <button type="button" aria-label="{{c.mAria}}" style="width: 48px; border: 0; border-right: 1px solid {{t.outline}}; background: transparent; color: {{t.muted}}; display: flex; align-items: center; justify-content: center">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+            </button>
+            <button type="button" aria-label="{{c.okAria}}" style="width: 48px; border: 0; background: {{c.okBg}}; color: {{c.okFg}}; display: flex; align-items: center; justify-content: center">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+            </button>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; gap: 12px; padding: 4px">
+      <svg aria-hidden="true" style="flex-shrink: 0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{t.muted}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16v-4M12 8h.01"></path></svg>
+      <span style="font-size: 13px; line-height: 18px; color: {{t.muted}}">Als Nächstes Dusche: 2 Minuten voll aufdrehen – der Ablauf muss alles schlucken, kein Wasser darf stehen bleiben.</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#16130F', text: '#ECE0D8', muted: '#D7C3B8', outline: '#A08D83', outlineVariant: '#52443C', primary: '#FFB68E', onPrimary: '#532200', secondaryContainer: '#5C4032', onSecondaryContainer: '#FFDBCA', surfaceContainer: '#231F1B', okBg: '#1F3A22', okFg: '#A6F0A6' }
+      : { bg: '#FFF8F5', text: '#221A15', muted: '#52443C', outline: '#85736A', outlineVariant: '#D7C3B8', primary: '#9C4300', onPrimary: '#FFFFFF', secondaryContainer: '#FFDBCA', onSecondaryContainer: '#2B160B', surfaceContainer: '#F7ECE6', okBg: '#D7F5D3', okFg: '#14501C' };
+    const line = '1px solid ' + t.outlineVariant;
+    const O = {
+      done: { bg: t.okBg, fg: t.okFg, border: '0', done: true, sel: 'false' },
+      now: { bg: t.secondaryContainer, fg: t.onSecondaryContainer, border: '0', done: false, sel: 'true' },
+      open: { bg: 'transparent', fg: t.muted, border: '1px solid ' + t.outline, done: false, sel: 'false' }
+    };
+    const objects = [['WC', 'done'], ['Waschtisch', 'now'], ['Dusche', 'open'], ['Heizkörper', 'open'], ['Lüfter', 'open']].map(([name, k]) => ({ name, ...O[k] }));
+    const chk = (label, hint, ok, i) => ({ label, hint, divider: i ? line : '0', okAria: label + ': in Ordnung', mAria: label + ': Mangel', okBg: ok ? t.okBg : 'transparent', okFg: ok ? t.okFg : t.muted });
+    return {
+      t,
+      objects,
+      checks: [
+        chk('Warm links, kalt rechts', 'Hebel ganz nach links: Wasser wird warm.', true, 0),
+        chk('Wasser läuft zügig ab', 'Becken voll laufen lassen, Stopfen ziehen.', true, 1),
+        chk('Siphon & Anschlüsse trocken', 'Mit Papiertuch unten abwischen.', false, 2),
+        chk('Armatur fest, kein Tropfen', 'Nach dem Zudrehen 1 Minute beobachten.', false, 3),
+        chk('Silikonfuge geschlossen', 'Zwischen Becken und Wand ohne Lücken.', false, 4)
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

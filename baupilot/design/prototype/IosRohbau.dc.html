@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot iOS – Protokoll Rohbau</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C2410C}a:hover{color:#9A3412}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Inter, -apple-system, system-ui, sans-serif; overflow: hidden">
+  <div style="padding: 50px 20px 24px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; align-items: center; height: 44px">
+      <a href="IosAbnGewerke.dc.html" style="display: flex; align-items: center; gap: 2px; color: {{t.accent}}; text-decoration: none; font-size: 17px; min-height: 44px; margin-left: -6px">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
+        Abnahmen
+      </a>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <h1 style="margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.6px">Rohbau</h1>
+      <span style="font-size: 14px; color: {{t.muted}}">Bauunternehmung Keller · Keller, EG, OG</span>
+    </div>
+
+    <a href="IosAbnMaengel.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: {{t.wSoft}}; color: {{t.wFg}}; text-decoration: none">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg>
+      <span style="flex: 1; display: flex; flex-direction: column; gap: 1px">
+        <span style="font-size: 15px; font-weight: 700">Abgenommen mit Vorbehalt</span>
+        <span style="font-size: 13px">1 Mangel offen · Frist 15.12.2026</span>
+      </span>
+      <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+    </a>
+
+    <sc-for list="{{groups}}" as="grp" hint-placeholder-count="3">
+      <section style="display: flex; flex-direction: column; gap: 6px">
+        <h2 style="margin: 0 4px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: {{t.muted}}">{{grp.title}}</h2>
+        <div style="background: {{t.surface}}; border-radius: 14px; overflow: hidden">
+          <sc-for list="{{grp.rows}}" as="r" hint-placeholder-count="3">
+            <a href="{{r.href}}" style="display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 0 14px; border-top: {{r.divider}}; text-decoration: none; color: {{t.text}}">
+              <span style="width: 20px; height: 20px; border-radius: 10px; background: {{r.dot}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: {{t.okInk}}; font-size: 12px; font-weight: 800">
+                <svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="{{r.icon}}"></path></svg>
+              </span>
+              <span style="flex: 1; font-size: 14px">{{r.label}}</span>
+              <span style="font-size: 12px; color: {{r.metaColor}}; font-weight: {{r.metaWeight}}; white-space: nowrap">{{r.meta}}</span>
+            </a>
+          </sc-for>
+        </div>
+      </section>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#121417', surface: '#1C1F23', text: '#F2F2F0', muted: '#A3A8AE', border: '#2A2E33', accent: '#FB923C', ok: '#4ADE80', okInk: '#0B1F12', err: '#F87171', eFg: '#FCA5A5', wSoft: '#3A2E0E', wFg: '#FCD34D' }
+      : { bg: '#F5F4F1', surface: '#FFFFFF', text: '#17191C', muted: '#5C6168', border: '#E2E0DB', accent: '#C2410C', ok: '#15803D', okInk: '#FFFFFF', err: '#B91C1C', eFg: '#991B1B', wSoft: '#FEF3C7', wFg: '#78350F' };
+    const line = '1px solid ' + t.border;
+    const tick = 'M5 12l5 5 9-10';
+    const bang = 'M12 5v9M12 19h.01';
+    const rows = (rs) => rs.map(([label, meta, k, href], i) => ({
+      label, meta, href: href || '#', divider: i ? line : '0',
+      dot: k === 'm' ? t.err : t.ok, icon: k === 'm' ? bang : tick,
+      metaColor: k === 'm' ? t.eFg : t.muted, metaWeight: k === 'm' ? '700' : '400'
+    }));
+    return {
+      t,
+      groups: [
+        { title: 'Bodenplatte & Keller', rows: rows([
+          ['Fundamenterder vor Betonieren', '3 Fotos'],
+          ['Kellerabdichtung vor Verfüllen', '5 Fotos'],
+          ['Kellerwand Nord ohne Risse', 'Mangel', 'm', 'IosAbnMaengel.dc.html']
+        ]) },
+        { title: 'Wände & Decken', rows: rows([
+          ['Maße & Lot von Wänden und Öffnungen', '12 Öffnungen', 'ok', 'IosRohbauMasse.dc.html'],
+          ['Mauerwerk vollfugig, ohne Risse', '4 Fotos'],
+          ['Aussparungen für Leitungen & Treppe', '2 Fotos'],
+          ['Stürze & Ringanker fotografiert', '3 Fotos']
+        ]) },
+        { title: 'Nachweise', rows: rows([
+          ['Bewehrungsabnahme durch Statiker', 'Protokoll'],
+          ['Lieferscheine Beton & Steine', '8 PDFs']
+        ]) }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

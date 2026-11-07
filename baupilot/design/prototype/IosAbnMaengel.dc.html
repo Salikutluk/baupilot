@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot iOS – Offene Mängel und Fristen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C2410C}a:hover{color:#9A3412}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Inter, -apple-system, system-ui, sans-serif; overflow: hidden">
+  <div style="padding: 58px 20px 100px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end">
+      <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.6px">Abnahmen</h1>
+      <a href="#" style="font-size: 15px; font-weight: 600; color: {{t.accent}}; text-decoration: none; min-height: 44px; display: flex; align-items: center">Vorlagen</a>
+    </div>
+
+    <div role="tablist" aria-label="Ansicht" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 2px; border-radius: 10px; background: {{t.chip}}">
+      <a href="IosAbnGewerke.dc.html" role="tab" aria-selected="false" style="height: 44px; border-radius: 8px; color: {{t.text}}; font-size: 14px; font-weight: 500; text-decoration: none; display: flex; align-items: center; justify-content: center">Gewerke</a>
+      <button type="button" role="tab" aria-selected="true" style="height: 44px; border: 0; border-radius: 8px; background: {{t.surface}}; color: {{t.text}}; font: inherit; font-size: 14px; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.12)">Offene Mängel (3)</button>
+    </div>
+
+    <sc-for list="{{open}}" as="m" hint-placeholder-count="3">
+      <article style="background: {{t.surface}}; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 8px; border: {{m.border}}">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <span style="font-size: 13px; font-weight: 600; color: {{t.muted}}">{{m.gewerk}}</span>
+          <span style="font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 7px; background: {{m.bg}}; color: {{m.fg}}">{{m.due}}</span>
+        </div>
+        <span style="font-size: 16px; font-weight: 600">{{m.title}}</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: {{t.muted}}">
+          <span>{{m.meta}}</span>
+          <sc-if value="{{m.late}}" hint-placeholder-val="{{ false }}">
+            <span style="display: flex; gap: 8px">
+              <button type="button" style="height: 44px; padding: 0 14px; border-radius: 22px; border: 1px solid {{t.border}}; background: transparent; color: {{t.text}}; font: inherit; font-size: 13px; font-weight: 600">Erinnern</button>
+              <button type="button" style="height: 44px; padding: 0 14px; border-radius: 22px; border: 0; background: {{t.accent}}; color: {{t.onAccent}}; font: inherit; font-size: 13px; font-weight: 600">Behoben?</button>
+            </span>
+          </sc-if>
+        </div>
+      </article>
+    </sc-for>
+
+    <a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; border-radius: 14px; background: {{t.surface}}; color: {{t.text}}; text-decoration: none">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{t.ok}}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+      <span style="flex: 1; font-size: 15px">Behobene Mängel</span>
+      <span style="font-size: 15px; color: {{t.muted}}">3</span>
+      <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{t.muted}}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+    </a>
+  </div>
+
+  <nav aria-label="Hauptnavigation" style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; box-sizing: border-box; padding: 8px 4px 0; background: {{t.bar}}; border-top: 1px solid {{t.border}}; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
+    <sc-for list="{{tabs}}" as="b" hint-placeholder-count="5">
+      <a href="{{b.href}}" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{b.color}}; font-size: 10px; font-weight: 600; min-height: 44px">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{b.icon}}"></path></svg>
+        {{b.label}}
+      </a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#121417', surface: '#1C1F23', text: '#F2F2F0', muted: '#A3A8AE', border: '#30353B', accent: '#FB923C', onAccent: '#1A0E05', chip: '#262A2F', bar: '#17191CF2', ok: '#4ADE80', err: '#F87171', eSoft: '#3B1717', eFg: '#FCA5A5', wSoft: '#3A2E0E', wFg: '#FCD34D' }
+      : { bg: '#F5F4F1', surface: '#FFFFFF', text: '#17191C', muted: '#5C6168', border: '#E2E0DB', accent: '#C2410C', onAccent: '#FFFFFF', chip: '#ECEAE5', bar: '#FFFFFFF2', ok: '#15803D', err: '#DC2626', eSoft: '#FDE7E7', eFg: '#991B1B', wSoft: '#FEF3C7', wFg: '#854D0E' };
+    const late = { bg: t.eSoft, fg: t.eFg, late: true, border: '1.5px solid ' + t.err };
+    const soon = { bg: t.wSoft, fg: t.wFg, late: false, border: '0' };
+    const later = { bg: t.chip, fg: t.muted, late: false, border: '0' };
+    const tab = (label, icon, href, on) => ({ label, icon, href, color: on ? t.accent : t.muted });
+    return {
+      t,
+      open: [
+        { gewerk: 'Rohbau', title: 'Riss in Kellerwand Nord', due: '3 Tage überfällig', meta: 'Frist 15.12.2026', ...late },
+        { gewerk: 'Dachdecker', title: 'Ortgang links nicht verklebt', due: 'noch 21 Tage', meta: 'Frist 08.01.2027 · 2 Fotos', ...soon },
+        { gewerk: 'Fenster & Türen', title: 'F2 · Flügel fällt zu', due: 'noch 28 Tage', meta: 'Frist 15.01.2027 · 2 Fotos', ...later }
+      ],
+      tabs: [
+        tab('Übersicht', 'M3 11l9-7 9 7M5 10v10h14V10', 'IosHome.dc.html', false),
+        tab('Zeitplan', 'M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', 'IosZeitplan.dc.html', false),
+        tab('Abnahmen', 'M9 3h6v4H9zM9 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3M9 14l2 2 4-4', 'IosAbnGewerke.dc.html', true),
+        tab('Dokumente', 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', 'IosDokumente.dc.html', false),
+        tab('Profil', 'M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10z', 'IosProfil.dc.html', false)
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

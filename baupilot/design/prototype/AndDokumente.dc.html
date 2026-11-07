@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Baupilot Android – Dokumente</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9C4300}a:hover{color:#753400}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; box-sizing: border-box; background: {{t.bg}}; color: {{t.text}}; font-family: Roboto, system-ui, sans-serif; overflow: hidden">
+  <div style="padding: 40px 16px 0; display: flex; flex-direction: column; gap: 12px">
+    <label style="height: 56px; box-sizing: border-box; padding: 0 16px; border-radius: 28px; background: {{t.surfaceContainerHigh}}; display: flex; align-items: center; gap: 16px; color: {{t.muted}}">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-4.3-4.3"></path></svg>
+      <input type="search" placeholder="Dokumente durchsuchen" aria-label="Dokumente durchsuchen" style="flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: 16px; color: {{t.text}}; outline: none">
+      <span style="font-size: 13px; color: {{t.muted}}; white-space: nowrap">26</span>
+    </label>
+
+    <div role="tablist" aria-label="Dokumenttyp" style="display: flex; gap: 8px; margin: 0 -16px; padding: 0 16px; overflow: hidden">
+      <sc-for list="{{filters}}" as="f" hint-placeholder-count="5">
+        <button type="button" role="tab" aria-selected="{{f.selected}}" style="height: 32px; box-sizing: border-box; padding: 0 12px; border-radius: 8px; border: {{f.border}}; background: {{f.bg}}; color: {{f.fg}}; font: inherit; font-size: 14px; font-weight: 500; white-space: nowrap; flex-shrink: 0">{{f.text}}</button>
+      </sc-for>
+    </div>
+
+    <a href="#" style="border-radius: 16px; background: {{t.primaryContainer}}; color: {{t.onPrimaryContainer}}; padding: 12px 16px; display: flex; align-items: center; gap: 16px; text-decoration: none">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v6l4 2M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"></path></svg>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 16px; font-weight: 500">Rechnung prüfen &amp; zahlen</span>
+        <span style="font-size: 13px">Fenster &amp; Türen · fällig 22.12.</span>
+      </span>
+      <span style="font-size: 16px; font-weight: 500; white-space: nowrap">18.400 €</span>
+    </a>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: -8px">
+      <h2 style="margin: 0; font-size: 14px; font-weight: 500; color: {{t.primary}}">Zuletzt hinzugefügt</h2>
+      <a href="#" style="min-height: 48px; padding: 0 12px; margin-right: -12px; display: flex; align-items: center; font-size: 14px; font-weight: 500; color: {{t.primary}}; text-decoration: none">Nach Gewerk</a>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column">
+    <sc-for list="{{docs}}" as="d" hint-placeholder-count="5">
+      <a href="{{d.href}}" style="display: flex; align-items: center; gap: 16px; min-height: 72px; padding: 0 16px; text-decoration: none; color: {{t.text}}">
+        <span style="width: 40px; height: 40px; border-radius: 20px; background: {{d.iconBg}}; color: {{d.iconFg}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{d.icon}}"></path></svg>
+        </span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{d.title}}</span>
+          <span style="font-size: 14px; color: {{t.muted}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{d.meta}}</span>
+        </span>
+        <span style="font-size: 14px; font-weight: 500; color: {{d.rightColor}}; white-space: nowrap">{{d.right}}</span>
+      </a>
+    </sc-for>
+  </div>
+
+  <a href="#" style="position: absolute; right: 16px; bottom: 96px; height: 56px; box-sizing: border-box; padding: 0 20px 0 16px; border-radius: 16px; background: {{t.primaryContainer}}; color: {{t.onPrimaryContainer}}; display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 15px; font-weight: 500; box-shadow: 0 3px 8px rgba(0,0,0,0.18)">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+    Hochladen
+  </a>
+
+  <nav aria-label="Hauptnavigation" style="position: absolute; left: 0; right: 0; bottom: 0; height: 80px; box-sizing: border-box; padding-top: 12px; background: {{t.surfaceContainer}}; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
+    <sc-for list="{{tabs}}" as="b" hint-placeholder-count="5">
+      <a href="{{b.href}}" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{b.color}}; font-size: 12px; font-weight: {{b.weight}}">
+        <span style="width: 56px; height: 32px; border-radius: 16px; background: {{b.pill}}; display: flex; align-items: center; justify-content: center">
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{b.icon}}"></path></svg>
+        </span>
+        {{b.label}}
+      </a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const d = this.props.dark ?? false;
+    const t = d
+      ? { bg: '#16130F', text: '#ECE0D8', muted: '#D7C3B8', outline: '#A08D83', primary: '#FFB68E', primaryContainer: '#753400', onPrimaryContainer: '#FFDBCA', secondaryContainer: '#5C4032', onSecondaryContainer: '#FFDBCA', surfaceContainer: '#231F1B', surfaceContainerHigh: '#2E2925', okBg: '#1F3A22', okFg: '#A6F0A6', infoBg: '#1E3150', infoFg: '#C7DBFF', plBg: '#33294A', plFg: '#DCCBFF' }
+      : { bg: '#FFF8F5', text: '#221A15', muted: '#52443C', outline: '#85736A', primary: '#9C4300', primaryContainer: '#FFDBCA', onPrimaryContainer: '#331200', secondaryContainer: '#FFDBCA', onSecondaryContainer: '#2B160B', surfaceContainer: '#F7ECE6', surfaceContainerHigh: '#F1E6DF', okBg: '#D7F5D3', okFg: '#14501C', infoBg: '#DCE6FF', infoFg: '#163C7A', plBg: '#EBE1FF', plFg: '#3D2A73' };
+    const I = {
+      angebot: ['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6', t.infoBg, t.infoFg],
+      vertrag: ['M9 12l2 2 4-4M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z', t.okBg, t.okFg],
+      rechnung: ['M4 2v20l3-2 3 2 3-2 3 2 3-2 1 1V2zM8 8h8M8 12h8M8 16h5', t.secondaryContainer, t.onSecondaryContainer],
+      plan: ['M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3zM9 3v15M15 6v15', t.plBg, t.plFg]
+    };
+    const docs = [
+      ['angebot', 'Angebot Fließestrich Hahn', 'Estrich · 14.12.2026', '10.450 €', 'AndDokViewer.dc.html'],
+      ['angebot', 'Angebot Estrichbau Wagner', 'Estrich · 10.12.2026', '9.800 €', 'AndDokViewer.dc.html'],
+      ['rechnung', '2. Abschlagsrechnung', 'Fenster & Türen · offen', '18.400 €', '#'],
+      ['vertrag', 'Werkvertrag Elektro Schmitt', 'Elektro · unterschrieben 01.12.', '', '#'],
+      ['plan', 'Grundriss Obergeschoss', 'Architekt · Index C · 20.11.', '', '#']
+    ].map(([k, title, meta, right, href]) => ({ title, meta, right, href, icon: I[k][0], iconBg: I[k][1], iconFg: I[k][2], rightColor: k === 'rechnung' ? t.primary : t.text }));
+    const f = (label, n, on) => ({ text: label + ' ' + n, selected: on ? 'true' : 'false', bg: on ? t.secondaryContainer : 'transparent', fg: on ? t.onSecondaryContainer : t.muted, border: on ? '0' : '1px solid ' + t.outline });
+    const tab = (label, icon, href, on) => ({ label, icon, href, color: on ? t.text : t.muted, weight: on ? '700' : '500', pill: on ? t.secondaryContainer : 'transparent' });
+    return {
+      t,
+      docs,
+      filters: [f('Alle', 26, true), f('Angebote', 7), f('Verträge', 3), f('Rechnungen', 4), f('Pläne', 12)],
+      tabs: [
+        tab('Übersicht', 'M3 11l9-7 9 7M5 10v10h14V10', 'AndHome.dc.html', false),
+        tab('Zeitplan', 'M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', 'AndZeitplan.dc.html', false),
+        tab('Abnahmen', 'M9 3h6v4H9zM9 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3M9 14l2 2 4-4', 'AndAbnGewerke.dc.html', false),
+        tab('Dokumente', 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', 'AndDokumente.dc.html', true),
+        tab('Profil', 'M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10z', 'AndProfil.dc.html', false)
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
