@@ -1,6 +1,6 @@
 # Baupilot – Regeln für Claude Code
 
-Plan: siehe docs/implementierungsplan.md (Export des Docs „Baupilot – Implementierungsplan für Claude Code“).
+Plan: docs/implementierungsplan.md (Übersicht) und docs/milestones/M0.md … M8.md (Aufgaben, Screens, Pflicht-Texte, Abnahmekriterien).
 
 ## Spezifikation
 - Quelle der Wahrheit = design/prototype/*.dc.html. Maße aus den Inline-Styles, Inhalte aus renderVals().
