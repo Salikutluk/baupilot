@@ -1,0 +1,3098 @@
+{
+  "meta": {
+    "schemaVersion": 1,
+    "source": "design/prototype @ design-v1",
+    "now": "2026-12-18"
+  },
+  "project": {
+    "id": "musterweg-12",
+    "buildingType": "Einfamilienhaus",
+    "address": "Musterweg 12",
+    "constructionStart": "März 2026",
+    "moveIn": "September 2027",
+    "phase": {
+      "current": 5,
+      "total": 11,
+      "tradeId": "windows",
+      "progressPercent": 45
+    },
+    "unreadNotifications": 2,
+    "owner": {
+      "name": "Max Mustermann",
+      "initials": "MM",
+      "email": "max@beispiel.de",
+      "role": "Bauherr"
+    }
+  },
+  "trades": [
+    {
+      "id": "earthworks",
+      "name": "Erdarbeiten",
+      "phase": 1,
+      "window": {
+        "startMonth": 0,
+        "endMonth": 1.5
+      },
+      "scheduleState": "done",
+      "askNow": false
+    },
+    {
+      "id": "shell",
+      "name": "Rohbau",
+      "phase": 2,
+      "window": {
+        "startMonth": 1.5,
+        "endMonth": 8
+      },
+      "scheduleState": "done",
+      "askNow": false
+    },
+    {
+      "id": "carpentry",
+      "name": "Zimmerer",
+      "phase": 3,
+      "window": {
+        "startMonth": 8,
+        "endMonth": 8.9
+      },
+      "scheduleState": "done",
+      "askNow": false
+    },
+    {
+      "id": "roofing",
+      "name": "Dachdecker",
+      "phase": 4,
+      "window": {
+        "startMonth": 8.8,
+        "endMonth": 9.5
+      },
+      "scheduleState": "done",
+      "askNow": false
+    },
+    {
+      "id": "windows",
+      "name": "Fenster & Türen",
+      "phase": 5,
+      "window": {
+        "startMonth": 9.4,
+        "endMonth": 10
+      },
+      "scheduleState": "running",
+      "askNow": false
+    },
+    {
+      "id": "electrical",
+      "name": "Elektro",
+      "phase": 6,
+      "window": {
+        "startMonth": 10.1,
+        "endMonth": 12
+      },
+      "scheduleState": "planned",
+      "askNow": false
+    },
+    {
+      "id": "plumbing",
+      "name": "Sanitär & Heizung",
+      "phase": 7,
+      "window": {
+        "startMonth": 10.6,
+        "endMonth": 12.2
+      },
+      "scheduleState": "planned",
+      "askNow": false
+    },
+    {
+      "id": "screed",
+      "name": "Estrich",
+      "phase": 8,
+      "window": {
+        "startMonth": 11.6,
+        "endMonth": 13
+      },
+      "scheduleState": "planned",
+      "askNow": true,
+      "weekLabel": "KW 8–9",
+      "statusLabel": "Angebote einholen",
+      "detail": {
+        "phaseLabel": "Phase 8 · Estrich",
+        "facts": [
+          {
+            "label": "Zeitfenster",
+            "value": "KW 8–9"
+          },
+          {
+            "label": "Angebotsfrist",
+            "value": "15.01.2027"
+          },
+          {
+            "label": "Wartet auf",
+            "value": "Installateur"
+          }
+        ],
+        "offersSummary": {
+          "ios": "2 von 3 erhalten",
+          "android": null
+        }
+      }
+    },
+    {
+      "id": "tiles",
+      "name": "Fliesen",
+      "phase": 9,
+      "window": {
+        "startMonth": 12.6,
+        "endMonth": 14
+      },
+      "scheduleState": "planned",
+      "askNow": true
+    },
+    {
+      "id": "painting",
+      "name": "Maler",
+      "phase": 10,
+      "window": {
+        "startMonth": 13.4,
+        "endMonth": 15
+      },
+      "scheduleState": "planned",
+      "askNow": true
+    },
+    {
+      "id": "landscaping",
+      "name": "Außenanlagen",
+      "phase": 11,
+      "window": {
+        "startMonth": 15.5,
+        "endMonth": 18
+      },
+      "scheduleState": "planned",
+      "askNow": false
+    }
+  ],
+  "schedule": {
+    "originLabel": "März 2026",
+    "spanMonths": 19,
+    "todayMonth": 9.6,
+    "axis": [
+      {
+        "month": 0,
+        "label": "Mär 26"
+      },
+      {
+        "month": 4,
+        "label": "Jul"
+      },
+      {
+        "month": 8,
+        "label": "Nov"
+      },
+      {
+        "month": 12,
+        "label": "Mär 27"
+      },
+      {
+        "month": 16,
+        "label": "Jul"
+      }
+    ],
+    "asks": [
+      {
+        "tradeIds": [
+          "screed"
+        ],
+        "name": "Estrich",
+        "sub": "Start KW 8 · Angebote bis 15.01.",
+        "target": "trade/screed"
+      },
+      {
+        "tradeIds": [
+          "tiles",
+          "painting"
+        ],
+        "name": "Fliesen & Maler",
+        "sub": "Start März · jetzt je 3 Angebote einholen",
+        "target": null
+      }
+    ]
+  },
+  "offers": [
+    {
+      "id": "offer-wagner",
+      "tradeId": "screed",
+      "firm": "Estrichbau Wagner",
+      "price": "9.800 €",
+      "best": true,
+      "pending": false,
+      "meta": {
+        "ios": "PDF · eingegangen 10.12.",
+        "android": "PDF · 10.12.2026"
+      },
+      "documentId": "doc-offer-wagner"
+    },
+    {
+      "id": "offer-hahn",
+      "tradeId": "screed",
+      "firm": "Fließestrich Hahn",
+      "price": "10.450 €",
+      "best": false,
+      "pending": false,
+      "meta": {
+        "ios": "PDF · eingegangen 14.12.",
+        "android": "PDF · 14.12.2026"
+      },
+      "documentId": "doc-offer-hahn"
+    },
+    {
+      "id": "offer-lorenz",
+      "tradeId": "screed",
+      "firm": "Bodenbau Lorenz",
+      "price": "Ausstehend",
+      "best": false,
+      "pending": true,
+      "meta": "Angefragt am 05.12."
+    }
+  ],
+  "comparisons": [
+    {
+      "tradeId": "screed",
+      "offerIds": [
+        "offer-wagner",
+        "offer-hahn"
+      ],
+      "columns": [
+        "Estrichbau Wagner",
+        "Fließestrich Hahn"
+      ],
+      "rows": [
+        {
+          "label": "Preis brutto",
+          "a": "9.800 €",
+          "b": "10.450 €",
+          "strong": true
+        },
+        {
+          "label": "Pro m²",
+          "a": "87,50 €",
+          "b": "93,30 €",
+          "strong": true
+        },
+        {
+          "label": "Estrichart",
+          "a": "Zement CT",
+          "b": "Fließ CAF",
+          "strong": false
+        },
+        {
+          "label": "Dicke",
+          "a": "65 mm",
+          "b": "50 mm",
+          "strong": false
+        },
+        {
+          "label": "Aufheizen",
+          "a": "extra",
+          "b": "inklusive",
+          "strong": false
+        },
+        {
+          "label": "Termin",
+          "a": "KW 8",
+          "b": "KW 9",
+          "strong": false
+        },
+        {
+          "label": "Zahlung",
+          "a": "2 Raten",
+          "b": "1 Rate",
+          "strong": false
+        }
+      ],
+      "summary": {
+        "ios": "Hahn enthält das Belegreifheizen (ca. 600 €). Rechnet man es heraus, liegen beide nur rund 50 € auseinander.",
+        "android": "Hahn enthält das Belegreifheizen (ca. 600 €). Ohne diesen Posten liegen beide nur rund 50 € auseinander."
+      },
+      "hint": {
+        "ios": "2 von 3 erhalten · gleiche Fläche 112 m²",
+        "android": "Estrich · 2 von 3 · 112 m²"
+      },
+      "pending": {
+        "ios": "Angefragt am 05.12. · noch kein Angebot",
+        "android": "Angefragt am 05.12. · noch offen"
+      }
+    }
+  ],
+  "documents": {
+    "counts": {
+      "all": 26,
+      "offer": 7,
+      "contract": 3,
+      "invoice": 4,
+      "plan": 12,
+      "trades": 11
+    },
+    "categories": [
+      {
+        "kind": "offer",
+        "label": "Angebote",
+        "count": "7"
+      },
+      {
+        "kind": "contract",
+        "label": "Verträge",
+        "count": "3"
+      },
+      {
+        "kind": "invoice",
+        "label": "Rechnungen",
+        "count": "4"
+      },
+      {
+        "kind": "plan",
+        "label": "Pläne",
+        "count": "12"
+      }
+    ],
+    "items": [
+      {
+        "id": "doc-offer-hahn",
+        "kind": "offer",
+        "tradeId": "screed",
+        "title": "Angebot Fließestrich Hahn",
+        "meta": {
+          "ios": "Estrich · 14.12.",
+          "android": "Estrich · 14.12.2026"
+        },
+        "amount": "10.450 €"
+      },
+      {
+        "id": "doc-offer-wagner",
+        "kind": "offer",
+        "tradeId": "screed",
+        "title": "Angebot Estrichbau Wagner",
+        "meta": {
+          "ios": "Estrich · 10.12.",
+          "android": "Estrich · 10.12.2026"
+        },
+        "amount": "9.800 €",
+        "viewer": {
+          "subtitle": {
+            "ios": "PDF · 2 Seiten · eingegangen 10.12.2026",
+            "android": "PDF · 2 Seiten · 10.12.2026"
+          },
+          "pageLabel": "Vorschau Seite 1 von 2",
+          "pageFooter": {
+            "ios": "Seite 1 von 2",
+            "android": null
+          },
+          "issuer": {
+            "name": "Estrichbau Wagner GmbH",
+            "address": "Industriestraße 4 · 68519 Viernheim"
+          },
+          "number": "Angebot Nr. 2026-118",
+          "reference": "BV Einfamilienhaus Musterweg 12 · gültig bis 31.01.2027",
+          "total": "9.800,00 €",
+          "lines": [
+            {
+              "pos": "1",
+              "text": "Randdämmstreifen 8 mm, liefern & setzen",
+              "sum": "420,00"
+            },
+            {
+              "pos": "2",
+              "text": "PE-Folie als Trennlage",
+              "sum": "310,00"
+            },
+            {
+              "pos": "3",
+              "text": "Zementestrich CT-C25-F4, 65 mm, 112 m²",
+              "sum": "7.150,00"
+            },
+            {
+              "pos": "4",
+              "text": "Bewegungsfugen anlegen",
+              "sum": "355,00"
+            },
+            {
+              "pos": "5",
+              "text": "Baustelleneinrichtung",
+              "sum": "1.565,00"
+            }
+          ],
+          "facts": [
+            {
+              "label": "Gewerk",
+              "value": "Estrich"
+            },
+            {
+              "label": "Typ",
+              "value": "Angebot"
+            },
+            {
+              "label": "Betrag",
+              "value": "9.800 €"
+            }
+          ]
+        }
+      },
+      {
+        "id": "doc-invoice-windows-2",
+        "kind": "invoice",
+        "tradeId": "windows",
+        "title": "2. Abschlagsrechnung",
+        "meta": {
+          "ios": "Fenster & Türen · 08.12. · offen",
+          "android": "Fenster & Türen · offen"
+        },
+        "amount": "18.400 €",
+        "statusLabel": "offen",
+        "due": "22.12."
+      },
+      {
+        "id": "doc-contract-electrical",
+        "kind": "contract",
+        "tradeId": "electrical",
+        "title": "Werkvertrag Elektro Schmitt",
+        "meta": "Elektro · unterschrieben 01.12."
+      },
+      {
+        "id": "doc-plan-floor-og",
+        "kind": "plan",
+        "title": "Grundriss Obergeschoss",
+        "meta": "Architekt · Index C · 20.11."
+      }
+    ]
+  },
+  "inspections": {
+    "overview": {
+      "rows": [
+        {
+          "tradeId": "earthworks",
+          "name": "Erdarbeiten",
+          "sub": {
+            "ios": "9 Prüfschritte · abgenommen 14.04.",
+            "android": "9 Prüfschritte · 14.04."
+          },
+          "status": "accepted",
+          "route": "inspection/earthworks"
+        },
+        {
+          "tradeId": "shell",
+          "name": "Rohbau",
+          "sub": "9 Prüfschritte · 1 Mangel offen",
+          "status": "reserved",
+          "route": "inspection/shell"
+        },
+        {
+          "tradeId": "carpentry",
+          "name": "Zimmerer",
+          "sub": {
+            "ios": "8 Prüfschritte · abgenommen 27.11.",
+            "android": "8 Prüfschritte · 27.11."
+          },
+          "status": "accepted",
+          "route": "inspection/carpentry"
+        },
+        {
+          "tradeId": "roofing",
+          "name": "Dachdecker",
+          "sub": "8 Prüfschritte · 1 Mangel offen",
+          "status": "reserved",
+          "route": null
+        },
+        {
+          "tradeId": "windows",
+          "name": "Fenster & Türen",
+          "sub": {
+            "ios": "6 Prüfschritte je Element · 7 von 12",
+            "android": "6 Schritte je Element · 7 / 12"
+          },
+          "status": "today",
+          "route": "inspection/windows"
+        },
+        {
+          "tradeId": "electrical",
+          "name": "Elektro",
+          "sub": "10 Prüfschritte · KW 3",
+          "status": "planned",
+          "route": "inspection/electrical"
+        },
+        {
+          "tradeId": "plumbing",
+          "name": "Sanitär & Heizung",
+          "sub": "11 Prüfschritte · KW 5",
+          "status": "planned",
+          "route": "inspection/plumbing"
+        },
+        {
+          "tradeId": "screed",
+          "name": "Estrich",
+          "sub": "6 Prüfschritte · KW 8",
+          "status": "planned",
+          "route": "inspection/screed"
+        },
+        {
+          "tradeId": "tiles",
+          "name": "Fliesen",
+          "sub": {
+            "ios": "6 Prüfschritte je Raum · KW 12",
+            "android": "6 Schritte je Raum · KW 12"
+          },
+          "status": "planned",
+          "route": "inspection/tiles"
+        },
+        {
+          "tradeId": "painting",
+          "name": "Maler",
+          "sub": {
+            "ios": "5 Prüfschritte je Raum · KW 15",
+            "android": "5 Schritte je Raum · KW 15"
+          },
+          "status": "planned",
+          "route": "inspection/painting"
+        }
+      ],
+      "statusLabels": {
+        "accepted": "Abgenommen",
+        "reserved": {
+          "ios": "Mit Vorbehalt",
+          "android": "Vorbehalt"
+        },
+        "today": "Heute",
+        "planned": "Geplant",
+        "ok": "In Ordnung",
+        "defect": "Mangel",
+        "now": "Jetzt",
+        "open": "Offen"
+      }
+    },
+    "byTrade": {
+      "earthworks": {
+        "title": "Erdarbeiten",
+        "subtitle": "Tiefbau Schäfer · Baugrube & Gründung",
+        "banner": {
+          "title": "Abgenommen am 14.04.2026",
+          "text": "Unterschrieben · keine Mängel",
+          "documentLabel": "PDF"
+        },
+        "groups": [
+          {
+            "title": "Absteckung",
+            "rows": [
+              {
+                "label": "Schnurgerüst vom Vermesser",
+                "meta": "Protokoll"
+              },
+              {
+                "label": "Gebäudeecken & Höhe laut Lageplan",
+                "meta": "2 Fotos"
+              }
+            ]
+          },
+          {
+            "title": "Baugrube",
+            "rows": [
+              {
+                "label": "Tiefe laut Plan",
+                "meta": "3 Fotos"
+              },
+              {
+                "label": "Böschung bzw. Verbau standsicher",
+                "meta": "2 Fotos"
+              },
+              {
+                "label": "Boden wie im Bodengutachten",
+                "meta": "Gutachten"
+              },
+              {
+                "label": "Kein stehendes Wasser",
+                "meta": "1 Foto"
+              }
+            ]
+          },
+          {
+            "title": "Leitungen & Verfüllung",
+            "rows": [
+              {
+                "label": "Grundleitungen & Drainage fotografiert",
+                "meta": "6 Fotos"
+              },
+              {
+                "label": "Verfüllung lagenweise verdichtet",
+                "meta": "Protokoll"
+              },
+              {
+                "label": {
+                  "ios": "Mutterboden gesichert, Aushub abgefahren",
+                  "android": "Mutterboden gesichert"
+                },
+                "meta": "1 Foto"
+              }
+            ]
+          }
+        ]
+      },
+      "shell": {
+        "title": "Rohbau",
+        "subtitle": "Bauunternehmung Keller · Keller, EG, OG",
+        "banner": {
+          "title": "Abgenommen mit Vorbehalt",
+          "text": "1 Mangel offen · Frist 15.12.2026"
+        },
+        "groups": [
+          {
+            "title": "Bodenplatte & Keller",
+            "rows": [
+              {
+                "label": "Fundamenterder vor Betonieren",
+                "meta": "3 Fotos",
+                "route": null
+              },
+              {
+                "label": "Kellerabdichtung vor Verfüllen",
+                "meta": "5 Fotos",
+                "route": null
+              },
+              {
+                "label": "Kellerwand Nord ohne Risse",
+                "meta": "Mangel",
+                "route": "defects"
+              }
+            ]
+          },
+          {
+            "title": "Wände & Decken",
+            "rows": [
+              {
+                "label": {
+                  "ios": "Maße & Lot von Wänden und Öffnungen",
+                  "android": "Maße & Lot, Öffnungen"
+                },
+                "meta": "12 Öffnungen",
+                "route": "inspection/shell/measure"
+              },
+              {
+                "label": "Mauerwerk vollfugig, ohne Risse",
+                "meta": "4 Fotos",
+                "route": null
+              },
+              {
+                "label": {
+                  "ios": "Aussparungen für Leitungen & Treppe",
+                  "android": "Aussparungen Leitungen & Treppe"
+                },
+                "meta": "2 Fotos",
+                "route": null
+              },
+              {
+                "label": "Stürze & Ringanker fotografiert",
+                "meta": "3 Fotos",
+                "route": null
+              }
+            ]
+          },
+          {
+            "title": "Nachweise",
+            "rows": [
+              {
+                "label": {
+                  "ios": "Bewehrungsabnahme durch Statiker",
+                  "android": "Bewehrungsabnahme Statiker"
+                },
+                "meta": "Protokoll",
+                "route": null
+              },
+              {
+                "label": "Lieferscheine Beton & Steine",
+                "meta": "8 PDFs",
+                "route": null
+              }
+            ]
+          }
+        ],
+        "checks": {
+          "measure": {
+            "screen": "RohbauMasse",
+            "kind": "measurement",
+            "measurementKey": "shellOpening",
+            "counter": {
+              "ios": "Öffnung 8 von 12",
+              "android": "8 / 12"
+            },
+            "title": "Fensteröffnung F8"
+          }
+        }
+      },
+      "carpentry": {
+        "title": "Zimmerer",
+        "subtitle": {
+          "ios": "Holzbau Becker · Dachstuhl Satteldach 38°",
+          "android": "Holzbau Becker · Satteldach 38°"
+        },
+        "banner": {
+          "title": "Abgenommen am 27.11.2026",
+          "text": "Unterschrieben · keine Mängel",
+          "documentLabel": "PDF"
+        },
+        "groups": [
+          {
+            "title": "Holz & Lieferung",
+            "rows": [
+              {
+                "label": "Holzart & Güte laut Lieferschein",
+                "meta": "PDF"
+              },
+              {
+                "label": "Holz trocken, ohne Risse & Schimmel",
+                "meta": "4 Fotos"
+              }
+            ]
+          },
+          {
+            "title": "Konstruktion",
+            "rows": [
+              {
+                "label": "Dachneigung laut Plan",
+                "meta": "38,2°"
+              },
+              {
+                "label": "Firsthöhe laut Plan",
+                "meta": "9,12 m"
+              },
+              {
+                "label": "Dachüberstand Traufe & Ortgang",
+                "meta": "3 Fotos"
+              },
+              {
+                "label": "Anker & Schrauben vollständig",
+                "meta": "6 Fotos"
+              }
+            ]
+          },
+          {
+            "title": "Vorbereitung Dachdecker",
+            "rows": [
+              {
+                "label": "Unterdeckbahn dicht, Stöße überlappt",
+                "meta": "4 Fotos"
+              },
+              {
+                "label": "Konter- & Dachlattung gleichmäßig",
+                "meta": "2 Fotos"
+              }
+            ]
+          }
+        ]
+      },
+      "windows": {
+        "title": "Fenster & Türen",
+        "subtitle": {
+          "ios": "Fensterbau Weber GmbH · Fr, 18.12.2026",
+          "android": "Fensterbau Weber GmbH · 18.12.2026"
+        },
+        "groups": [],
+        "checks": {
+          "elements": {
+            "screen": "AbnElemente",
+            "kind": "grid",
+            "counter": {
+              "ios": "7 von 12 Elementen geprüft",
+              "android": "7 von 12 geprüft"
+            },
+            "title": "Fenster & Türen",
+            "subtitle": {
+              "ios": "Fensterbau Weber GmbH · Fr, 18.12.2026",
+              "android": "Fensterbau Weber GmbH · 18.12.2026"
+            },
+            "progress": [
+              "ok",
+              "defect",
+              "ok",
+              "ok",
+              "ok",
+              "ok",
+              "ok",
+              "open",
+              "open",
+              "open",
+              "open",
+              "open"
+            ],
+            "summary": [
+              {
+                "status": "ok",
+                "label": {
+                  "ios": "6 in Ordnung",
+                  "android": null
+                }
+              },
+              {
+                "status": "defect",
+                "label": {
+                  "ios": "1 Mangel",
+                  "android": "Mängel 1"
+                }
+              },
+              {
+                "status": "open",
+                "label": {
+                  "ios": "5 offen",
+                  "android": "Offen 5"
+                }
+              }
+            ],
+            "allLabel": {
+              "ios": null,
+              "android": "Alle 12"
+            },
+            "guide": {
+              "ios": null,
+              "android": "6 Schritte je Element"
+            },
+            "nextLabel": {
+              "ios": "Weiter prüfen: F8 · Schlafen",
+              "android": "Weiter: F8 · Schlafen"
+            },
+            "floors": [
+              {
+                "title": "Erdgeschoss",
+                "more": "Alle 6",
+                "items": [
+                  {
+                    "id": "F1",
+                    "room": "Wohnen",
+                    "type": "Hebe-Schiebe-Tür",
+                    "label": "In Ordnung",
+                    "status": "ok",
+                    "route": null
+                  },
+                  {
+                    "id": "F2",
+                    "room": "Wohnen",
+                    "type": "Dreh-Kipp, 1-flügelig",
+                    "label": "1 Mangel",
+                    "status": "defect",
+                    "route": "defect/new"
+                  },
+                  {
+                    "id": "F3",
+                    "room": "Küche",
+                    "type": "Dreh-Kipp, 1-flügelig",
+                    "label": "In Ordnung",
+                    "status": "ok",
+                    "route": null
+                  }
+                ]
+              },
+              {
+                "title": "Obergeschoss",
+                "more": "Alle 6",
+                "items": [
+                  {
+                    "id": "F7",
+                    "room": "Kind 1",
+                    "type": "Dreh-Kipp, 1-flügelig",
+                    "label": "In Ordnung",
+                    "status": "ok",
+                    "route": null
+                  },
+                  {
+                    "id": "F8",
+                    "room": "Schlafen",
+                    "type": "Dreh-Kipp, 1-flügelig",
+                    "label": "Schritt 3/6",
+                    "status": "now",
+                    "route": "inspection/windows/F8/step/3"
+                  },
+                  {
+                    "id": "F9",
+                    "room": "Bad",
+                    "type": "Kipp, Ornamentglas",
+                    "label": "Offen",
+                    "status": "open",
+                    "route": null
+                  }
+                ]
+              }
+            ]
+          },
+          "stepF8": {
+            "screen": "AbnPruefung",
+            "kind": "step",
+            "counter": {
+              "ios": "Schritt 3 von 6",
+              "android": "3 / 6"
+            },
+            "title": "F8 · Schlafen",
+            "subtitle": {
+              "ios": "Obergeschoss · Dreh-Kipp-Fenster, 1-flügelig",
+              "android": "OG · Dreh-Kipp-Fenster, 1-flügelig"
+            },
+            "done": [
+              {
+                "label": "Drehstellung: Flügel bleibt stehen",
+                "meta": {
+                  "ios": "1 Foto",
+                  "android": "In Ordnung · 1 Foto"
+                }
+              },
+              {
+                "label": "Kippstellung: Flügel hält Position",
+                "meta": {
+                  "ios": "1 Foto",
+                  "android": "In Ordnung · 1 Foto"
+                }
+              }
+            ],
+            "current": {
+              "n": "3",
+              "title": "Sitzt das Fenster im Wasser?",
+              "text": "Wasserwaage oben und seitlich an den Rahmen halten – die Blase muss jeweils mittig stehen.",
+              "photos": [
+                "Foto oben",
+                "Foto seitlich"
+              ]
+            },
+            "next": [
+              {
+                "n": "4",
+                "label": {
+                  "ios": "Schließen & Verriegeln, Griff leichtgängig",
+                  "android": "Schließen & Verriegeln"
+                }
+              },
+              {
+                "n": "5",
+                "label": {
+                  "ios": "Glas, Rahmen & Beschläge unbeschädigt",
+                  "android": "Glas, Rahmen & Beschläge"
+                }
+              },
+              {
+                "n": "6",
+                "label": {
+                  "ios": "Anschlussfugen & Fensterbank dicht",
+                  "android": "Anschlussfugen & Fensterbank"
+                }
+              }
+            ]
+          },
+          "defectF2": {
+            "screen": "AbnMangel",
+            "kind": "form",
+            "context": "F2 · Wohnen · Schritt 1",
+            "title": "Drehstellung: Flügel bleibt nicht stehen",
+            "description": "Flügel fällt ab ca. 45° Öffnung selbstständig wieder zu.",
+            "photosLabel": "Fotos (2)",
+            "photos": [
+              "Foto 1",
+              "Foto 2"
+            ],
+            "severity": {
+              "options": [
+                "Gering",
+                "Mittel",
+                "Erheblich"
+              ],
+              "selected": "Mittel"
+            },
+            "deadlineLabel": {
+              "ios": "Fr, 15.01.2027",
+              "android": "15.01.2027"
+            },
+            "deadlineOptions": [
+              "+ 14 Tage",
+              "+ 4 Wochen",
+              {
+                "ios": "Eigenes Datum",
+                "android": "+ 6 Wochen"
+              }
+            ],
+            "responsible": "Fensterbau Weber GmbH",
+            "notify": {
+              "label": "Handwerker per E-Mail informieren",
+              "enabled": true
+            }
+          },
+          "signature": {
+            "screen": "AbnSignatur",
+            "kind": "signature",
+            "title": "Abnahme abschließen",
+            "subtitle": {
+              "ios": "Fr, 18.12.2026 · Musterweg 12",
+              "android": "Fenster & Türen · 18.12.2026"
+            },
+            "stats": [
+              {
+                "n": "12",
+                "label": "geprüft"
+              },
+              {
+                "n": "11",
+                "label": "in Ordnung"
+              },
+              {
+                "n": "1",
+                "label": "Mangel"
+              }
+            ],
+            "defects": [
+              {
+                "title": "F2 · Flügel fällt zu",
+                "meta": "Mittel · 2 Fotos",
+                "due": "15.01."
+              }
+            ],
+            "reservation": "Die Abnahme erfolgt unter Vorbehalt der aufgeführten Mängel und Fristen.",
+            "craftsman": {
+              "name": "Fensterbau Weber",
+              "signed": "Unterschrieben 14:32"
+            },
+            "owner": {
+              "ios": "Max Mustermann",
+              "android": "Bauherr · Max Mustermann"
+            },
+            "note": "PDF mit Fotos geht an Sie und den Handwerker"
+          }
+        }
+      },
+      "electrical": {
+        "title": "Elektro",
+        "subtitle": {
+          "ios": "Elektro Schmitt GmbH · Mo, 26.04.2027",
+          "android": "Elektro Schmitt GmbH · 26.04.2027"
+        },
+        "phases": [
+          {
+            "title": "1 · Rohinstallation",
+            "statusLabel": {
+              "ios": "Abgenommen",
+              "android": "Abgenommen 29.01."
+            },
+            "dateLabel": {
+              "ios": "am 29.01.2027",
+              "android": null
+            }
+          },
+          {
+            "title": "2 · Fertiginstallation",
+            "progressLabel": "4 von 11 geprüft"
+          }
+        ],
+        "groups": [
+          {
+            "title": "Haustechnik",
+            "rows": [
+              {
+                "name": "Zählerschrank & FI-Test",
+                "sub": "5 Prüfschritte",
+                "route": "inspection/electrical/panel",
+                "statusLabel": "Offen"
+              },
+              {
+                "name": "Rauchwarnmelder",
+                "sub": "3 von 5 getestet",
+                "route": "inspection/electrical/smoke",
+                "statusLabel": "Läuft"
+              }
+            ]
+          },
+          {
+            "title": {
+              "ios": "Räume",
+              "android": "Räume (9)"
+            },
+            "more": {
+              "ios": "Alle 9",
+              "android": null
+            },
+            "rows": [
+              {
+                "name": "Küche",
+                "sub": "EG · Schritt 2 von 5",
+                "route": "inspection/electrical/room/kitchen",
+                "statusLabel": "Läuft"
+              },
+              {
+                "name": "Wohnen / Essen",
+                "sub": "EG · 14 Steckdosen, 4 Licht",
+                "route": null,
+                "statusLabel": "In Ordnung"
+              },
+              {
+                "name": "Bad",
+                "sub": "OG · 4 Steckdosen, 3 Auslässe",
+                "route": null,
+                "statusLabel": "Offen"
+              }
+            ]
+          },
+          {
+            "title": "Dokumente vom Elektriker",
+            "rows": [
+              {
+                "name": "Prüfprotokoll VDE 0100-600",
+                "sub": "Pflicht vor Abnahme · anfordern",
+                "route": null,
+                "statusLabel": "Fehlt"
+              },
+              {
+                "name": "Verteilerplan & Stromkreisliste",
+                "sub": "PDF · 20.04.2027",
+                "route": null,
+                "statusLabel": "Vorhanden"
+              }
+            ]
+          }
+        ],
+        "checks": {
+          "kitchen": {
+            "screen": "ElRaum",
+            "kind": "step",
+            "counter": {
+              "ios": "Schritt 2 von 5",
+              "android": "2 / 5"
+            },
+            "title": "Küche",
+            "subtitle": {
+              "ios": "EG · laut Elektroplan: 8 Steckdosen, 3 Auslässe, 3 Geräteanschlüsse",
+              "android": "EG · Plan: 8 Steckdosen, 3 Auslässe"
+            },
+            "done": [
+              {
+                "label": "Anzahl & Position laut Plan",
+                "meta": {
+                  "ios": "8 / 8",
+                  "android": "8 von 8 Steckdosen vorhanden"
+                }
+              }
+            ],
+            "current": {
+              "n": "2",
+              "title": "Jede Steckdose testen",
+              "text": "Steckdosentester einstecken. Zeigt er „korrekt“, ist die Dose richtig angeschlossen. Dosen nicht öffnen – nur einstecken und ablesen."
+            },
+            "next": [
+              {
+                "n": "3",
+                "label": {
+                  "ios": "Jeder Schalter schaltet das richtige Licht",
+                  "android": "Schalter schalten das richtige Licht"
+                }
+              },
+              {
+                "n": "4",
+                "label": {
+                  "ios": "Herd, Spülmaschine & Dunstabzug angeschlossen",
+                  "android": "Herd, Spülmaschine & Dunstabzug"
+                }
+              },
+              {
+                "n": "5",
+                "label": "Abdeckungen gerade, keine offenen Dosen"
+              }
+            ],
+            "sockets": [
+              {
+                "id": "S1",
+                "label": "korrekt",
+                "status": "ok",
+                "aria": "Steckdose S1: korrekt"
+              },
+              {
+                "id": "S2",
+                "label": "korrekt",
+                "status": "ok",
+                "aria": "Steckdose S2: korrekt"
+              },
+              {
+                "id": "S3",
+                "label": "korrekt",
+                "status": "ok",
+                "aria": "Steckdose S3: korrekt"
+              },
+              {
+                "id": "S4",
+                "label": "Fehler",
+                "status": "defect",
+                "aria": "Steckdose S4: Fehler"
+              },
+              {
+                "id": "S5",
+                "label": "korrekt",
+                "status": "ok",
+                "aria": "Steckdose S5: korrekt"
+              },
+              {
+                "id": "S6",
+                "label": "jetzt",
+                "status": "now",
+                "aria": "Steckdose S6: jetzt"
+              },
+              {
+                "id": "S7",
+                "label": "offen",
+                "status": "open",
+                "aria": "Steckdose S7: offen"
+              },
+              {
+                "id": "S8",
+                "label": "offen",
+                "status": "open",
+                "aria": "Steckdose S8: offen"
+              }
+            ],
+            "progress": {
+              "ios": "5 von 8 getestet",
+              "android": "5 von 8 getestet ·"
+            },
+            "defectNote": "S4: Mangel erfasst",
+            "okNote": "S6 in Ordnung"
+          },
+          "panel": {
+            "screen": "ElVerteiler",
+            "kind": "step",
+            "counter": {
+              "ios": "Schritt 3 von 5",
+              "android": "3 / 5"
+            },
+            "title": "Zählerschrank",
+            "subtitle": "Nur von außen prüfen. Keine Abdeckungen abschrauben – das macht der Elektriker.",
+            "done": [
+              {
+                "label": "Abdeckungen vollständig",
+                "meta": "1 Foto"
+              },
+              {
+                "label": "Jede Sicherung beschriftet",
+                "meta": "2 Fotos"
+              }
+            ],
+            "current": {
+              "n": "3",
+              "title": "FI-Schutzschalter testen",
+              "text": "Prüftaste „T“ am FI-Schalter drücken.",
+              "steps": [
+                "Der Hebel muss sofort nach unten springen.",
+                "Hebel wieder nach oben – Strom ist zurück."
+              ],
+              "outcomes": [
+                "Löst nicht aus",
+                "FI 2 ausgelöst"
+              ]
+            },
+            "next": [
+              {
+                "n": "4",
+                "label": "Überspannungsschutz vorhanden"
+              },
+              {
+                "n": "5",
+                "label": "Prüfprotokoll VDE 0100-600 erhalten",
+                "tag": "Pflicht"
+              }
+            ],
+            "fis": [
+              {
+                "name": "FI 1 · Erdgeschoss",
+                "sub": "Küche, Wohnen, Gäste-WC, Außen",
+                "statusLabel": "Ausgelöst"
+              },
+              {
+                "name": "FI 2 · Obergeschoss",
+                "sub": "Schlafen, Kinder, Bad",
+                "statusLabel": "Jetzt testen"
+              }
+            ]
+          },
+          "smoke": {
+            "screen": "ElRauchmelder",
+            "kind": "step",
+            "counter": {
+              "ios": "3 von 5",
+              "android": "3 / 5"
+            },
+            "title": "Rauchwarnmelder",
+            "subtitle": "Pflicht in Schlaf- und Kinderzimmern und in Fluren, die als Fluchtweg dienen.",
+            "rooms": [
+              {
+                "name": "Schlafen",
+                "statusLabel": "Getestet"
+              },
+              {
+                "name": "Kind 1",
+                "statusLabel": "Getestet"
+              },
+              {
+                "name": "Kind 2",
+                "statusLabel": "Getestet"
+              },
+              {
+                "name": "Flur OG",
+                "statusLabel": "Jetzt"
+              },
+              {
+                "name": "Flur EG",
+                "statusLabel": "Offen"
+              }
+            ],
+            "checks": [
+              {
+                "label": "Melder an der Decke montiert",
+                "hint": "Mittig im Flur, mind. 50 cm Abstand zu Wand und Lampe."
+              },
+              {
+                "label": "Testknopf drücken",
+                "hint": "Ca. 3 Sekunden halten – der Melder muss laut piepen."
+              }
+            ],
+            "current": {
+              "room": "Flur OG",
+              "title": "Jetzt prüfen",
+              "outcomes": [
+                "Kein Piepton",
+                "Piept – OK"
+              ]
+            },
+            "reminder": "Jährlich an Test erinnern",
+            "battery": "Batterien laut Hersteller bis 2037"
+          }
+        }
+      },
+      "plumbing": {
+        "title": "Sanitär & Heizung",
+        "subtitle": {
+          "ios": "Haustechnik Becker GmbH · Do, 04.02.2027",
+          "android": "Haustechnik Becker GmbH · 04.02.2027"
+        },
+        "phases": [
+          {
+            "title": "1 · Rohinstallation",
+            "progressLabel": "3 von 6 geprüft"
+          },
+          {
+            "title": "2 · Fertigmontage",
+            "statusLabel": "Geplant KW 14"
+          }
+        ],
+        "groups": [
+          {
+            "title": "Leitungen – vor dem Verschließen",
+            "rows": [
+              {
+                "name": "Gefälle Abwasser",
+                "sub": {
+                  "ios": "4 Abschnitte · 2 geprüft, 1 Mangel",
+                  "android": "4 Abschnitte · 2 geprüft"
+                },
+                "route": "inspection/plumbing/slope/A3",
+                "statusLabel": "1 Mangel"
+              },
+              {
+                "name": "Druckprobe Trinkwasser",
+                "sub": "Mit Installateur · 10:00 Uhr",
+                "route": "inspection/plumbing/pressure",
+                "statusLabel": "Heute"
+              },
+              {
+                "name": "Dämmung Warmwasser",
+                "sub": "Sichtprüfung · 2 Fotos",
+                "route": null,
+                "statusLabel": "In Ordnung"
+              }
+            ]
+          },
+          {
+            "title": "Heizung",
+            "rows": [
+              {
+                "name": "Fußbodenheizung",
+                "sub": "Druckprobe 6 Heizkreise",
+                "route": null,
+                "statusLabel": "In Ordnung"
+              },
+              {
+                "name": "Wärmepumpe & Verteiler",
+                "sub": "Hydraulischer Abgleich",
+                "route": null,
+                "statusLabel": "Geplant"
+              }
+            ]
+          },
+          {
+            "title": "Bäder & Küche",
+            "rows": [
+              {
+                "name": "Bad OG",
+                "sub": "Fertigmontage · 5 Objekte",
+                "route": "inspection/plumbing/room/bathUpper",
+                "statusLabel": "Geplant"
+              },
+              {
+                "name": "Gäste-WC & Küche",
+                "sub": "Fertigmontage · 4 Objekte",
+                "route": null,
+                "statusLabel": "Geplant"
+              }
+            ]
+          }
+        ],
+        "checks": {
+          "pressure": {
+            "screen": "SanDruck",
+            "kind": "step",
+            "counter": {
+              "ios": "Schritt 3 von 5",
+              "android": "3 / 5"
+            },
+            "title": "Druckprobe Trinkwasser",
+            "subtitle": {
+              "ios": "Gemeinsam mit dem Installateur · vor dem Verschließen",
+              "android": "Mit Installateur · vor dem Verschließen"
+            },
+            "done": [
+              {
+                "label": "Leitungen sichtbar & beschriftet",
+                "meta": "3 Fotos"
+              },
+              {
+                "label": "Manometer zu Beginn",
+                "meta": "10,0 bar"
+              }
+            ],
+            "current": {
+              "n": "3",
+              "title": "Manometer am Ende ablesen"
+            },
+            "timer": {
+              "progressLabel": "Prüfzeit zu 58 Prozent abgelaufen",
+              "remaining": "12:40",
+              "remainingLabel": "Noch 12:40 Min. Prüfzeit",
+              "note": "Prüfdruck und Dauer legt der Installateur fest.",
+              "start": {
+                "label": "Start (10:02)",
+                "value": "10,0 bar"
+              },
+              "end": {
+                "label": "Ende",
+                "value": "– bar"
+              }
+            },
+            "next": [
+              {
+                "n": "4",
+                "label": "Alle Verbindungen trocken"
+              },
+              {
+                "n": "5",
+                "label": "Druckprüfprotokoll unterschrieben",
+                "tag": "Pflicht"
+              }
+            ]
+          },
+          "bathUpper": {
+            "screen": "SanBad",
+            "kind": "step",
+            "counter": {
+              "ios": "5 Objekte · 1 von 5 geprüft",
+              "android": "Fertigmontage · 1 von 5 Objekten"
+            },
+            "title": "Bad OG",
+            "subtitle": {
+              "ios": "Fertigmontage",
+              "android": null
+            },
+            "objects": [
+              {
+                "name": "WC",
+                "done": true,
+                "selected": false
+              },
+              {
+                "name": "Waschtisch",
+                "done": false,
+                "selected": true
+              },
+              {
+                "name": "Dusche",
+                "done": false,
+                "selected": false
+              },
+              {
+                "name": "Heizkörper",
+                "done": false,
+                "selected": false
+              },
+              {
+                "name": "Lüfter",
+                "done": false,
+                "selected": false
+              }
+            ],
+            "checks": [
+              {
+                "label": "Warm links, kalt rechts",
+                "hint": "Hebel ganz nach links: Wasser wird warm.",
+                "ok": true
+              },
+              {
+                "label": "Wasser läuft zügig ab",
+                "hint": "Becken voll laufen lassen, Stopfen ziehen.",
+                "ok": true
+              },
+              {
+                "label": "Siphon & Anschlüsse trocken",
+                "hint": {
+                  "ios": "Mit Papiertuch unten abwischen – muss trocken bleiben.",
+                  "android": "Mit Papiertuch unten abwischen."
+                },
+                "ok": false
+              },
+              {
+                "label": "Armatur fest, kein Tropfen",
+                "hint": "Nach dem Zudrehen 1 Minute beobachten.",
+                "ok": false
+              },
+              {
+                "label": "Silikonfuge geschlossen",
+                "hint": "Zwischen Becken und Wand ohne Lücken.",
+                "ok": false
+              }
+            ],
+            "nextHint": "Als Nächstes Dusche: 2 Minuten voll aufdrehen – der Ablauf muss alles schlucken, kein Wasser darf stehen bleiben."
+          },
+          "slope": {
+            "screen": "SanGefaelle",
+            "kind": "measurement",
+            "measurementKey": "drainSlope",
+            "counter": {
+              "ios": "Abschnitt 3 von 4",
+              "android": "3 / 4"
+            },
+            "title": "Gefälle Abwasser",
+            "subtitle": "A3 · Bad OG → Fallleitung · DN 50",
+            "hint": "Digitale Wasserwaage aufs Rohr legen und Prozent ablesen – oder Höhe am Anfang und Ende messen und hier eintragen.",
+            "warning": "Jetzt prüfen: Nach Estrich und Verkleidung lässt sich fehlendes Gefälle kaum noch korrigieren."
+          }
+        }
+      },
+      "screed": {
+        "title": "Estrich",
+        "subtitle": {
+          "ios": "Estrichbau Wagner · Mo, 22.02.2027",
+          "android": "Estrichbau Wagner · 22.02.2027"
+        },
+        "banner": {
+          "text": "Ohne CM-Messung und Aufheizprotokoll keinen Boden verlegen lassen."
+        },
+        "phases": [
+          {
+            "title": "1 · Nach dem Einbau",
+            "progressLabel": "3 von 4 geprüft"
+          },
+          {
+            "title": "2 · Belegreife",
+            "statusLabel": "Aufheizen ab 01.03."
+          }
+        ],
+        "groups": [
+          {
+            "title": "Direkt nach dem Einbau",
+            "rows": [
+              {
+                "name": "Höhe zum Meterriss",
+                "sub": "7 Räume · alle auf Sollhöhe",
+                "route": null,
+                "statusLabel": "In Ordnung"
+              },
+              {
+                "name": "Randdämmstreifen",
+                "sub": "An allen Wänden & Pfosten",
+                "route": null,
+                "statusLabel": "In Ordnung"
+              },
+              {
+                "name": "Ebenheit",
+                "sub": "2-m-Richtlatte · 4 von 7 Räumen",
+                "route": "inspection/screed/flatness",
+                "statusLabel": "1 Mangel"
+              },
+              {
+                "name": "Risse & Hohlstellen",
+                "sub": "Abklopfen, Ränder ansehen",
+                "route": null,
+                "statusLabel": "Offen"
+              }
+            ]
+          },
+          {
+            "title": "Trocknung & Belegreife",
+            "rows": [
+              {
+                "name": "Aufheizprotokoll",
+                "sub": "Fußbodenheizung · ab 01.03.",
+                "route": "inspection/screed/readiness",
+                "statusLabel": "Offen"
+              },
+              {
+                "name": "CM-Messung",
+                "sub": {
+                  "ios": "Durch den Bodenleger · vor Verlegung",
+                  "android": "Durch den Bodenleger"
+                },
+                "route": "inspection/screed/readiness",
+                "statusLabel": "Pflicht"
+              }
+            ]
+          }
+        ],
+        "checks": {
+          "readiness": {
+            "screen": "EsBelegreife",
+            "kind": "step",
+            "counter": "Tag 6 von 21",
+            "title": "Aufheizprotokoll",
+            "subtitle": "Plan vom Heizungsbauer. Täglich Vorlauftemperatur am Verteiler ablesen und fotografieren.",
+            "measurementKey": "screedHeating",
+            "chart": {
+              "label": "Vorlauftemperatur je Tag, Tag 1 bis 5 erfasst, heute Tag 6",
+              "start": "Tag 1",
+              "max": "Max. 45 °C",
+              "end": "Tag 21",
+              "today": "Heute laut Plan",
+              "plan": "35 °C Vorlauf",
+              "action": "Tag 6 eintragen"
+            },
+            "cmTitle": "CM-Messung",
+            "cmTag": "Pflicht",
+            "cmText": "Der Bodenleger misst die Restfeuchte, bevor er verlegt. Ergebnis und Grenzwert lassen Sie hier eintragen.",
+            "cmNote": "Bodenbelag erst nach Freigabe",
+            "cm": [
+              {
+                "label": "Messstellen markiert",
+                "meta": "wegen Fußbodenheizung",
+                "done": true
+              },
+              {
+                "label": "Messung durchgeführt",
+                "meta": "geplant 19.03.",
+                "done": false
+              },
+              {
+                "label": "Ergebnis unter Grenzwert",
+                "meta": "– CM-%",
+                "done": false
+              }
+            ]
+          },
+          "flatness": {
+            "screen": "EsEbenheit",
+            "kind": "measurement",
+            "measurementKey": "screedFlatness",
+            "counter": {
+              "ios": "Raum 5 von 7",
+              "android": "5 / 7"
+            },
+            "title": "Ebenheit · Wohnen"
+          }
+        }
+      },
+      "tiles": {
+        "title": "Fliesen",
+        "subtitle": {
+          "ios": "Fliesen Krause · Mo, 22.03.2027",
+          "android": "Fliesen Krause · 22.03.2027"
+        },
+        "phases": [
+          {
+            "title": "1 · Abdichtung",
+            "statusLabel": {
+              "ios": "Abgenommen",
+              "android": "Abgenommen 15.03."
+            },
+            "dateLabel": {
+              "ios": "am 15.03.2027",
+              "android": null
+            }
+          },
+          {
+            "title": "2 · Fliesen fertig",
+            "progressLabel": "2 von 4 Räumen"
+          }
+        ],
+        "groups": [
+          {
+            "title": "Abdichtung – vor dem Fliesen",
+            "rows": [
+              {
+                "name": "Dusche bodengleich",
+                "sub": {
+                  "ios": "Dichtband in Ecken & am Ablauf · 4 Fotos",
+                  "android": "Dichtband in Ecken & am Ablauf"
+                },
+                "route": null,
+                "statusLabel": "In Ordnung"
+              },
+              {
+                "name": "Wandflächen Bad",
+                "sub": {
+                  "ios": "Spritzwasserbereich Wanne · 2 Fotos",
+                  "android": "Spritzwasserbereich Wanne"
+                },
+                "route": null,
+                "statusLabel": "In Ordnung"
+              }
+            ]
+          },
+          {
+            "title": "Räume",
+            "rows": [
+              {
+                "name": "Bad OG",
+                "sub": "Boden & Wand · Schritt 3 von 6",
+                "route": "inspection/tiles/room/bath",
+                "statusLabel": "Läuft"
+              },
+              {
+                "name": "Gäste-WC",
+                "sub": "Boden & Wand",
+                "route": null,
+                "statusLabel": "In Ordnung"
+              },
+              {
+                "name": "Küche",
+                "sub": "Fliesenspiegel",
+                "route": null,
+                "statusLabel": "In Ordnung"
+              },
+              {
+                "name": "Flur & Diele",
+                "sub": "Boden 32 m²",
+                "route": null,
+                "statusLabel": "Offen"
+              }
+            ]
+          },
+          {
+            "title": "Übergabe",
+            "rows": [
+              {
+                "name": "Ersatzfliesen",
+                "sub": "1 Karton je Sorte, Charge notiert",
+                "route": null,
+                "statusLabel": "Offen"
+              }
+            ]
+          }
+        ],
+        "checks": {
+          "bath": {
+            "screen": "FlBad",
+            "kind": "step",
+            "counter": {
+              "ios": "Schritt 3 von 6",
+              "android": "3 / 6"
+            },
+            "title": "Bad OG",
+            "subtitle": {
+              "ios": "Boden 9 m² · Wand 28 m² · Feinsteinzeug 60×60",
+              "android": "Feinsteinzeug 60×60 · Boden & Wand"
+            },
+            "done": [
+              {
+                "label": "Fliese & Verlegemuster wie bemustert"
+              },
+              {
+                "label": "Fugenbild gleichmäßig, Fugen voll"
+              }
+            ],
+            "current": {
+              "n": "3",
+              "title": "Hohlstellen abklopfen",
+              "text": "Mit dem Griff eines Schraubendrehers leicht auf jede Bodenfliese klopfen. Klingt sie hohl, im Raster antippen."
+            },
+            "next": [
+              {
+                "n": "4",
+                "label": "Dusche: Wasser läuft zum Ablauf"
+              },
+              {
+                "n": "5",
+                "label": "Silikonfugen an Ecken & Wanne"
+              },
+              {
+                "n": "6",
+                "label": "Kanten, Schnitte & Schienen sauber"
+              }
+            ],
+            "tiles": [
+              {
+                "id": "tile-1",
+                "status": "ok",
+                "aria": "Fliese 1"
+              },
+              {
+                "id": "tile-2",
+                "status": "ok",
+                "aria": "Fliese 2"
+              },
+              {
+                "id": "tile-3",
+                "status": "defect",
+                "label": "hohl",
+                "aria": "Fliese 3: hohl"
+              },
+              {
+                "id": "tile-4",
+                "status": "defect",
+                "label": "hohl",
+                "aria": "Fliese 4: hohl"
+              },
+              {
+                "id": "tile-5",
+                "status": "ok",
+                "aria": "Fliese 5"
+              },
+              {
+                "id": "tile-6",
+                "status": "ok",
+                "aria": "Fliese 6"
+              },
+              {
+                "id": "tile-7",
+                "status": "ok",
+                "aria": "Fliese 7"
+              },
+              {
+                "id": "tile-8",
+                "status": "ok",
+                "aria": "Fliese 8"
+              },
+              {
+                "id": "tile-9",
+                "status": "ok",
+                "aria": "Fliese 9"
+              },
+              {
+                "id": "tile-10",
+                "status": "ok",
+                "aria": "Fliese 10"
+              },
+              {
+                "id": "tile-11",
+                "status": "ok",
+                "aria": "Fliese 11"
+              },
+              {
+                "id": "tile-12",
+                "status": "ok",
+                "aria": "Fliese 12"
+              },
+              {
+                "id": "tile-13",
+                "status": "ok",
+                "aria": "Fliese 13"
+              },
+              {
+                "id": "tile-14",
+                "status": "ok",
+                "aria": "Fliese 14"
+              },
+              {
+                "id": "tile-15",
+                "status": "ok",
+                "aria": "Fliese 15"
+              },
+              {
+                "id": "tile-16",
+                "status": "ok",
+                "aria": "Fliese 16"
+              },
+              {
+                "id": "tile-17",
+                "status": "ok",
+                "aria": "Fliese 17"
+              },
+              {
+                "id": "tile-18",
+                "status": "ok",
+                "aria": "Fliese 18"
+              },
+              {
+                "id": "tile-19",
+                "status": "ok",
+                "aria": "Fliese 19"
+              },
+              {
+                "id": "tile-20",
+                "status": "ok",
+                "aria": "Fliese 20"
+              },
+              {
+                "id": "tile-21",
+                "status": "ok",
+                "aria": "Fliese 21"
+              },
+              {
+                "id": "tile-22",
+                "status": "ok",
+                "aria": "Fliese 22"
+              },
+              {
+                "id": "tile-23",
+                "status": "ok",
+                "aria": "Fliese 23"
+              },
+              {
+                "id": "tile-24",
+                "status": "ok",
+                "aria": "Fliese 24"
+              }
+            ],
+            "wallLabel": "↑ Wand mit Dusche",
+            "markHint": "klingt hohl",
+            "gridAria": "Fliesenraster Boden, oben die Wand mit Dusche, unten die Tür",
+            "result": "2 Fliesen klingen hohl (vor der Dusche)"
+          }
+        }
+      },
+      "painting": {
+        "title": "Maler",
+        "subtitle": {
+          "ios": "Malerbetrieb Hoffmann · Mo, 12.04.2027",
+          "android": "Malerbetrieb Hoffmann · 12.04.2027"
+        },
+        "facts": [
+          {
+            "label": "Qualität",
+            "value": "Q3"
+          },
+          {
+            "label": "Farbtöne",
+            "value": "3 bemustert"
+          },
+          {
+            "label": "Räume",
+            "value": "3 von 9"
+          }
+        ],
+        "groups": [
+          {
+            "title": "Erdgeschoss",
+            "rows": [
+              {
+                "name": "Wohnen / Essen",
+                "sub": {
+                  "ios": "Sand · Decke Weiß · Schritt 2 von 5",
+                  "android": "Sand · Schritt 2 von 5"
+                },
+                "route": "inspection/painting/room/living",
+                "statusLabel": "Läuft"
+              },
+              {
+                "name": "Küche",
+                "sub": "Weiß, Latex abwaschbar",
+                "route": null,
+                "statusLabel": "In Ordnung"
+              },
+              {
+                "name": "Flur & Treppenhaus",
+                "sub": "Weiß",
+                "route": null,
+                "statusLabel": "1 Mangel"
+              }
+            ]
+          },
+          {
+            "title": "Obergeschoss",
+            "rows": [
+              {
+                "name": "Schlafen",
+                "sub": "Salbei, Akzentwand",
+                "route": null,
+                "statusLabel": "In Ordnung"
+              },
+              {
+                "name": "Kind 1 & Kind 2",
+                "sub": "Weiß",
+                "route": null,
+                "statusLabel": "Offen"
+              },
+              {
+                "name": "Bad OG",
+                "sub": "Weiß, feuchtraumgeeignet",
+                "route": null,
+                "statusLabel": "Offen"
+              }
+            ]
+          }
+        ],
+        "checks": {
+          "living": {
+            "screen": "MaRaum",
+            "kind": "step",
+            "counter": {
+              "ios": "Schritt 2 von 5",
+              "android": "2 / 5"
+            },
+            "title": "Wohnen / Essen",
+            "subtitle": {
+              "ios": "Wände Sand · Decke Weiß · Qualitätsstufe Q3",
+              "android": "Wände Sand · Decke Weiß · Q3"
+            },
+            "done": [
+              {
+                "label": "Farbton wie bemustert"
+              }
+            ],
+            "current": {
+              "n": "2",
+              "title": "Streiflicht-Test",
+              "text": "Raum abdunkeln, Taschenlampe flach an die Wand halten und langsam entlangführen. Leichte Schatten sind bei Q3 zulässig – Grate, Riefen und Ansätze nicht."
+            },
+            "next": [
+              {
+                "n": "3",
+                "label": "Kanten zu Decke, Fenster & Türen sauber"
+              },
+              {
+                "n": "4",
+                "label": "Keine Farbe auf Steckdosen & Boden"
+              },
+              {
+                "n": "5",
+                "label": "Gleichmäßig deckend, keine Läufer"
+              }
+            ],
+            "walls": [
+              {
+                "name": "Nord ✓",
+                "selected": false
+              },
+              {
+                "name": "Ost ✓",
+                "selected": false
+              },
+              {
+                "name": "Süd",
+                "selected": true
+              },
+              {
+                "name": "West",
+                "selected": false
+              },
+              {
+                "name": "Decke",
+                "selected": false
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "measurements": {
+    "shellOpening": {
+      "parameter": {
+        "key": "toleranz",
+        "default": 12,
+        "min": 1,
+        "max": 30,
+        "unit": "mm"
+      },
+      "target": {
+        "w": 1010,
+        "h": 1385
+      },
+      "actual": {
+        "w": 1005,
+        "h": 1395
+      },
+      "stepperDelta": 5,
+      "dimLabels": {
+        "w": "Breite",
+        "h": "Höhe"
+      },
+      "measured": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7"
+      ],
+      "labels": {
+        "within": "Innerhalb der Toleranz",
+        "outside": "Außerhalb der Toleranz – Mangel erfassen"
+      }
+    },
+    "screedFlatness": {
+      "parameter": {
+        "key": "grenzwert",
+        "default": 4,
+        "min": 1,
+        "max": 15,
+        "unit": "mm"
+      },
+      "gap": 3,
+      "points": [
+        2,
+        3,
+        6
+      ],
+      "gapMin": 0,
+      "gapMax": 20,
+      "gapStep": 1,
+      "labels": {
+        "within": "Innerhalb der Toleranz",
+        "outside": "Über Grenzwert – als Mangel erfassen",
+        "none": "Kein Messpunkt über Grenzwert",
+        "point": "Messpunkt",
+        "pluralSuffix": "e",
+        "overLimit": "über Grenzwert → Mangel erfassen"
+      }
+    },
+    "drainSlope": {
+      "parameter": {
+        "key": "soll",
+        "default": 1,
+        "min": 0.5,
+        "max": 3,
+        "unit": "%",
+        "step": 0.1
+      },
+      "lengthDm": 20,
+      "dropMm": 25,
+      "lengthRange": {
+        "min": 5,
+        "max": 100,
+        "step": 5
+      },
+      "dropRange": {
+        "min": 0,
+        "max": 300,
+        "step": 5
+      },
+      "sections": [
+        {
+          "id": "A1",
+          "label": "1,4 %"
+        },
+        {
+          "id": "A2",
+          "label": "0,4 %"
+        },
+        {
+          "id": "A3",
+          "label": "jetzt"
+        },
+        {
+          "id": "A4",
+          "label": "offen"
+        }
+      ],
+      "labels": {
+        "sufficient": "Ausreichend",
+        "tooFlat": "Zu flach",
+        "sollPrefix": "Soll ≥"
+      }
+    },
+    "screedHeating": {
+      "planCelsius": [
+        25,
+        25,
+        25,
+        30,
+        35,
+        35,
+        40,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        40,
+        35,
+        30,
+        25,
+        25,
+        25,
+        25,
+        25
+      ],
+      "recordedDays": 5,
+      "todayDay": 6
+    }
+  },
+  "defects": [
+    {
+      "id": "defect-shell-crack",
+      "tradeId": "shell",
+      "trade": {
+        "ios": "Rohbau",
+        "android": "ROHBAU"
+      },
+      "title": "Riss in Kellerwand Nord",
+      "deadline": "2026-12-15",
+      "deadlineLabel": "Frist 15.12.2026",
+      "dueLabel": "3 Tage überfällig",
+      "urgency": "late",
+      "meta": "Frist 15.12.2026"
+    },
+    {
+      "id": "defect-roof-verge",
+      "tradeId": "roofing",
+      "trade": {
+        "ios": "Dachdecker",
+        "android": "DACHDECKER"
+      },
+      "title": "Ortgang links nicht verklebt",
+      "deadline": "2027-01-08",
+      "deadlineLabel": "Frist 08.01.2027",
+      "dueLabel": "noch 21 Tage",
+      "urgency": "soon",
+      "meta": "Frist 08.01.2027 · 2 Fotos",
+      "photos": 2
+    },
+    {
+      "id": "defect-window-f2",
+      "tradeId": "windows",
+      "trade": {
+        "ios": "Fenster & Türen",
+        "android": "FENSTER & TÜREN"
+      },
+      "title": "F2 · Flügel fällt zu",
+      "deadline": "2027-01-15",
+      "deadlineLabel": "Frist 15.01.2027",
+      "dueLabel": "noch 28 Tage",
+      "urgency": "later",
+      "meta": "Frist 15.01.2027 · 2 Fotos",
+      "photos": 2,
+      "severity": "Mittel",
+      "description": "Flügel fällt ab ca. 45° Öffnung selbstständig wieder zu.",
+      "elementId": "F2",
+      "responsible": "Fensterbau Weber GmbH",
+      "notifyByEmail": true
+    }
+  ],
+  "resolvedDefects": {
+    "count": "3"
+  },
+  "notifications": [
+    {
+      "title": "Heute",
+      "items": [
+        {
+          "id": "notif-defect-overdue",
+          "kind": "frist",
+          "title": "Frist überschritten",
+          "text": "Rohbau · Riss in Kellerwand Nord, seit 3 Tagen offen",
+          "when": "08:10",
+          "unread": true,
+          "target": "defects"
+        },
+        {
+          "id": "notif-invoice-due",
+          "kind": "geld",
+          "title": "Rechnung bald fällig",
+          "text": "Fenster & Türen · 2. Abschlag 18.400 € bis 22.12.",
+          "when": "07:30",
+          "unread": true,
+          "target": "documents"
+        }
+      ]
+    },
+    {
+      "title": "Diese Woche",
+      "items": [
+        {
+          "id": "notif-offer-hahn",
+          "kind": "angebot",
+          "title": "Neues Angebot",
+          "text": "Fließestrich Hahn · 10.450 € – jetzt vergleichen",
+          "when": "Mo",
+          "unread": false,
+          "target": "trade/screed/compare"
+        },
+        {
+          "id": "notif-offer-lorenz-missing",
+          "kind": "angebot",
+          "title": "Angebot fehlt noch",
+          "text": "Bodenbau Lorenz · angefragt am 05.12.",
+          "when": "Mo",
+          "unread": false,
+          "target": "trade/screed"
+        },
+        {
+          "id": "notif-electrical-confirmed",
+          "kind": "termin",
+          "title": "Termin bestätigt",
+          "text": "Elektro Schmitt · Rohinstallation ab KW 3",
+          "when": "Di",
+          "unread": false,
+          "target": null
+        }
+      ]
+    }
+  ],
+  "screens": {
+    "Login": {
+      "ios": {
+        "features": [
+          "Zeitplan: wann welcher Handwerker kommt",
+          "Angebote je Gewerk sammeln & vergleichen",
+          "Begleitung von Planung bis Abnahme"
+        ],
+        "title": "Baupilot",
+        "headline": [
+          "Ihr Bauvorhaben.",
+          "Ein Plan."
+        ],
+        "intro": "Baupilot zeigt, wann welches Gewerk dran ist, ordnet Angebote und Dokumente und begleitet Sie von der Planung bis zur Abnahme.",
+        "emailLabel": "E-Mail",
+        "emailPlaceholder": "name@beispiel.de",
+        "passwordLabel": "Passwort",
+        "forgot": "Vergessen?",
+        "submit": "Anmelden",
+        "social": "Mit Apple anmelden",
+        "newHere": "Neu hier?",
+        "create": "Bauvorhaben anlegen"
+      },
+      "android": {
+        "chips": [
+          "Zeitplan",
+          "Angebote",
+          "Dokumente"
+        ],
+        "title": "Willkommen bei Baupilot",
+        "intro": "Sehen Sie, wann welches Gewerk benötigt wird, ordnen Sie Angebote und Dokumente und behalten Sie den ganzen Bau im Blick.",
+        "emailLabel": "E-Mail",
+        "emailPlaceholder": "name@beispiel.de",
+        "passwordLabel": "Passwort",
+        "forgot": "Passwort vergessen?",
+        "submit": "Anmelden",
+        "social": "Mit Google anmelden",
+        "create": "Neues Bauvorhaben anlegen"
+      }
+    },
+    "Home": {
+      "ios": {
+        "projectLabel": "Einfamilienhaus · Musterweg 12",
+        "notificationsAria": "Mitteilungen, 2 neu",
+        "phaseLabel": "Phase 5 von 11",
+        "constructionLabel": "Baubeginn März 2026",
+        "moveInLabel": "Einzug geplant Sep 2027",
+        "trades": [
+          {
+            "name": "Elektriker",
+            "kw": "KW 3",
+            "when": "Rohinstallation",
+            "statusLabel": "Beauftragt",
+            "tradeId": "electrical"
+          },
+          {
+            "name": "Installateur",
+            "kw": "KW 5",
+            "when": "2 Angebote da",
+            "statusLabel": "Vergleichen",
+            "tradeId": "plumbing"
+          },
+          {
+            "name": "Estrich",
+            "kw": "KW 8",
+            "when": "Angebote bis 15.01.",
+            "statusLabel": "Anfragen",
+            "tradeId": "screed"
+          }
+        ],
+        "docs": [
+          {
+            "label": "Angebote",
+            "count": "7"
+          },
+          {
+            "label": "Verträge",
+            "count": "3"
+          },
+          {
+            "label": "Rechnungen",
+            "count": "4"
+          },
+          {
+            "label": "Pläne",
+            "count": "12"
+          }
+        ],
+        "tabs": [
+          {
+            "label": "Übersicht",
+            "route": "home"
+          },
+          {
+            "label": "Zeitplan",
+            "route": "schedule"
+          },
+          {
+            "label": "Abnahmen",
+            "route": "inspections"
+          },
+          {
+            "label": "Dokumente",
+            "route": "documents"
+          },
+          {
+            "label": "Profil",
+            "route": "profile"
+          }
+        ]
+      },
+      "android": {
+        "projectLabel": "Einfamilienhaus · Musterweg 12",
+        "notificationsAria": "Mitteilungen, 2 neu",
+        "badge": "2",
+        "phaseLabel": "5 / 11",
+        "moveInLabel": "Einzug geplant September 2027",
+        "trades": [
+          {
+            "initial": "El",
+            "name": "Elektriker",
+            "when": "ab KW 3 · Rohinstallation",
+            "statusLabel": "Beauftragt",
+            "tradeId": "electrical"
+          },
+          {
+            "initial": "In",
+            "name": "Installateur",
+            "when": "ab KW 5 · 2 Angebote da",
+            "statusLabel": "Vergleichen",
+            "tradeId": "plumbing"
+          },
+          {
+            "initial": "Es",
+            "name": "Estrich",
+            "when": "ab KW 8 · Frist 15.01.",
+            "statusLabel": "Anfragen",
+            "tradeId": "screed"
+          }
+        ],
+        "docs": [
+          {
+            "label": "Angebote",
+            "count": "7"
+          },
+          {
+            "label": "Verträge",
+            "count": "3"
+          },
+          {
+            "label": "Rechnungen",
+            "count": "4"
+          },
+          {
+            "label": "Pläne",
+            "count": "12"
+          }
+        ],
+        "tabs": [
+          {
+            "label": "Übersicht",
+            "route": "home"
+          },
+          {
+            "label": "Zeitplan",
+            "route": "schedule"
+          },
+          {
+            "label": "Abnahmen",
+            "route": "inspections"
+          },
+          {
+            "label": "Dokumente",
+            "route": "documents"
+          },
+          {
+            "label": "Profil",
+            "route": "profile"
+          }
+        ]
+      }
+    },
+    "Zeitplan": {
+      "ios": {
+        "moveInLabel": "Einzug geplant September 2027",
+        "ariaLabel": "Zeitplan aller Gewerke von März 2026 bis September 2027, heute Mitte Dezember 2026",
+        "tabs": [
+          {
+            "label": "Übersicht",
+            "route": "home"
+          },
+          {
+            "label": "Zeitplan",
+            "route": "schedule"
+          },
+          {
+            "label": "Abnahmen",
+            "route": "inspections"
+          },
+          {
+            "label": "Dokumente",
+            "route": "documents"
+          },
+          {
+            "label": "Profil",
+            "route": "profile"
+          }
+        ]
+      },
+      "android": {
+        "moveInLabel": "Einzug geplant September 2027",
+        "ariaLabel": "Zeitplan aller Gewerke von März 2026 bis September 2027, heute Mitte Dezember 2026",
+        "tabs": [
+          {
+            "label": "Übersicht",
+            "route": "home"
+          },
+          {
+            "label": "Zeitplan",
+            "route": "schedule"
+          },
+          {
+            "label": "Abnahmen",
+            "route": "inspections"
+          },
+          {
+            "label": "Dokumente",
+            "route": "documents"
+          },
+          {
+            "label": "Profil",
+            "route": "profile"
+          }
+        ]
+      }
+    },
+    "Profil": {
+      "ios": {
+        "groups": [
+          {
+            "title": "Bauvorhaben",
+            "rows": [
+              {
+                "label": "Projekt",
+                "value": "Musterweg 12",
+                "isLink": true,
+                "isToggle": false
+              },
+              {
+                "label": "Baubeginn",
+                "value": "März 2026",
+                "isLink": true,
+                "isToggle": false
+              },
+              {
+                "label": "Beteiligte",
+                "value": "4 Kontakte",
+                "isLink": true,
+                "isToggle": false
+              }
+            ]
+          },
+          {
+            "title": "Benachrichtigungen",
+            "rows": [
+              {
+                "label": "Fristen & Termine",
+                "isToggle": true,
+                "isLink": false,
+                "checked": true
+              },
+              {
+                "label": "Neue Dokumente",
+                "isToggle": true,
+                "isLink": false,
+                "checked": true
+              },
+              {
+                "label": "Wochenrückblick",
+                "isToggle": true,
+                "isLink": false,
+                "checked": false
+              }
+            ]
+          },
+          {
+            "title": "App",
+            "rows": [
+              {
+                "label": "Darstellung",
+                "value": "System",
+                "isLink": true,
+                "isToggle": false
+              },
+              {
+                "label": "Daten exportieren",
+                "isLink": true,
+                "isToggle": false
+              },
+              {
+                "label": "Abmelden",
+                "isLink": true,
+                "isToggle": false
+              }
+            ]
+          }
+        ],
+        "tabs": [
+          {
+            "label": "Übersicht",
+            "route": "home"
+          },
+          {
+            "label": "Zeitplan",
+            "route": "schedule"
+          },
+          {
+            "label": "Abnahmen",
+            "route": "inspections"
+          },
+          {
+            "label": "Dokumente",
+            "route": "documents"
+          },
+          {
+            "label": "Profil",
+            "route": "profile"
+          }
+        ]
+      },
+      "android": {
+        "groups": [
+          {
+            "title": "Bauvorhaben",
+            "rows": [
+              {
+                "label": "Einfamilienhaus Musterweg 12",
+                "sub": "Baubeginn März 2026",
+                "isToggle": false
+              },
+              {
+                "label": "Beteiligte",
+                "sub": "Architektin, Bauleitung, 2 weitere",
+                "isToggle": false
+              }
+            ]
+          },
+          {
+            "title": "Benachrichtigungen",
+            "rows": [
+              {
+                "label": "Fristen & Termine",
+                "sub": "Erinnerung 3 Tage vorher",
+                "isToggle": true,
+                "checked": true
+              },
+              {
+                "label": "Neue Dokumente",
+                "isToggle": true,
+                "checked": true
+              },
+              {
+                "label": "Wochenrückblick",
+                "isToggle": true,
+                "checked": false
+              }
+            ]
+          },
+          {
+            "title": "App",
+            "rows": [
+              {
+                "label": "Design",
+                "sub": "Systemstandard",
+                "isToggle": false
+              },
+              {
+                "label": "Abmelden",
+                "isToggle": false
+              }
+            ]
+          }
+        ],
+        "tabs": [
+          {
+            "label": "Übersicht",
+            "route": "home"
+          },
+          {
+            "label": "Zeitplan",
+            "route": "schedule"
+          },
+          {
+            "label": "Abnahmen",
+            "route": "inspections"
+          },
+          {
+            "label": "Dokumente",
+            "route": "documents"
+          },
+          {
+            "label": "Profil",
+            "route": "profile"
+          }
+        ]
+      }
+    },
+    "Gewerk": {
+      "ios": {
+        "steps": [
+          {
+            "label": "Anfrage an 3 Betriebe gesendet"
+          },
+          {
+            "label": "Angebote vergleichen"
+          },
+          {
+            "label": "Auftrag vergeben, Termin fixieren"
+          }
+        ]
+      },
+      "android": {
+        "tabs": [
+          {
+            "label": "Angebote (3)",
+            "selected": true
+          },
+          {
+            "label": "Termine",
+            "selected": false
+          },
+          {
+            "label": "Notizen",
+            "selected": false
+          }
+        ]
+      }
+    },
+    "Dokumente": {
+      "ios": {
+        "filters": [
+          {
+            "text": "Alle 26",
+            "selected": true
+          },
+          {
+            "text": "Angebote 7",
+            "selected": false
+          },
+          {
+            "text": "Verträge 3",
+            "selected": false
+          },
+          {
+            "text": "Rechnungen 4",
+            "selected": false
+          },
+          {
+            "text": "Pläne 12",
+            "selected": false
+          }
+        ],
+        "searchLabel": "Dokumente durchsuchen",
+        "banner": {
+          "title": "Rechnung prüfen & zahlen",
+          "sub": "Fenster & Türen · fällig 22.12.",
+          "amount": "18.400 €",
+          "documentId": "doc-invoice-windows-2"
+        },
+        "recentLabel": "Zuletzt hinzugefügt",
+        "byTradeLabel": "Nach Gewerk",
+        "tabs": [
+          {
+            "label": "Übersicht",
+            "route": "home"
+          },
+          {
+            "label": "Zeitplan",
+            "route": "schedule"
+          },
+          {
+            "label": "Abnahmen",
+            "route": "inspections"
+          },
+          {
+            "label": "Dokumente",
+            "route": "documents"
+          },
+          {
+            "label": "Profil",
+            "route": "profile"
+          }
+        ],
+        "headerLabel": "26 Dokumente · 11 Gewerke",
+        "searchPlaceholder": "Firma, Gewerk oder Betrag suchen"
+      },
+      "android": {
+        "filters": [
+          {
+            "text": "Alle 26",
+            "selected": true
+          },
+          {
+            "text": "Angebote 7",
+            "selected": false
+          },
+          {
+            "text": "Verträge 3",
+            "selected": false
+          },
+          {
+            "text": "Rechnungen 4",
+            "selected": false
+          },
+          {
+            "text": "Pläne 12",
+            "selected": false
+          }
+        ],
+        "searchLabel": "Dokumente durchsuchen",
+        "banner": {
+          "title": "Rechnung prüfen & zahlen",
+          "sub": "Fenster & Türen · fällig 22.12.",
+          "amount": "18.400 €",
+          "documentId": "doc-invoice-windows-2"
+        },
+        "recentLabel": "Zuletzt hinzugefügt",
+        "byTradeLabel": "Nach Gewerk",
+        "tabs": [
+          {
+            "label": "Übersicht",
+            "route": "home"
+          },
+          {
+            "label": "Zeitplan",
+            "route": "schedule"
+          },
+          {
+            "label": "Abnahmen",
+            "route": "inspections"
+          },
+          {
+            "label": "Dokumente",
+            "route": "documents"
+          },
+          {
+            "label": "Profil",
+            "route": "profile"
+          }
+        ],
+        "countBadge": "26"
+      }
+    },
+    "DokViewer": {
+      "ios": {},
+      "android": {}
+    },
+    "Vergleich": {
+      "ios": {},
+      "android": {}
+    },
+    "Mitteilungen": {
+      "ios": {},
+      "android": {}
+    },
+    "AbnGewerke": {
+      "ios": {
+        "tabs": [
+          {
+            "label": "Übersicht",
+            "route": "home"
+          },
+          {
+            "label": "Zeitplan",
+            "route": "schedule"
+          },
+          {
+            "label": "Abnahmen",
+            "route": "inspections"
+          },
+          {
+            "label": "Dokumente",
+            "route": "documents"
+          },
+          {
+            "label": "Profil",
+            "route": "profile"
+          }
+        ]
+      },
+      "android": {
+        "tabs": [
+          {
+            "label": "Übersicht",
+            "route": "home"
+          },
+          {
+            "label": "Zeitplan",
+            "route": "schedule"
+          },
+          {
+            "label": "Abnahmen",
+            "route": "inspections"
+          },
+          {
+            "label": "Dokumente",
+            "route": "documents"
+          },
+          {
+            "label": "Profil",
+            "route": "profile"
+          }
+        ]
+      }
+    },
+    "AbnElemente": {
+      "ios": {},
+      "android": {}
+    },
+    "AbnPruefung": {
+      "ios": {},
+      "android": {}
+    },
+    "AbnMangel": {
+      "ios": {},
+      "android": {}
+    },
+    "AbnSignatur": {
+      "ios": {},
+      "android": {}
+    },
+    "AbnMaengel": {
+      "ios": {
+        "tabs": [
+          {
+            "label": "Übersicht",
+            "route": "home"
+          },
+          {
+            "label": "Zeitplan",
+            "route": "schedule"
+          },
+          {
+            "label": "Abnahmen",
+            "route": "inspections"
+          },
+          {
+            "label": "Dokumente",
+            "route": "documents"
+          },
+          {
+            "label": "Profil",
+            "route": "profile"
+          }
+        ]
+      },
+      "android": {
+        "tabs": [
+          {
+            "label": "Übersicht",
+            "route": "home"
+          },
+          {
+            "label": "Zeitplan",
+            "route": "schedule"
+          },
+          {
+            "label": "Abnahmen",
+            "route": "inspections"
+          },
+          {
+            "label": "Dokumente",
+            "route": "documents"
+          },
+          {
+            "label": "Profil",
+            "route": "profile"
+          }
+        ]
+      }
+    },
+    "Erd": {
+      "ios": {},
+      "android": {}
+    },
+    "Rohbau": {
+      "ios": {},
+      "android": {}
+    },
+    "RohbauMasse": {
+      "ios": {},
+      "android": {}
+    },
+    "Zimmerer": {
+      "ios": {},
+      "android": {}
+    },
+    "ElUebersicht": {
+      "ios": {},
+      "android": {}
+    },
+    "ElRaum": {
+      "ios": {},
+      "android": {}
+    },
+    "ElVerteiler": {
+      "ios": {},
+      "android": {}
+    },
+    "ElRauchmelder": {
+      "ios": {},
+      "android": {}
+    },
+    "SanUebersicht": {
+      "ios": {},
+      "android": {}
+    },
+    "SanGefaelle": {
+      "ios": {},
+      "android": {}
+    },
+    "SanDruck": {
+      "ios": {},
+      "android": {}
+    },
+    "SanBad": {
+      "ios": {},
+      "android": {}
+    },
+    "EsUebersicht": {
+      "ios": {},
+      "android": {}
+    },
+    "EsEbenheit": {
+      "ios": {},
+      "android": {}
+    },
+    "EsBelegreife": {
+      "ios": {},
+      "android": {}
+    },
+    "FlUebersicht": {
+      "ios": {},
+      "android": {}
+    },
+    "FlBad": {
+      "ios": {},
+      "android": {}
+    },
+    "MaUebersicht": {
+      "ios": {},
+      "android": {}
+    },
+    "MaRaum": {
+      "ios": {},
+      "android": {}
+    }
+  }
+}

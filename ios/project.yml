@@ -1,0 +1,55 @@
+name: Baupilot
+options:
+  deploymentTarget:
+    iOS: "17.0"
+packages:
+  SnapshotTesting:
+    url: https://github.com/pointfreeco/swift-snapshot-testing
+    from: 1.19.7
+targets:
+  Baupilot:
+    type: application
+    platform: iOS
+    sources:
+      - path: Baupilot
+        excludes:
+          - Resources/Fonts/OFL.txt
+      - path: ../fixtures/baupilot.json
+        buildPhase: resources
+    info:
+      path: build/Info.plist
+      properties:
+        UIAppFonts:
+          - Inter-Regular.ttf
+          - Inter-Medium.ttf
+          - Inter-SemiBold.ttf
+          - Inter-Bold.ttf
+        UILaunchScreen: {}
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: de.baupilot.app
+        SWIFT_VERSION: "6.0"
+        TARGETED_DEVICE_FAMILY: "1"
+  BaupilotTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: BaupilotTests
+    dependencies:
+      - target: Baupilot
+      - package: SnapshotTesting
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: de.baupilot.tests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "6.0"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Baupilot.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Baupilot"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+schemes:
+  Baupilot:
+    build:
+      targets:
+        Baupilot: all
+    test:
+      targets:
+        - BaupilotTests
