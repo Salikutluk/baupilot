@@ -7,3 +7,21 @@ android/.gradle
 android/**/build
 android/local.properties
 xcuserdata
+DerivedData/
+android/.cxx/
+android/captures/
+*.iml
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# Editors
+.idea/
+.vscode/
+*.swp
+
+# Secrets / local config (Appwrite keys etc.)
+.env
+.env.*
+!.env.example
