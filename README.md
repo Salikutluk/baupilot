@@ -42,6 +42,13 @@ scripts/gen-tokens --check
 # Design freeze check
 scripts/design-freeze --check
 
+# Hex literal lint (no colour literals outside the generated tokens)
+scripts/lint-hex
+
+# Icon generation and check
+scripts/gen-icons
+scripts/gen-icons --check
+
 # iOS tests
 cd ios && xcodegen generate && xcodebuild test -project Baupilot.xcodeproj -scheme Baupilot -destination 'platform=iOS Simulator,name=iPhone 15'
 
@@ -52,6 +59,23 @@ cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest
 scripts/diff-report --platform ios
 scripts/diff-report --platform android
 ```
+
+### Design-system gallery
+
+Record the gallery goldens (run from the repo root). The record run fails by design; the goldens are written, then run the tests again without the record flag.
+
+```sh
+# iOS
+cd ios && TEST_RUNNER_BAUPILOT_RECORD_GOLDENS=1 xcodebuild test -project Baupilot.xcodeproj -scheme Baupilot -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:BaupilotTests/GallerySnapshotTests
+
+# Android
+cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests 'de.baupilot.snapshot.Gallery*' -Pbaupilot.recordGoldens=true
+```
+
+Launch the gallery (Debug builds only):
+
+- iOS: launch argument `-BaupilotGallery YES`
+- Android: `adb shell am start -n de.baupilot/.gallery.GalleryActivity`
 
 The Login example snapshot tests are expected-red until M2 (D17). The reference comparison runs; the failure is tolerated only for pixel differences.
 

@@ -1,0 +1,19 @@
+{
+  "ios": {
+    "colors": {
+      "knob": { "light": "#FFFFFF", "dark": "#FFFFFF", "source": "IosProfil.dc.html:39" },
+      "knobShadow": { "light": "#00000033", "dark": "#00000033", "source": "IosProfil.dc.html:39" },
+      "segShadow": { "light": "#0000001F", "dark": "#0000001F", "source": "IosAbnGewerke.dc.html:25" },
+      "photoBadge": { "light": "#15803D", "dark": "#15803D", "source": "IosAbnPruefung.dc.html:51" },
+      "onPhoto": { "light": "#FFFFFF", "dark": "#FFFFFF", "source": "IosAbnPruefung.dc.html:51" },
+      "photoCaption": { "light": "#00000073", "dark": "#00000073", "source": "IosAbnPruefung.dc.html:51" },
+      "placeholder": { "light": "#757575", "dark": "#757575", "source": "IosDokumente.dc.html:31 (browser default; measured in Dokumente_light/dark.png)" }
+    }
+  },
+  "android": {
+    "colors": {
+      "fabShadow": { "light": "#0000002E", "dark": "#0000002E", "source": "AndHome.dc.html:73" },
+      "placeholder": { "light": "#757575", "dark": "#757575", "source": "AndDokumente.dc.html:21 (browser default, measured in Dokumente_light/dark.png)" }
+    }
+  }
+}

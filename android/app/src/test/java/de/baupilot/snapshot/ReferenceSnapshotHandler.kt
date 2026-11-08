@@ -2,10 +2,7 @@ package de.baupilot.snapshot
 
 import app.cash.paparazzi.Snapshot
 import app.cash.paparazzi.SnapshotHandler
-import app.cash.paparazzi.SnapshotVerifier
-import java.awt.image.BufferedImage
 import java.io.File
-import javax.imageio.ImageIO
 
 /**
  * Mirrors Paparazzi's golden file name `<package>_<Class>_<method>[_<name>].png`.
@@ -24,55 +21,33 @@ fun goldenFileName(snapshot: Snapshot): String {
 /**
  * Compares each frame with `design/reference/android/<name>_<mode>.png`.
  *
- * The reference is staged under `build/paparazzi-reference/images` with the golden file name,
- * (the directory is emptied before each staging), then [SnapshotVerifier] does the comparison with [MAX_PERCENT_DIFFERENCE]. Nothing is
+ * Thin wrapper over [StagedSnapshotHandler]: the reference is staged under
+ * `build/paparazzi-reference/images`, the comparison uses [MAX_PERCENT_DIFFERENCE]. Nothing is
  * written into `design/`.
  */
 class ReferenceSnapshotHandler(
-    private val name: String,
-    private val mode: SnapshotMode,
-    private val writeArtifact: Boolean = true,
+    name: String,
+    mode: SnapshotMode,
+    writeArtifact: Boolean = true,
 ) : SnapshotHandler {
     private val repoRoot = File(requireNotNull(System.getProperty("baupilot.repoRoot")) {
         "System property baupilot.repoRoot fehlt"
     })
-    private val stagedRoot = File("build/paparazzi-reference")
+    private val reference = File(repoRoot, "design/reference/android/${name}_${mode.fileSuffix}.png")
+    private val delegate = StagedSnapshotHandler(
+        referenceFile = { reference },
+        artifactFile = {
+            if (writeArtifact) File(repoRoot, "build/snapshots/android/${name}_${mode.fileSuffix}.png") else null
+        },
+        stagedRoot = File("build/paparazzi-reference"),
+        missingMessage = "Referenz fehlt: ${reference.path}",
+    )
 
     override fun newFrameHandler(
         snapshot: Snapshot,
         frameCount: Int,
         fps: Int,
-    ): SnapshotHandler.FrameHandler {
-        val reference = File(repoRoot, "design/reference/android/${name}_${mode.fileSuffix}.png")
-        check(reference.isFile) { "Referenz fehlt: ${reference.path}" }
+    ): SnapshotHandler.FrameHandler = delegate.newFrameHandler(snapshot, frameCount, fps)
 
-        // Wipe first: a stale golden from an earlier run would hide a wrong staged file name.
-        val images = File(stagedRoot, "images").apply {
-            deleteRecursively()
-            mkdirs()
-        }
-        reference.copyTo(File(images, goldenFileName(snapshot)), overwrite = true)
-
-        val verifier = SnapshotVerifier(MAX_PERCENT_DIFFERENCE, stagedRoot)
-            .newFrameHandler(snapshot, frameCount, fps)
-        return object : SnapshotHandler.FrameHandler {
-            override fun handle(image: BufferedImage) {
-                if (writeArtifact) writeArtifact(image)
-                check(image.width == SNAPSHOT_WIDTH && image.height == SNAPSHOT_HEIGHT) {
-                    "Größe ${image.width}x${image.height}, erwartet ${SNAPSHOT_WIDTH}x$SNAPSHOT_HEIGHT"
-                }
-                verifier.handle(image)
-            }
-
-            override fun close() = verifier.close()
-        }
-    }
-
-    private fun writeArtifact(image: BufferedImage) {
-        val target = File(repoRoot, "build/snapshots/android/${name}_${mode.fileSuffix}.png")
-        target.parentFile?.mkdirs()
-        ImageIO.write(image, "png", target)
-    }
-
-    override fun close() = Unit
+    override fun close() = delegate.close()
 }

@@ -30,11 +30,14 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: de.baupilot.app
         SWIFT_VERSION: "6.0"
         TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: ""
   BaupilotTests:
     type: bundle.unit-test
     platform: iOS
     sources:
       - path: BaupilotTests
+        excludes:
+          - "Snapshots/Goldens/**"
     dependencies:
       - target: Baupilot
       - package: SnapshotTesting

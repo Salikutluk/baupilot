@@ -1,0 +1,204 @@
+import SwiftUI
+
+/// Row used in the iOS lists. Place rows inside a `Card(padding: EdgeInsets())`; the divider
+/// sits on top of every row that is not the first.
+public struct ListRow: View {
+    public enum TitleSize {
+        case regular
+        case large
+
+        var fontSize: CGFloat { self == .large ? 16 : 15 }
+    }
+
+    public enum Density: Equatable {
+        case padded(v: CGFloat)
+        case minHeight(CGFloat)
+
+        var textGap: CGFloat {
+            switch self {
+            case .padded: return 3
+            case .minHeight: return 2
+            }
+        }
+    }
+
+    public enum TileSize {
+        case s38
+        case s34r9
+        case s34r10
+        case s36r10
+
+        var side: CGFloat {
+            switch self {
+            case .s38: return 38
+            case .s34r9, .s34r10: return 34
+            case .s36r10: return 36
+            }
+        }
+
+        var radius: CGFloat { self == .s34r9 ? 9 : 10 }
+    }
+
+    public enum TextTileSize {
+        case s48x40
+        case s36
+
+        var width: CGFloat { self == .s48x40 ? 48 : 36 }
+        var height: CGFloat { self == .s48x40 ? 40 : 36 }
+        var radius: CGFloat { self == .s48x40 ? 12 : 10 }
+        var fontSize: CGFloat { self == .s48x40 ? 12 : 13 }
+    }
+
+    public enum Leading {
+        case none
+        case iconTile(
+            BaupilotIcon, size: TileSize = .s38, bg: ColorToken = Tokens.chip.core,
+            fg: ColorToken = Tokens.muted)
+        case textTile(String, TextTileSize, chip: ColorToken = Tokens.chip.core)
+    }
+
+    public enum ChevronSize {
+        case small
+        case regular
+
+        var icon: BaupilotIcon { self == .small ? .chevronRightW24 : .chevronRightW22 }
+        var side: CGFloat { self == .small ? 14 : 16 }
+    }
+
+    public enum Trailing {
+        case none
+        case badge(StatusBadge)
+        case chevron(ChevronSize)
+        case badgeAndChevron(StatusBadge, ChevronSize)
+        case value(String, InterWeight)
+        case valueAndChevron(String, InterWeight, ChevronSize)
+    }
+
+    struct LeadingView: View {
+        let leading: Leading
+
+        var body: some View {
+            switch leading {
+            case .none:
+                EmptyView()
+            case .iconTile(let icon, let size, let bg, let fg):
+                Icon(icon, size: 18, color: fg.color)
+                    .frame(width: size.side, height: size.side)
+                    .background(bg.color, in: RoundedRectangle(cornerRadius: size.radius))
+            case .textTile(let text, let size, let chip):
+                Text(text)
+                    .font(.inter(size.fontSize, .bold))
+                    .foregroundStyle(Tokens.muted.color)
+                    .lineLimit(1)
+                    .fixedSize()
+                    .frame(width: size.width, height: size.height)
+                    .background(
+                        chip.color,
+                        in: RoundedRectangle(cornerRadius: size.radius))
+            }
+        }
+    }
+
+    private let title: String
+    private let subtitle: String?
+    private let leading: Leading
+    private let trailing: Trailing
+    private let titleSize: TitleSize
+    private let density: Density
+    private let showsDivider: Bool
+    let dividerColor: ColorToken
+    private let action: (() -> Void)?
+
+    public init(
+        title: String,
+        subtitle: String? = nil,
+        leading: Leading = .none,
+        trailing: Trailing = .none,
+        titleSize: TitleSize = .regular,
+        density: Density = .padded(v: 12),
+        showsDivider: Bool,
+        dividerColor: ColorToken = Tokens.border.core,
+        action: (() -> Void)?
+    ) {
+        self.title = title
+        self.subtitle = subtitle
+        self.leading = leading
+        self.trailing = trailing
+        self.titleSize = titleSize
+        self.density = density
+        self.showsDivider = showsDivider
+        self.dividerColor = dividerColor
+        self.action = action
+    }
+
+    public var body: some View {
+        VStack(spacing: 0) {
+            if showsDivider {
+                Rectangle().fill(dividerColor.color).frame(height: 1)
+            }
+            if let action {
+                Button(action: action) { row }.buttonStyle(.plain)
+            } else {
+                row
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var row: some View {
+        let content = HStack(spacing: 12) {
+            LeadingView(leading: leading)
+            VStack(alignment: .leading, spacing: density.textGap) {
+                Text(title)
+                    .font(.inter(titleSize.fontSize, .semibold))
+                    .foregroundStyle(Tokens.text.color)
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.inter(13, .regular))
+                        .foregroundStyle(Tokens.muted.color)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            trailingView
+        }
+        .padding(.horizontal, 14)
+        switch density {
+        case .padded(let v):
+            content.padding(.vertical, v)
+        case .minHeight(let h):
+            content.frame(minHeight: h)
+        }
+    }
+
+    @ViewBuilder
+    private var trailingView: some View {
+        switch trailing {
+        case .none:
+            EmptyView()
+        case .badge(let badge):
+            badge
+        case .chevron(let size):
+            chevron(size)
+        case .badgeAndChevron(let badge, let size):
+            badge
+            chevron(size)
+        case .value(let text, let weight):
+            value(text, weight)
+        case .valueAndChevron(let text, let weight, let size):
+            value(text, weight)
+            chevron(size)
+        }
+    }
+
+    private func chevron(_ size: ChevronSize) -> some View {
+        Icon(size.icon, size: size.side, color: Tokens.muted.color)
+    }
+
+    private func value(_ text: String, _ weight: InterWeight) -> some View {
+        Text(text)
+            .font(.inter(13, weight))
+            .foregroundStyle(Tokens.muted.color)
+            .lineLimit(1)
+            .fixedSize()
+    }
+}

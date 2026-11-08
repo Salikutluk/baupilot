@@ -4,7 +4,7 @@ import XCTest
 
 final class TokensTests: XCTestCase {
     func testBarIsTranslucentWhite() {
-        XCTAssertEqual(Tokens.bar.light, 0xFFFFFFF2)
+        XCTAssertEqual(Tokens.bar.light, 0xFFFFFFF2) // lint-hex: allow token value assertion
         let resolved = UIColor(Tokens.bar.color(.light))
         var alpha: CGFloat = 0
         XCTAssertTrue(resolved.getRed(nil, green: nil, blue: nil, alpha: &alpha))
@@ -12,9 +12,14 @@ final class TokensTests: XCTestCase {
     }
 
     func testTrackPerScreenVariantDiffersOnlyInDark() {
-        XCTAssertEqual(Tokens.track.abnPruefung.dark, 0x4A5057FF)
-        XCTAssertEqual(Tokens.track.dark, 0x3A3F45FF)
+        XCTAssertEqual(Tokens.track.abnPruefung.dark, 0x4A5057FF) // lint-hex: allow token value assertion
+        XCTAssertEqual(Tokens.track.dark, 0x3A3F45FF) // lint-hex: allow token value assertion
         XCTAssertEqual(Tokens.track.abnPruefung.light, Tokens.track.light)
+    }
+
+    func testSupplementTokensExist() {
+        XCTAssertEqual(Tokens.knob.light, Tokens.knob.dark)
+        XCTAssertEqual(Tokens.placeholder.light, Tokens.placeholder.dark)
     }
 
     func testLayoutConstants() {

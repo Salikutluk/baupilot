@@ -19,6 +19,10 @@ jobs:
         run: cd scripts && node --test test/
       - name: Token drift check
         run: scripts/gen-tokens --check
+      - name: Hex literal lint
+        run: scripts/lint-hex
+      - name: Icon drift check
+        run: scripts/gen-icons --check
       - name: Design freeze check
         run: scripts/design-freeze --check
 
@@ -55,6 +59,16 @@ jobs:
         # and this step must never block the artifact uploads below.
         continue-on-error: true
         run: scripts/diff-report --platform ios
+      - name: Diff report (gallery)
+        if: always()
+        # continue-on-error: same reason as the step above. Run from the repo root: diff-report resolves
+        # relative directories against the cwd.
+        continue-on-error: true
+        run: |
+          scripts/diff-report --platform ios \
+            --actual-dir build/snapshots/ios-gallery \
+            --reference-dir ios/BaupilotTests/Snapshots/Goldens \
+            --out reports/ios-gallery
       - name: Upload diff report
         if: always()
         uses: actions/upload-artifact@v4
@@ -63,6 +77,8 @@ jobs:
           path: |
             reports/ios
             build/snapshots/ios
+            reports/ios-gallery
+            build/snapshots/ios-gallery
           if-no-files-found: warn
       - name: Upload xcresult
         if: always()
@@ -87,12 +103,21 @@ jobs:
           node-version: 24
       - name: Unit and snapshot tests
         # The runner's ANDROID_HOME is used; no local.properties.
-        run: cd android && ./gradlew :app:testDebugUnitTest
+        # compileReleaseKotlin proves the release variant compiles without the debug-only gallery.
+        run: cd android && ./gradlew --continue :app:testDebugUnitTest :app:compileReleaseKotlin
       - name: Diff report
         if: always()
         # continue-on-error: see the iOS job; the Gradle test step is the gate.
         continue-on-error: true
         run: scripts/diff-report --platform android
+      - name: Diff report (gallery)
+        if: always()
+        continue-on-error: true
+        run: |
+          scripts/diff-report --platform android \
+            --actual-dir build/snapshots/android-gallery \
+            --reference-dir android/app/src/test/goldens \
+            --out reports/android-gallery
       - name: Upload diff report
         if: always()
         uses: actions/upload-artifact@v4
@@ -101,6 +126,8 @@ jobs:
           path: |
             reports/android
             build/snapshots/android
+            reports/android-gallery
+            build/snapshots/android-gallery
             android/app/build/paparazzi/failures
             android/app/build/reports/tests
           if-no-files-found: warn

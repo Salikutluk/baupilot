@@ -46,4 +46,9 @@ tasks.withType<Test> {
     systemProperty("baupilot.repoRoot", repoRoot.path)
     inputs.dir(File(repoRoot, "design/reference/android"))
     inputs.file(File(repoRoot, "fixtures/baupilot.json"))
+    inputs.files(fileTree(File(projectDir, "src/test/goldens"))).withPropertyName("goldens")
+    val record = providers.gradleProperty("baupilot.recordGoldens").getOrElse("false")
+    systemProperty("baupilot.recordGoldens", record)
+    inputs.property("baupilot.recordGoldens", record)
+    if (record == "true") outputs.upToDateWhen { false }
 }
