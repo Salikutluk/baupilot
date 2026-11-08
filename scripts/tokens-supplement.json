@@ -7,13 +7,29 @@
       "photoBadge": { "light": "#15803D", "dark": "#15803D", "source": "IosAbnPruefung.dc.html:51" },
       "onPhoto": { "light": "#FFFFFF", "dark": "#FFFFFF", "source": "IosAbnPruefung.dc.html:51" },
       "photoCaption": { "light": "#00000073", "dark": "#00000073", "source": "IosAbnPruefung.dc.html:51" },
-      "placeholder": { "light": "#757575", "dark": "#757575", "source": "IosDokumente.dc.html:31 (browser default; measured in Dokumente_light/dark.png)" }
+      "placeholder": { "light": "#757575", "dark": "#757575", "source": "IosDokumente.dc.html:31 (browser default; measured in Dokumente_light/dark.png)" },
+      "docPaper": { "light": "#FFFFFF", "dark": "#FFFFFF", "source": "design/prototype/IosDokViewer.dc.html:35" },
+      "docInk": { "light": "#2A2A2A", "dark": "#2A2A2A", "source": "design/prototype/IosDokViewer.dc.html:35" },
+      "docBrand": { "light": "#1D4E89", "dark": "#1D4E89", "source": "design/prototype/IosDokViewer.dc.html:38" },
+      "docMeta": { "light": "#777777", "dark": "#777777", "source": "design/prototype/IosDokViewer.dc.html:39" },
+      "docPos": { "light": "#888888", "dark": "#888888", "source": "design/prototype/IosDokViewer.dc.html:50" },
+      "docRule": { "light": "#DDDDDD", "dark": "#DDDDDD", "source": "design/prototype/IosDokViewer.dc.html:47" },
+      "docRuleLight": { "light": "#EEEEEE", "dark": "#EEEEEE", "source": "design/prototype/IosDokViewer.dc.html:49" },
+      "docShadow": { "light": "#0000002E", "dark": "#0000002E", "source": "design/prototype/IosDokViewer.dc.html:35" }
     }
   },
   "android": {
     "colors": {
       "fabShadow": { "light": "#0000002E", "dark": "#0000002E", "source": "AndHome.dc.html:73" },
-      "placeholder": { "light": "#757575", "dark": "#757575", "source": "AndDokumente.dc.html:21 (browser default, measured in Dokumente_light/dark.png)" }
+      "placeholder": { "light": "#757575", "dark": "#757575", "source": "AndDokumente.dc.html:21 (browser default, measured in Dokumente_light/dark.png)" },
+      "docPaper": { "light": "#FFFFFF", "dark": "#FFFFFF", "source": "design/prototype/AndDokViewer.dc.html:32" },
+      "docInk": { "light": "#2A2A2A", "dark": "#2A2A2A", "source": "design/prototype/AndDokViewer.dc.html:32" },
+      "docBrand": { "light": "#1D4E89", "dark": "#1D4E89", "source": "design/prototype/AndDokViewer.dc.html:35" },
+      "docMeta": { "light": "#777777", "dark": "#777777", "source": "design/prototype/AndDokViewer.dc.html:36" },
+      "docPos": { "light": "#888888", "dark": "#888888", "source": "design/prototype/AndDokViewer.dc.html:47" },
+      "docRule": { "light": "#DDDDDD", "dark": "#DDDDDD", "source": "design/prototype/AndDokViewer.dc.html:44" },
+      "docRuleLight": { "light": "#EEEEEE", "dark": "#EEEEEE", "source": "design/prototype/AndDokViewer.dc.html:46" },
+      "docShadow": { "light": "#0000002E", "dark": "#0000002E", "source": "design/prototype/AndDokViewer.dc.html:32" }
     }
   }
 }

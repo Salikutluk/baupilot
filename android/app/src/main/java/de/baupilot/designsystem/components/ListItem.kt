@@ -25,6 +25,7 @@ import de.baupilot.designsystem.BaupilotText
 import de.baupilot.designsystem.ColorToken
 import de.baupilot.designsystem.Icon
 import de.baupilot.designsystem.Tokens
+import de.baupilot.designsystem.wholeDpCentered
 
 /** Minimum row height. 56 is the single-line default, 72 is Dokumente, 64 is Home. */
 enum class ListItemHeight(val dp: Dp) {
@@ -118,7 +119,7 @@ fun BaupilotListItem(
     ) {
         if (leading != null) LeadingContent(leading)
         Column(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).then(wholeDpCentered()),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             BaupilotText(

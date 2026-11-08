@@ -1,6 +1,10 @@
 package de.baupilot.app
 
 import de.baupilot.data.BackendRepository
+import de.baupilot.data.DokumenteScreenText
+import de.baupilot.data.EmptyScreenText
+import de.baupilot.data.Fact
+import de.baupilot.data.GewerkScreenText
 import de.baupilot.data.HomeScreenText
 import de.baupilot.data.LoginScreenText
 import de.baupilot.data.ProfilScreenText
@@ -72,18 +76,171 @@ data class ProfileModel(
     val tabs: List<TabText>,
 )
 
+enum class DocumentKind(val key: String) {
+    Offer("offer"),
+    Contract("contract"),
+    Invoice("invoice"),
+    Plan("plan"),
+    ;
+
+    companion object {
+        fun of(key: String, field: String): DocumentKind =
+            entries.firstOrNull { it.key == key } ?: throw RepositoryException.Decoding(field)
+    }
+}
+
+enum class NotificationKind(val key: String) {
+    Frist("frist"),
+    Geld("geld"),
+    Angebot("angebot"),
+    Termin("termin"),
+    ;
+
+    companion object {
+        fun of(key: String, field: String): NotificationKind =
+            entries.firstOrNull { it.key == key } ?: throw RepositoryException.Decoding(field)
+    }
+}
+
+data class GewerkFact(val label: String, val value: String, val icon: BaupilotIcon)
+
+data class OfferRow(
+    val id: String,
+    val firm: String,
+    val meta: String,
+    val price: String,
+    val best: Boolean,
+    val pending: Boolean,
+    val target: AppRoute?,
+)
+
+data class GewerkTab(val label: String, val selected: Boolean)
+
+data class GewerkModel(
+    val tradeId: String,
+    val title: String,
+    val statusLabel: String,
+    val phaseLabel: String,
+    val facts: List<GewerkFact>,
+    val offers: List<OfferRow>,
+    val bestLabel: String,
+    val tabs: List<GewerkTab>,
+    val compareLabel: String,
+    val compareTarget: AppRoute?,
+    val addLabel: String,
+    val moreLabel: String,
+)
+
+data class CompareColumn(val offerId: String, val name: String, val best: Boolean, val target: AppRoute?)
+
+/** `highlighted` is `a != b && !strong` (D12); views do no maths. */
+data class CompareRow(val label: String, val a: String, val b: String, val strong: Boolean, val highlighted: Boolean)
+
+data class PendingOffer(val firm: String, val text: String)
+
+data class CompareModel(
+    val tradeId: String,
+    val title: String,
+    val subtitle: String,
+    val tableLabel: String,
+    val columns: List<CompareColumn>,
+    val rows: List<CompareRow>,
+    val note: String,
+    val pending: PendingOffer?,
+    val remindLabel: String,
+    val askLabel: String,
+    val awardLabel: String,
+)
+
+data class DocumentFilter(val text: String, val kind: DocumentKind?)
+
+data class DocumentBanner(val title: String, val sub: String, val amount: String)
+
+data class DocumentRow(
+    val id: String,
+    val kind: DocumentKind,
+    val title: String,
+    val meta: String,
+    val amount: String?,
+    val target: AppRoute?,
+)
+
+data class DocumentsModel(
+    val countBadge: String,
+    val addLabel: String,
+    val uploadLabel: String,
+    val searchLabel: String,
+    val filtersLabel: String,
+    val filters: List<DocumentFilter>,
+    val initialFilter: Int,
+    val banner: DocumentBanner,
+    val recentLabel: String,
+    val byTradeLabel: String,
+    val rows: List<DocumentRow>,
+) {
+    /** Index 0 shows all, i >= 1 the kind of filter i; out of range shows all. */
+    fun rows(filter: Int): List<DocumentRow> {
+        val kind = filters.getOrNull(filter)?.kind ?: return rows
+        return rows.filter { it.kind == kind }
+    }
+}
+
+data class ViewerLineRow(val pos: String, val text: String, val sum: String)
+
+data class DocViewerModel(
+    val id: String,
+    val title: String,
+    val subtitle: String,
+    val pageLabel: String,
+    val issuerName: String,
+    val issuerAddress: String,
+    val number: String,
+    val reference: String,
+    val lines: List<ViewerLineRow>,
+    val totalLabel: String,
+    val total: String,
+    val facts: List<Fact>,
+    val compareLabel: String,
+    val compareTarget: AppRoute?,
+    val shareLabel: String,
+    val changeLabel: String,
+)
+
+data class NotificationRow(
+    val id: String,
+    val kind: NotificationKind,
+    val title: String,
+    val text: String,
+    val `when`: String,
+    val unread: Boolean,
+    val target: NavigationTarget?,
+)
+
+data class NotificationGroupRow(val title: String, val items: List<NotificationRow>)
+
+data class NotificationsModel(
+    val title: String,
+    val markAllLabel: String,
+    val groups: List<NotificationGroupRow>,
+    val unreadCount: Int,
+)
+
 /** Every screen model, built once from the repository (D11). */
 data class AppData(
     val login: LoginModel,
     val home: HomeModel,
     val schedule: ScheduleModel,
     val profile: ProfileModel,
+    val trades: Map<String, GewerkModel>,
+    val comparisons: Map<String, CompareModel>,
+    val documents: DocumentsModel,
+    val viewers: Map<String, DocViewerModel>,
+    val notifications: NotificationsModel,
     val tradeNames: Map<String, String>,
 ) {
     companion object {
         /** Content width of the Zeitplan chart on the 390 dp screen (AndZeitplan.dc.html), fixed, not measured. */
         private const val CHART_WIDTH = 358f
-        private const val TRADE_TARGET_PREFIX = "trade/"
 
         /** Document tile icons by position: document, contract, receipt, map (AndHome.dc.html:106-109). */
         private val DOC_ICONS = listOf(BaupilotIcon.Document, BaupilotIcon.Contract, BaupilotIcon.Receipt, BaupilotIcon.Map)
@@ -143,7 +300,7 @@ data class AppData(
             val scheduleModel = ScheduleModel(
                 moveInLabel = zeitplanText.moveInLabel,
                 ariaLabel = zeitplanText.ariaLabel,
-                asks = schedule.asks.map { ask -> ScheduleAskRow(ask.name, ask.sub, parseTarget(ask.target)) },
+                asks = schedule.asks.map { ask -> ScheduleAskRow(ask.name, ask.sub, RouteParser.route(ask.target, "schedule.asks.target")) },
                 layout = ScheduleLayout.make(trades, schedule, CHART_WIDTH),
                 tabs = zeitplanText.tabs,
             )
@@ -159,14 +316,166 @@ data class AppData(
                 },
                 tabs = profilText.tabs,
             )
-            return AppData(login, home, scheduleModel, profile, trades.associate { it.id to it.name })
-        }
+            val offers = repository.offers(null)
+            val documentItems = repository.documents()
+            val notificationGroups = repository.notifications()
+            val comparisonList = trades.mapNotNull { repository.comparison(it.id) }
+            val withViewer = documentItems.items.filter { it.viewer != null }.map { it.id }.toSet()
+            fun documentTarget(documentId: String?): AppRoute? =
+                documentId?.takeIf { it in withViewer }?.let { AppRoute.Document(it) }
 
-        private fun parseTarget(target: String?): AppRoute? = when {
-            target == null -> null
-            target.startsWith(TRADE_TARGET_PREFIX) && target.length > TRADE_TARGET_PREFIX.length ->
-                AppRoute.Trade(target.removePrefix(TRADE_TARGET_PREFIX))
-            else -> throw RepositoryException.Decoding("schedule.asks.target")
+            val gewerkText = repository.screenText("Gewerk", GewerkScreenText.serializer())
+            val dokumenteText = repository.screenText("Dokumente", DokumenteScreenText.serializer())
+            repository.screenText("DokViewer", EmptyScreenText.serializer())
+            repository.screenText("Vergleich", EmptyScreenText.serializer())
+            repository.screenText("Mitteilungen", EmptyScreenText.serializer())
+
+            val compareByTrade = comparisonList.map { it.tradeId }.toSet()
+            val gewerke = trades.filter { it.detail != null }.associate { trade ->
+                val detail = trade.detail!!
+                val tradeOffers = offers.filter { it.tradeId == trade.id }
+                trade.id to GewerkModel(
+                    tradeId = trade.id,
+                    title = trade.name,
+                    statusLabel = trade.statusLabel ?: throw RepositoryException.Decoding("trades.statusLabel"),
+                    phaseLabel = detail.phaseLabel,
+                    facts = detail.facts.mapIndexed { index, fact ->
+                        GewerkFact(
+                            fact.label,
+                            fact.value,
+                            ScreenCopy.Gewerk.FACT_ICONS.getOrNull(index) ?: throw RepositoryException.Decoding("trades.detail.facts"),
+                        )
+                    },
+                    offers = tradeOffers.map { offer ->
+                        OfferRow(
+                            id = offer.id,
+                            firm = offer.firm,
+                            meta = offer.meta.value ?: throw RepositoryException.Decoding("offers[${offers.indexOf(offer)}].meta"),
+                            price = offer.price,
+                            best = offer.best,
+                            pending = offer.pending,
+                            target = documentTarget(offer.documentId),
+                        )
+                    },
+                    bestLabel = ScreenCopy.Gewerk.BEST,
+                    tabs = gewerkText.tabs.map { GewerkTab(it.label, it.selected) },
+                    compareLabel = ScreenCopy.Gewerk.COMPARE,
+                    compareTarget = if (trade.id in compareByTrade) AppRoute.Compare(trade.id) else null,
+                    addLabel = ScreenCopy.Gewerk.ADD,
+                    moreLabel = ScreenCopy.Gewerk.MORE,
+                )
+            }
+
+            val comparisons = comparisonList.associate { comparison ->
+                val columnOffers = comparison.offerIds.map { id -> offers.firstOrNull { it.id == id } }
+                if (columnOffers.size != comparison.columns.size || columnOffers.any { it == null }) {
+                    throw RepositoryException.Decoding("comparisons.offerIds")
+                }
+                val pendingOffer = offers.firstOrNull { it.tradeId == comparison.tradeId && it.pending }
+                comparison.tradeId to CompareModel(
+                    tradeId = comparison.tradeId,
+                    title = ScreenCopy.Vergleich.TITLE,
+                    subtitle = comparison.hint.value ?: throw RepositoryException.Decoding("comparisons.hint"),
+                    tableLabel = ScreenCopy.Vergleich.TABLE,
+                    columns = comparison.columns.mapIndexed { index, name ->
+                        val offer = columnOffers[index]!!
+                        CompareColumn(offer.id, name, offer.best, documentTarget(offer.documentId))
+                    },
+                    rows = comparison.rows.map { CompareRow(it.label, it.a, it.b, it.strong, it.a != it.b && !it.strong) },
+                    note = comparison.summary.value ?: throw RepositoryException.Decoding("comparisons.summary"),
+                    pending = pendingOffer?.let {
+                        PendingOffer(
+                            it.firm,
+                            comparison.pending.value ?: throw RepositoryException.Decoding("comparisons.pending"),
+                        )
+                    },
+                    remindLabel = ScreenCopy.Vergleich.REMIND,
+                    askLabel = ScreenCopy.Vergleich.ASK,
+                    awardLabel = ScreenCopy.Vergleich.AWARD,
+                )
+            }
+
+            val filterField = "screens.Dokumente.android.filters"
+            val categories = documentItems.categories
+            if (dokumenteText.filters.size != categories.size + 1 ||
+                categories.indices.any { "${categories[it].label} ${categories[it].count}" != dokumenteText.filters[it + 1].text }
+            ) {
+                throw RepositoryException.Decoding(filterField)
+            }
+            val documents = DocumentsModel(
+                countBadge = dokumenteText.countBadge,
+                addLabel = ScreenCopy.Dokumente.UPLOAD,
+                uploadLabel = ScreenCopy.Dokumente.UPLOAD,
+                searchLabel = dokumenteText.searchLabel,
+                filtersLabel = ScreenCopy.Dokumente.FILTERS,
+                filters = dokumenteText.filters.mapIndexed { index, chip ->
+                    DocumentFilter(chip.text, if (index == 0) null else DocumentKind.of(categories[index - 1].kind, filterField))
+                },
+                initialFilter = dokumenteText.filters.indexOfFirst { it.selected }.takeIf { it >= 0 }
+                    ?: throw RepositoryException.Decoding(filterField),
+                banner = DocumentBanner(dokumenteText.banner.title, dokumenteText.banner.sub, dokumenteText.banner.amount),
+                recentLabel = dokumenteText.recentLabel,
+                byTradeLabel = dokumenteText.byTradeLabel,
+                rows = documentItems.items.map { item ->
+                    DocumentRow(
+                        id = item.id,
+                        kind = DocumentKind.of(item.kind, "documents.items.kind"),
+                        title = item.title,
+                        meta = item.meta.value ?: throw RepositoryException.Decoding("documents.items.meta"),
+                        amount = item.amount,
+                        target = documentTarget(item.id),
+                    )
+                },
+            )
+
+            val viewers = documentItems.items.filter { it.viewer != null }.associate { item ->
+                val viewer = item.viewer!!
+                if (viewer.facts.size < 3) throw RepositoryException.Decoding("documents.items.viewer.facts")
+                item.id to DocViewerModel(
+                    id = item.id,
+                    title = item.title,
+                    subtitle = viewer.subtitle.value ?: throw RepositoryException.Decoding("viewer.subtitle"),
+                    pageLabel = viewer.pageLabel,
+                    issuerName = viewer.issuer.name,
+                    issuerAddress = viewer.issuer.address,
+                    number = viewer.number,
+                    reference = viewer.reference,
+                    lines = viewer.lines.map { ViewerLineRow(it.pos, it.text, it.sum) },
+                    totalLabel = ScreenCopy.DokViewer.TOTAL,
+                    total = viewer.total,
+                    facts = viewer.facts,
+                    compareLabel = ScreenCopy.DokViewer.COMPARE,
+                    compareTarget = item.tradeId?.takeIf { it in compareByTrade }?.let { AppRoute.Compare(it) },
+                    shareLabel = ScreenCopy.DokViewer.SHARE,
+                    changeLabel = ScreenCopy.DokViewer.CHANGE,
+                )
+            }
+
+            val notificationsModel = NotificationsModel(
+                title = ScreenCopy.NOTIFICATIONS_TITLE,
+                markAllLabel = ScreenCopy.Mitteilungen.MARK_ALL,
+                groups = notificationGroups.map { group ->
+                    NotificationGroupRow(
+                        group.title,
+                        group.items.map { item ->
+                            NotificationRow(
+                                id = item.id,
+                                kind = NotificationKind.of(item.kind, "notifications.items.kind"),
+                                title = item.title,
+                                text = item.text,
+                                `when` = item.`when`,
+                                unread = item.unread,
+                                target = RouteParser.target(item.target, "notifications.items.target"),
+                            )
+                        },
+                    )
+                },
+                unreadCount = notificationGroups.sumOf { group -> group.items.count { it.unread } },
+            )
+            return AppData(
+                login, home, scheduleModel, profile, gewerke, comparisons, documents, viewers, notificationsModel,
+                trades.associate { it.id to it.name },
+            )
         }
     }
 }

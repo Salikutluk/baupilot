@@ -68,4 +68,69 @@ enum ScreenCopy {
         /// Row whose label takes the danger tone (IosProfil.dc.html:80, `link('Abmelden', '', t.danger)`).
         static let signOut = "Abmelden"
     }
+
+    enum Gewerk {
+        // IosGewerk.dc.html:54
+        static let offersHeading = "Angebote"
+        // IosGewerk.dc.html:70
+        static let bestLabel = "Günstigstes"
+        // IosGewerk.dc.html:79
+        static let stepsHeading = "Nächste Schritte"
+        // IosGewerk.dc.html:94
+        static let compareLabel = "Angebote vergleichen"
+        // IosGewerk.dc.html:95
+        static let addLabel = "Dokument hinzufügen"
+        // IosGewerk.dc.html:24
+        static let moreLabel = "Weitere Aktionen"
+        /// Done state of each step by position (IosGewerk.dc.html:118-120): step 1 done, steps 2 and 3 open.
+        static let stepsDone = [true, false, false]
+    }
+
+    enum Vergleich {
+        // IosVergleich.dc.html:28
+        static let title = "Angebote vergleichen"
+        // IosVergleich.dc.html:24
+        static let deadlineNote = "Frist 15.01."
+        // IosVergleich.dc.html:32
+        static let tableLabel = "Vergleich der Estrich-Angebote"
+        // IosVergleich.dc.html:36
+        static let bestLabel = "Günstigstes"
+        // IosVergleich.dc.html:62
+        static let remindLabel = "Erinnern"
+        // IosVergleich.dc.html:67
+        static let askLabel = "Rückfrage"
+        // IosVergleich.dc.html:68
+        static let awardLabel = "Wagner beauftragen"
+    }
+
+    enum Dokumente {
+        // IosDokumente.dc.html:24
+        static let addLabel = "Dokument hinzufügen"
+        // IosDokumente.dc.html:34
+        static let filtersLabel = "Dokumenttyp"
+    }
+
+    enum DokViewer {
+        // IosDokViewer.dc.html:57
+        static let totalLabel = "Gesamt brutto"
+        // IosDokViewer.dc.html:76
+        static let compareLabel = "Im Vergleich ansehen"
+        // IosDokViewer.dc.html:24
+        static let shareLabel = "Teilen"
+    }
+
+    enum Mitteilungen {
+        // IosMitteilungen.dc.html:24
+        static let markAllLabel = "Alle gelesen"
+
+        /// Icon tile per notification kind (IosMitteilungen.dc.html:43-46): alert triangle, receipt, document, calendar.
+        static func tile(_ kind: NotificationKind) -> (icon: BaupilotIcon, background: ColorToken, foreground: ColorToken) {
+            switch kind {
+            case .frist: return (.alertTriangleW22, Tokens.eSoft.mitteilungen, Tokens.eFg)
+            case .geld: return (.receiptW22, Tokens.aSoft, Tokens.aFg)
+            case .angebot: return (.documentW22, Tokens.iSoft, Tokens.iFg)
+            case .termin: return (.calendarW22, Tokens.oSoft, Tokens.oFg)
+            }
+        }
+    }
 }

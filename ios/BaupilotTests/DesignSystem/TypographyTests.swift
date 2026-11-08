@@ -51,6 +51,21 @@ final class TypographyTests: XCTestCase {
         // 22.5 pt is not a whole @3x pixel; SwiftUI rounds the hosted size up to the next 1/3 pt.
         XCTAssertEqual(s.height, 22.5, accuracy: 1.0 / 3)
     }
+
+    /// A CSS block of n lines is exactly n line boxes tall; SwiftUI rounds a multi-line `Text` up to the pixel grid,
+    /// and a 14/1.5 box (21 pt) is not a multiple of that grid for the text alone.
+    func testInterTextBlockIsExactlyNLineBoxesTall() {
+        BaupilotFonts.registerIfNeeded()
+        let text = "Hamburg Hamburg Hamburg Hamburg Hamburg Hamburg"
+        for width: CGFloat in [120, 200] {
+            let s = size(
+                of: Text(text).interText(14, .regular, lineHeight: .factor(1.5), lines: .block), width: width)
+            XCTAssertGreaterThanOrEqual(s.height, 42, "the text wraps at \(width)")
+            XCTAssertEqual(s.height.truncatingRemainder(dividingBy: 21), 0, accuracy: 0.001, "height \(s.height)")
+        }
+        let one = size(of: Text("Hamburg").interText(14, .regular, lineHeight: .factor(1.5), lines: .block), width: 200)
+        XCTAssertEqual(one.height, 21, accuracy: 0.001)
+    }
 }
 
 /// Records the first-text-baseline of its single child, measured from the child's top.

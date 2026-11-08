@@ -72,6 +72,8 @@ public struct ListRow: View {
         case badgeAndChevron(StatusBadge, ChevronSize)
         case value(String, InterWeight)
         case valueAndChevron(String, InterWeight, ChevronSize)
+        /// Amount over an optional badge, trailing aligned, gap 4.
+        case amount(String, size: CGFloat, weight: InterWeight, color: ColorToken, badge: StatusBadge? = nil)
     }
 
     struct LeadingView: View {
@@ -187,6 +189,17 @@ public struct ListRow: View {
         case .valueAndChevron(let text, let weight, let size):
             value(text, weight)
             chevron(size)
+        case .amount(let text, let size, let weight, let color, let badge):
+            VStack(alignment: .trailing, spacing: 4) {
+                Text(text)
+                    .interText(size, weight)
+                    .foregroundStyle(color.color)
+                    .lineLimit(1)
+                    .fixedSize()
+                if let badge {
+                    badge
+                }
+            }
         }
     }
 

@@ -53,4 +53,13 @@ final class ComponentMetricsButtonTests: XCTestCase {
         XCTAssertEqual(size(of: InvertedButton("Mit Apple anmelden", icon: .apple, action: nil), width: width).height, 52)
         XCTAssertEqual(size(of: InvertedButton("Mit Apple anmelden", action: nil), width: width).height, 52)
     }
+
+    func testActionRowMinHeight44() {
+        BaupilotFonts.registerIfNeeded()
+        let row = ActionRow(
+            title: "Bodenbau Lorenz", subtitle: "Angefragt am 05.12. · noch kein Angebot",
+            actionTitle: "Erinnern", action: nil)
+        XCTAssertEqual(size(of: row, width: width).height, 44)
+    }
 }
+

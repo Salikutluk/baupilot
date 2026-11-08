@@ -11,9 +11,16 @@ import androidx.compose.ui.platform.testTag
 import de.baupilot.designsystem.Tokens
 import de.baupilot.designsystem.components.BaupilotNavigationBar
 import de.baupilot.designsystem.components.Tab
+import de.baupilot.screens.compare.CompareAction
+import de.baupilot.screens.compare.CompareScreen
+import de.baupilot.screens.docviewer.DocViewerAction
+import de.baupilot.screens.docviewer.DocViewerScreen
+import de.baupilot.screens.documents.DocumentsScreen
+import de.baupilot.screens.gewerk.GewerkScreen
 import de.baupilot.screens.home.HomeAction
-import de.baupilot.screens.ScreenCopy
 import de.baupilot.screens.home.HomeScreen
+import de.baupilot.screens.notifications.NotificationsAction
+import de.baupilot.screens.notifications.NotificationsScreen
 import de.baupilot.screens.placeholder.PlaceholderPresentation
 import de.baupilot.screens.placeholder.PlaceholderScreen
 import de.baupilot.screens.profile.ProfileScreen
@@ -37,6 +44,21 @@ private fun Tab.appTab(): AppTab = when (this) {
 }
 
 /**
+ * Saveable-state key per route (D9): a parent's state survives a push and pop, and Profil keeps `profile/0/root`.
+ * Entries of popped routes are not removed, so re-opening a route at the same depth restores its state.
+ */
+private fun providerKey(tab: AppTab, path: List<AppRoute>): String {
+    val top = when (val route = path.lastOrNull()) {
+        null -> "root"
+        is AppRoute.Trade -> "trade:${route.id}"
+        is AppRoute.Compare -> "compare:${route.tradeId}"
+        is AppRoute.Document -> "document:${route.id}"
+        AppRoute.Notifications -> "notifications"
+    }
+    return "${tab.route}/${path.size}/$top"
+}
+
+/**
  * Logged-in shell (D4, D5): composes only the selected tab's top route, keeps each tab's saved state in a
  * [androidx.compose.runtime.saveable.SaveableStateHolder], and pins the navigation bar at the bottom while the
  * selected tab is at its root.
@@ -50,10 +72,11 @@ fun AppShell(
     val holder = rememberSaveableStateHolder()
     val tab = state.selectedTab
     Box(Modifier.fillMaxSize().background(Tokens.bg.color())) {
-        holder.SaveableStateProvider(key = tab.route) {
+        val path = state.path(tab)
+        holder.SaveableStateProvider(key = providerKey(tab, path)) {
             TabContent(
                 tab = tab,
-                route = state.path(tab).lastOrNull(),
+                route = path.lastOrNull(),
                 state = state,
                 onStateChange = onStateChange,
                 data = data,
@@ -78,20 +101,69 @@ private fun TabContent(
     onStateChange: (AppNavigationState) -> Unit,
     data: AppData,
 ) {
+    val onBack = { onStateChange(state.pop()) }
     if (route != null) {
-        val title = when (route) {
-            is AppRoute.Trade -> data.tradeNames[route.id] ?: route.id
-            AppRoute.Notifications -> ScreenCopy.NOTIFICATIONS_TITLE
+        when (route) {
+            is AppRoute.Trade -> {
+                val model = data.trades[route.id]
+                if (model != null) {
+                    GewerkScreen(
+                        model = model,
+                        onBack = onBack,
+                        onNavigate = { onStateChange(state.open(it)) },
+                    )
+                } else {
+                    PushedPlaceholder(data.tradeNames[route.id] ?: route.id, "screen.trade.${route.id}", onBack)
+                }
+            }
+
+            is AppRoute.Compare -> {
+                val model = data.comparisons[route.tradeId]
+                if (model != null) {
+                    CompareScreen(
+                        model = model,
+                        onBack = onBack,
+                        onAction = { action ->
+                            when (action) {
+                                is CompareAction.OpenDocument ->
+                                    onStateChange(state.open(AppRoute.Document(action.id)))
+                            }
+                        },
+                    )
+                } else {
+                    PushedPlaceholder(data.tradeNames[route.tradeId] ?: route.tradeId, "screen.compare.${route.tradeId}", onBack)
+                }
+            }
+
+            is AppRoute.Document -> {
+                val model = data.viewers[route.id]
+                if (model != null) {
+                    DocViewerScreen(
+                        model = model,
+                        onBack = onBack,
+                        onAction = { action ->
+                            when (action) {
+                                is DocViewerAction.OpenCompare ->
+                                    onStateChange(state.open(AppRoute.Compare(action.tradeId)))
+                            }
+                        },
+                    )
+                } else {
+                    val title = data.documents.rows.firstOrNull { it.id == route.id }?.title ?: route.id
+                    PushedPlaceholder(title, "screen.document.${route.id}", onBack)
+                }
+            }
+
+            AppRoute.Notifications -> NotificationsScreen(
+                model = data.notifications,
+                onBack = onBack,
+                onAction = { action ->
+                    when (action) {
+                        is NotificationsAction.Open -> onStateChange(state.go(action.target))
+                    }
+                },
+            )
         }
-        val tag = when (route) {
-            is AppRoute.Trade -> "screen.trade.${route.id}"
-            AppRoute.Notifications -> "screen.notifications"
-        }
-        PlaceholderScreen(
-            title = title,
-            presentation = PlaceholderPresentation.Pushed(onBack = { onStateChange(state.pop()) }),
-            modifier = Modifier.testTag(tag),
-        )
         return
     }
     when (tab) {
@@ -100,9 +172,9 @@ private fun TabContent(
             onAction = { action ->
                 onStateChange(
                     when (action) {
-                        HomeAction.OpenNotifications -> state.push(AppRoute.Notifications)
-                        is HomeAction.OpenTrade -> state.push(AppRoute.Trade(action.id))
-                        HomeAction.OpenDocumentsTab -> state.select(AppTab.Documents)
+                        HomeAction.OpenNotifications -> state.open(AppRoute.Notifications)
+                        is HomeAction.OpenTrade -> state.open(AppRoute.Trade(action.id))
+                        HomeAction.OpenDocumentsTab -> state.go(NavigationTarget.Tab(AppTab.Documents))
                     },
                 )
             },
@@ -112,7 +184,7 @@ private fun TabContent(
             model = data.schedule,
             onAction = { action ->
                 when (action) {
-                    is ScheduleAction.OpenTrade -> onStateChange(state.push(AppRoute.Trade(action.id)))
+                    is ScheduleAction.OpenTrade -> onStateChange(state.open(AppRoute.Trade(action.id)))
                 }
             },
         )
@@ -123,12 +195,20 @@ private fun TabContent(
             modifier = Modifier.testTag("screen.inspections"),
         )
 
-        AppTab.Documents -> PlaceholderScreen(
-            title = Tab.Documents.label,
-            presentation = PlaceholderPresentation.TabRoot,
-            modifier = Modifier.testTag("screen.documents"),
+        AppTab.Documents -> DocumentsScreen(
+            model = data.documents,
+            onOpen = { onStateChange(state.open(it)) },
         )
 
         AppTab.Profile -> ProfileScreen(model = data.profile)
     }
+}
+
+@Composable
+private fun PushedPlaceholder(title: String, tag: String, onBack: () -> Unit) {
+    PlaceholderScreen(
+        title = title,
+        presentation = PlaceholderPresentation.Pushed(onBack = onBack),
+        modifier = Modifier.testTag(tag),
+    )
 }

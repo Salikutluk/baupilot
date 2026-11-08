@@ -25,6 +25,17 @@ class TokensTest {
     }
 
     @Test
+    fun documentPageTokensAreThemeIndependent() {
+        val pairs = listOf(
+            Tokens.docPaper, Tokens.docInk, Tokens.docBrand, Tokens.docMeta,
+            Tokens.docPos, Tokens.docRule, Tokens.docRuleLight, Tokens.docShadow,
+        )
+        pairs.forEach { assertEquals(it.light, it.dark) }
+        assertEquals(Color(0xFFFFFFFF), Tokens.docPaper.light) // lint-hex: allow token value assertion
+        assertEquals(Color(0x2E000000), Tokens.docShadow.light) // lint-hex: allow token value assertion
+    }
+
+    @Test
     fun navPillLayout() {
         assertEquals(DpSize(56.dp, 32.dp), Tokens.Layout.navPill)
     }

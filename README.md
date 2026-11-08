@@ -97,6 +97,24 @@ cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests 'de.bau
 
 The Android UI test needs Robolectric (`org.robolectric:robolectric`) and `androidx.compose.ui:ui-test-junit4` in `src/test`; both are declared in `android/app/build.gradle.kts`. Under JDK 21 Robolectric needs `--add-exports=java.base/jdk.internal.access=ALL-UNNAMED`, which `tasks.withType<Test>` sets. Robolectric and Paparazzi do not share one JVM, so `testDebugUnitTest` runs with `forkEvery = 1` (each test class in its own JVM; the task takes about 1.5 minutes longer). Details: [`docs/m2-offene-punkte.md`](docs/m2-offene-punkte.md). No emulator is needed locally or in CI.
 
+### Screen snapshots and UI tests (M3)
+
+M3 adds five screens (Gewerk, Dokumente, Dokumentenansicht, Angebote vergleichen, Mitteilungen) to `ScreenSnapshotTests` on iOS and to the `*SnapshotTest` classes on Android: 5 screens × 2 platforms × light/dark = 20 snapshots against `design/reference/`. The tolerances never change. Measured results and decisions: [`docs/m3-offene-punkte.md`](docs/m3-offene-punkte.md).
+
+```sh
+# iOS: screen snapshots (the five M3 screens are part of ScreenSnapshotTests)
+cd ios && xcodebuild test -project Baupilot.xcodeproj -scheme Baupilot -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:BaupilotTests/ScreenSnapshotTests
+
+# iOS: trade flow UI tests
+cd ios && xcodebuild test -project Baupilot.xcodeproj -scheme Baupilot -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:BaupilotUITests/TradeFlowUITests
+
+# Android: screen snapshots
+cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests 'de.baupilot.snapshot.*SnapshotTest'
+
+# Android: trade flow UI test (Compose UI test on Robolectric)
+cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests 'de.baupilot.app.TradeFlowUiTest'
+```
+
 To record a screen golden of a gallery page you own, use the record flags above (`TEST_RUNNER_BAUPILOT_RECORD_GOLDENS=1` on iOS, `-Pbaupilot.recordGoldens=true` on Android), then view the image and run again without the flag. The screen snapshots compare against `design/reference/` and are never recorded.
 
 ## Font provenance

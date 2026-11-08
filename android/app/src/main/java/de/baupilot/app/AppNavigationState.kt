@@ -14,7 +14,15 @@ enum class AppTab(val route: String) {
 
 sealed interface AppRoute {
     data class Trade(val id: String) : AppRoute
+    data class Compare(val tradeId: String) : AppRoute
+    data class Document(val id: String) : AppRoute
     data object Notifications : AppRoute
+}
+
+/** A navigation request: push a route on the selected tab, or switch tab (never touches a stack). */
+sealed interface NavigationTarget {
+    data class Push(val route: AppRoute) : NavigationTarget
+    data class Tab(val tab: AppTab) : NavigationTarget
 }
 
 /**
@@ -40,6 +48,19 @@ data class AppNavigationState(
 
     fun push(route: AppRoute): AppNavigationState =
         if (!isLoggedIn) this else copy(paths = paths + (selectedTab to path(selectedTab) + route))
+
+    /** Pops back to [route] when it is already in the selected tab's path, otherwise appends it (I3). */
+    fun open(route: AppRoute): AppNavigationState {
+        if (!isLoggedIn) return this
+        val path = path(selectedTab)
+        val index = path.indexOf(route)
+        return if (index >= 0) copy(paths = paths + (selectedTab to path.take(index + 1))) else push(route)
+    }
+
+    fun go(target: NavigationTarget): AppNavigationState = when (target) {
+        is NavigationTarget.Push -> open(target.route)
+        is NavigationTarget.Tab -> select(target.tab)
+    }
 
     fun pop(): AppNavigationState {
         if (!isLoggedIn || !canPop) return this
@@ -73,14 +94,24 @@ data class AppNavigationState(
         )
 
         private const val TRADE_PREFIX = "trade:"
+        private const val COMPARE_PREFIX = "compare:"
+        private const val DOCUMENT_PREFIX = "document:"
         private const val NOTIFICATIONS = "notifications"
 
         private fun encode(route: AppRoute): String = when (route) {
             is AppRoute.Trade -> TRADE_PREFIX + route.id
+            is AppRoute.Compare -> COMPARE_PREFIX + route.tradeId
+            is AppRoute.Document -> DOCUMENT_PREFIX + route.id
             AppRoute.Notifications -> NOTIFICATIONS
         }
 
-        private fun decode(text: String): AppRoute =
-            if (text == NOTIFICATIONS) AppRoute.Notifications else AppRoute.Trade(text.removePrefix(TRADE_PREFIX))
+        /** Throws on an unknown string, so [Saver] restores nothing instead of guessing a route (I7). */
+        private fun decode(text: String): AppRoute = when {
+            text == NOTIFICATIONS -> AppRoute.Notifications
+            text.startsWith(TRADE_PREFIX) -> AppRoute.Trade(text.removePrefix(TRADE_PREFIX))
+            text.startsWith(COMPARE_PREFIX) -> AppRoute.Compare(text.removePrefix(COMPARE_PREFIX))
+            text.startsWith(DOCUMENT_PREFIX) -> AppRoute.Document(text.removePrefix(DOCUMENT_PREFIX))
+            else -> throw IllegalArgumentException("Unknown route: $text")
+        }
     }
 }

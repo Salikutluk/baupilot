@@ -40,15 +40,19 @@ public struct InfoCallout: View {
     private let iconSize: CGFloat
     private let chip: ColorToken
     private let warnFg: ColorToken
+    private let textLines: TextLines
 
-    /// `chip` (locked tone) and `warnFg` (warn tone) vary per screen.
+    /// `chip` (locked tone) and `warnFg` (warn tone) vary per screen. `textLines` is `.block` where the screen is
+    /// measured against Chrome's full line box (Vergleich); `.multi` keeps the geometry of the earlier goldens.
     public init(
         text: String, icon: BaupilotIcon, tone: Tone, radius: Radius = .r12, textSize: CGFloat = 13,
         iconSize: CGFloat = 18, chip: ColorToken = Tokens.chip.core,
-        warnFg: ColorToken = Tokens.wFg.core
+        warnFg: ColorToken = Tokens.wFg.core,
+        textLines: TextLines = .multi
     ) {
         self.chip = chip
         self.warnFg = warnFg
+        self.textLines = textLines
         self.text = text
         self.icon = icon
         self.tone = tone
@@ -63,7 +67,7 @@ public struct InfoCallout: View {
                 .padding(.top, tone == .accent ? 1 : 0)
                 .layoutPriority(1)
             Text(text)
-                .interText(textSize, .regular, lineHeight: .factor(1.4), lines: .multi)
+                .interText(textSize, .regular, lineHeight: .factor(1.4), lines: textLines)
                 .foregroundStyle(tone.foreground(warnFg: warnFg).color)
                 .multilineTextAlignment(tone == .locked ? .center : .leading)
                 .frame(maxWidth: .infinity, alignment: tone == .locked ? .center : .leading)

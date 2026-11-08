@@ -3,6 +3,7 @@ package de.baupilot.designsystem
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
+import de.baupilot.designsystem.components.ActionRow
 import de.baupilot.designsystem.components.ButtonSize
 import de.baupilot.designsystem.components.ExtendedFab
 import de.baupilot.designsystem.components.FabIcon
@@ -12,6 +13,7 @@ import de.baupilot.designsystem.components.OutlinedButton
 import de.baupilot.designsystem.components.TextButton
 import de.baupilot.designsystem.components.TextButtonSize
 import de.baupilot.designsystem.components.TonalButton
+import de.baupilot.designsystem.components.TonalIconButton
 import de.baupilot.snapshot.NoopSnapshotHandler
 import de.baupilot.snapshot.SNAPSHOT_WIDTH
 import de.baupilot.snapshot.baupilotPaparazzi
@@ -123,5 +125,31 @@ class ComponentMetricsButtonsFabTest {
         assertEquals(44 * 3, sizes.getValue("wide").second)
         assertEquals(SNAPSHOT_WIDTH, sizes.getValue("wide").first)
         assertEquals(40 * 3, sizes.getValue("compact").second)
+    }
+
+    @Test
+    fun tonalIconButtonIs56() {
+        paparazzi.snapshot {
+            Column {
+                TonalIconButton(
+                    icon = BaupilotIcon.Paperclip,
+                    contentDescription = "Dokument hinzufügen",
+                    modifier = Modifier.record("tonal"),
+                )
+            }
+        }
+
+        assertEquals(56 * 3 to 56 * 3, sizes.getValue("tonal"))
+    }
+
+    @Test
+    fun actionRowMinHeight56() {
+        paparazzi.snapshot {
+            Column {
+                ActionRow("Bodenbau Lorenz", "Angefragt am 05.12. · noch offen", "Erinnern", modifier = Modifier.record("action"))
+            }
+        }
+
+        assertEquals(56 * 3, sizes.getValue("action").second)
     }
 }

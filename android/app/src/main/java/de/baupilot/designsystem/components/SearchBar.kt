@@ -26,6 +26,7 @@ import de.baupilot.designsystem.ColorToken
 import de.baupilot.designsystem.Icon
 import de.baupilot.designsystem.Roboto
 import de.baupilot.designsystem.Tokens
+import de.baupilot.designsystem.wholeDpCentered
 
 /**
  * Search bar: height 56, radius 28, padding-x 16, gap 16. Leading search icon, 16 sp input with
@@ -69,7 +70,8 @@ fun BaupilotSearchBar(
                 platformStyle = PlatformTextStyle(includeFontPadding = false),
             ),
             cursorBrush = SolidColor(textColor.color()),
-            modifier = Modifier.weight(1f).semantics { this.contentDescription = contentDescription },
+            // Chrome gives an `<input>` 2 px of side padding (the modifier's start padding).
+            modifier = Modifier.weight(1f).then(wholeDpCentered()).padding(start = 2.dp).semantics { this.contentDescription = contentDescription },
             decorationBox = { innerTextField ->
                 Box(contentAlignment = Alignment.CenterStart) {
                     if (query.isEmpty()) {
@@ -80,7 +82,7 @@ fun BaupilotSearchBar(
             },
         )
         if (trailingText != null) {
-            BaupilotText(text = trailingText, size = 13.sp, color = trailingColor)
+            BaupilotText(text = trailingText, size = 13.sp, color = trailingColor, modifier = wholeDpCentered())
         }
     }
 }

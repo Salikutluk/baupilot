@@ -24,6 +24,28 @@ final class ComponentMetricsStatusInputTests: XCTestCase {
         XCTAssertEqual([compact, roomy, mini], [23, 25, 20])
     }
 
+    /// Natural size of a view with no width proposal.
+    private func intrinsic(_ view: some View) -> CGSize {
+        UIHostingController(rootView: view.fixedSize()).sizeThatFits(
+            in: CGSize(width: CGFloat.greatestFiniteMagnitude, height: .greatestFiniteMagnitude))
+    }
+
+    func testMicroBadgePadding() {
+        let micro = intrinsic(StatusBadge("Günstigstes", tone: .ok, size: .micro, weight: .bold))
+        // 11 pt text, padding 6 x 2 (IosVergleich:36): line box + 2·2 high, text + 2·6 wide.
+        XCTAssertEqual(micro.height, InterMetrics.lineBox(11) + 4, accuracy: tolerance)
+        let text = intrinsic(Text("Günstigstes").interText(11, .bold).fixedSize())
+        XCTAssertEqual(micro.width, text.width + 12, accuracy: tolerance)
+    }
+
+    func testChecklistRowRingIs22() {
+        XCTAssertEqual(intrinsic(ChecklistRow.Ring(done: true)), CGSize(width: 22, height: 22))
+        XCTAssertEqual(intrinsic(ChecklistRow.Ring(done: false)), CGSize(width: 22, height: 22))
+        // The ring is taller than the 15 pt title, so it sets the row height.
+        XCTAssertEqual(size(of: ChecklistRow(title: "Angebot wählen", done: true), width: 350).height, 22)
+        XCTAssertEqual(size(of: ChecklistRow(title: "Angebot wählen", done: false), width: 350).height, 22)
+    }
+
     func testSegmentedControlHeights() {
         func height(_ h: SegmentedControl.SegmentHeight) -> CGFloat {
             size(
@@ -57,6 +79,19 @@ final class ComponentMetricsStatusInputTests: XCTestCase {
             of: FilterChips(items: ["Alle", "Pläne"], selection: 0, accessibilityLabel: "Filter", onSelect: { _ in }),
             width: 375)
         XCTAssertEqual(s.height, 36)
+    }
+
+    /// Identifiers are an accessibility annotation only: the chips keep their size.
+    func testFilterChipsWithoutIdentifiersKeepSize() {
+        func chips(_ identifiers: [String]?) -> FilterChips {
+            FilterChips(
+                items: ["Alle", "Angebote", "Verträge"], selection: 0, accessibilityLabel: "Dokumenttyp",
+                identifiers: identifiers, onSelect: { _ in })
+        }
+        let without = size(of: chips(nil), width: 375)
+        let with = size(of: chips(["documents.filter.all", "documents.filter.offer", "documents.filter.contract"]), width: 375)
+        XCTAssertEqual(with, without)
+        XCTAssertEqual(with.height, 36)
     }
 
     /// Label line box 16 + gap 6 + field 48; the trailing link (44 hit area, margin -14) adds nothing.

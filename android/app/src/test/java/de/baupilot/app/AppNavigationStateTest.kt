@@ -4,6 +4,7 @@ import androidx.compose.runtime.saveable.SaverScope
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -88,6 +89,79 @@ class AppNavigationStateTest {
         val state = AppNavigationState()
         assertEquals(state, state.push(trade))
         assertEquals(state, state.pop())
+    }
+
+    @Test
+    fun openAppendsNewRoute() {
+        val state = loggedIn().open(trade).open(AppRoute.Compare("screed"))
+        assertEquals(listOf(trade, AppRoute.Compare("screed")), state.path(AppTab.Home))
+    }
+
+    @Test
+    fun openExistingRoutePopsBackToIt() {
+        val state = loggedIn().open(trade).open(AppRoute.Compare("screed")).open(AppRoute.Document("d1"))
+        val back = state.open(trade)
+        assertEquals(listOf<AppRoute>(trade), back.path(AppTab.Home))
+        assertEquals(listOf(trade, AppRoute.Compare("screed")), state.open(AppRoute.Compare("screed")).path(AppTab.Home))
+    }
+
+    @Test
+    fun openNeverDuplicates() {
+        var state = loggedIn()
+        listOf(
+            trade, AppRoute.Notifications, trade, AppRoute.Document("d1"), AppRoute.Document("d1"),
+            AppRoute.Compare("screed"), AppRoute.Notifications,
+        ).forEach {
+            state = state.open(it)
+            val path = state.path(AppTab.Home)
+            assertEquals(path.distinct(), path)
+            assertEquals(it, path.last())
+        }
+    }
+
+    @Test
+    fun openWhileLoggedOutIsNoOp() {
+        val state = AppNavigationState()
+        assertEquals(state, state.open(trade))
+        assertEquals(state, state.go(NavigationTarget.Push(trade)))
+    }
+
+    @Test
+    fun goTabSelectsWithoutTouchingStacks() {
+        val before = loggedIn().push(trade)
+        val after = before.go(NavigationTarget.Tab(AppTab.Documents))
+        assertEquals(AppTab.Documents, after.selectedTab)
+        assertEquals(before.paths, after.paths)
+        assertEquals(before.select(AppTab.Documents), after)
+    }
+
+    @Test
+    fun goPushOpensOnSelectedTab() {
+        val state = loggedIn().select(AppTab.Schedule)
+            .go(NavigationTarget.Push(trade))
+            .go(NavigationTarget.Push(trade))
+        assertEquals(listOf<AppRoute>(trade), state.path(AppTab.Schedule))
+        assertTrue(state.path(AppTab.Home).isEmpty())
+    }
+
+    @Test
+    fun saverRoundTripsAllRoutes() {
+        val scope = SaverScope { true }
+        val state = loggedIn()
+            .open(AppRoute.Trade("screed")).open(AppRoute.Compare("screed"))
+            .open(AppRoute.Document("d1")).open(AppRoute.Notifications)
+            .select(AppTab.Documents)
+            .open(AppRoute.Document("d2")).open(AppRoute.Trade("tiles")).open(AppRoute.Compare("tiles"))
+        val saved = with(AppNavigationState.Saver) { scope.save(state) }
+        assertEquals(state, AppNavigationState.Saver.restore(saved!!))
+    }
+
+    @Test
+    fun saverRejectsUnknownRoute() {
+        val saved = listOf(true, "home", listOf(listOf("elsewhere:1"), emptyList<String>(), emptyList<String>(), emptyList<String>(), emptyList<String>()))
+        assertNull(AppNavigationState.Saver.restore(saved))
+        val bareTrade = listOf(true, "home", listOf(listOf("screed"), emptyList<String>(), emptyList<String>(), emptyList<String>(), emptyList<String>()))
+        assertNull(AppNavigationState.Saver.restore(bareTrade))
     }
 
     @Test

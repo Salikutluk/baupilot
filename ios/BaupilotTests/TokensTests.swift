@@ -22,6 +22,16 @@ final class TokensTests: XCTestCase {
         XCTAssertEqual(Tokens.placeholder.light, Tokens.placeholder.dark)
     }
 
+    func testDocumentPageTokensAreThemeIndependent() {
+        let pairs = [
+            Tokens.docPaper, Tokens.docInk, Tokens.docBrand, Tokens.docMeta,
+            Tokens.docPos, Tokens.docRule, Tokens.docRuleLight, Tokens.docShadow,
+        ]
+        for pair in pairs { XCTAssertEqual(pair.light, pair.dark) }
+        XCTAssertEqual(Tokens.docPaper.light, 0xFFFFFFFF) // lint-hex: allow token value assertion
+        XCTAssertEqual(Tokens.docShadow.light & 0xFF, 0x2E) // lint-hex: allow token value assertion
+    }
+
     func testLayoutConstants() {
         XCTAssertEqual(Tokens.Layout.screen, CGSize(width: 390, height: 844))
         XCTAssertEqual(Tokens.Layout.actionBarPadding.bottom, 34)

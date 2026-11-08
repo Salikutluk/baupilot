@@ -2,9 +2,13 @@ package de.baupilot.designsystem
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.unit.dp
 import de.baupilot.designsystem.components.BarPadding
+import de.baupilot.designsystem.components.BaupilotTabRow
+import de.baupilot.designsystem.components.BottomActionBar
 import de.baupilot.designsystem.components.Nav
 import de.baupilot.designsystem.components.Tab
 import de.baupilot.designsystem.components.TitleStyle
@@ -61,5 +65,37 @@ class ComponentMetricsBarsTest {
 
         assertEquals(80 * 3, sizes.getValue("bar").second)
         assertEquals(56 * 3 to 32 * 3, sizes.getValue("pill"))
+    }
+
+    @Test
+    fun tabRowIs48() {
+        paparazzi.snapshot {
+            Column {
+                BaupilotTabRow(
+                    tabs = listOf("Angebote (3)", "Termine", "Notizen"),
+                    selectedIndex = 0,
+                    contentDescription = "Bereiche",
+                    modifier = Modifier.record("row"),
+                    tabModifier = Modifier.record("tab"),
+                )
+            }
+        }
+
+        assertEquals(48 * 3, sizes.getValue("tab").second)
+        assertEquals(49 * 3, sizes.getValue("row").second)
+    }
+
+    @Test
+    fun bottomActionBarPadding() {
+        paparazzi.snapshot {
+            Column {
+                BottomActionBar(modifier = Modifier.record("bar")) {
+                    Box(Modifier.height(56.dp).record("content"))
+                }
+            }
+        }
+
+        assertEquals(sizes.getValue("content").second + (12 + 24) * 3, sizes.getValue("bar").second)
+        assertEquals(56 * 3, sizes.getValue("content").second)
     }
 }

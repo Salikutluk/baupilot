@@ -219,6 +219,28 @@ fun TonalButton(label: String, modifier: Modifier = Modifier, onClick: (() -> Un
     }
 }
 
+/** Tonal icon button: 56 x 56, radius 16, `secondaryContainer` with a 24 `onSecondaryContainer` icon (AndGewerk:67). */
+@Composable
+fun TonalIconButton(
+    icon: BaupilotIcon,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+) {
+    val shape = RoundedCornerShape(Tokens.Radius.fab)
+    Box(
+        modifier = modifier
+            .size(56.dp)
+            .clip(shape)
+            .background(Tokens.secondaryContainer.color(), shape)
+            .semantics { this.contentDescription = contentDescription }
+            .pressable(onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, 24.dp, Tokens.onSecondaryContainer.color())
+    }
+}
+
 /** Round 20 social mark: 2 `muted` border, [mark] in 11 / 700 `muted` (AndLogin:47). */
 @Composable
 fun GoogleMark(mark: String = "G", modifier: Modifier = Modifier) {

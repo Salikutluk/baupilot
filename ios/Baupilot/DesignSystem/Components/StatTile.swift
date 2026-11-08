@@ -173,7 +173,9 @@ public struct FactStrip: View {
         HStack(alignment: .top, spacing: 0) {
             ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                 fact(item, gap: 4, valueSize: 15, valueWeight: .semibold)
-                    .padding(.horizontal, 12)
+                    // CSS `border-left` sits inside the column, so columns after the first start 1 pt later.
+                    .padding(.leading, index > 0 ? 13 : 12)
+                    .padding(.trailing, 12)
                     .overlay(alignment: .leading) {
                         if index > 0 {
                             Rectangle().fill(separator.color).frame(width: 1)
