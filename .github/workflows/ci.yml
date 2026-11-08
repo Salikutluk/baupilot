@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Script unit tests
+        run: cd scripts && node --test test/
+      - name: Token drift check
+        run: scripts/gen-tokens --check
+      - name: Design freeze check
+        run: scripts/design-freeze --check
+
+  ios:
+    runs-on: macos-15
+    needs: scripts
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.3.app
+      - name: Install xcodegen
+        run: brew install xcodegen
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Create iPhone 15 simulator (iOS 26.2)
+        # "|| true": the runner image may already ship this device; creating it again fails with "already exists".
+        run: xcrun simctl create "iPhone 15" com.apple.CoreSimulator.SimDeviceType.iPhone-15 com.apple.CoreSimulator.SimRuntime.iOS-26-2 || true
+      - name: Generate project and run tests
+        env:
+          # TEST_RUNNER_<VAR> reaches the test process as <VAR> (prefix stripped).
+          TEST_RUNNER_SNAPSHOT_ARTIFACTS: ${{ github.workspace }}/build/snapshots/ios
+        run: |
+          cd ios
+          xcodegen generate
+          xcodebuild test \
+            -project Baupilot.xcodeproj \
+            -scheme Baupilot \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            -resultBundlePath "$RUNNER_TEMP/ios.xcresult"
+      - name: Diff report
+        if: always()
+        # continue-on-error: diff-report exits 1 when a reference is missing; the test step is the gate,
+        # and this step must never block the artifact uploads below.
+        continue-on-error: true
+        run: scripts/diff-report --platform ios
+      - name: Upload diff report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diff-report-ios
+          path: |
+            reports/ios
+            build/snapshots/ios
+          if-no-files-found: warn
+      - name: Upload xcresult
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-xcresult
+          path: ${{ runner.temp }}/ios.xcresult
+          if-no-files-found: warn
+
+  android:
+    runs-on: ubuntu-latest
+    needs: scripts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Unit and snapshot tests
+        # The runner's ANDROID_HOME is used; no local.properties.
+        run: cd android && ./gradlew :app:testDebugUnitTest
+      - name: Diff report
+        if: always()
+        # continue-on-error: see the iOS job; the Gradle test step is the gate.
+        continue-on-error: true
+        run: scripts/diff-report --platform android
+      - name: Upload diff report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diff-report-android
+          path: |
+            reports/android
+            build/snapshots/android
+            android/app/build/paparazzi/failures
+            android/app/build/reports/tests
+          if-no-files-found: warn
