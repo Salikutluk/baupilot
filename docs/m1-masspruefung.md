@@ -11,6 +11,14 @@ Abnahmekriterium AC2: Je Plattform mindestens drei Komponenten Maß für Maß ge
 
 **Textzeilenhöhe.** Der Prototyp setzt kein `line-height`, also gilt `normal`. Inter: 1,21 (12 pt → 14,52 pt, 11 pt → 13,31 pt). Roboto: 1,171875.
 
+> **Korrigiert in M2 (D1).** Die Faktoren 1,21 und 1,171875 stimmen für die Referenzen nicht. Chrome rundet Ascent und Descent einzeln: `L(s) = floor(A·s/U + 0,5) + floor(D·s/U + 0,5)`, die Grundlinie liegt bei `floor(A·s/U + 0,5)` unter der Boxoberkante. Inter (hhea der gebündelten TTFs, von `FontTests.testInterHheaMatchesLineBoxConstants` gelesen): A 1984, D 494, U 2048. Roboto (v3.015): A 1900, D 500, U 2048.
+>
+> - iOS-Zeilenboxen (`TypographyTests.testLineBoxMatchesChromeRounding`): 10 → 12, 11 → 14, 12 → 15, 13 → 16, 14 → 17, 15 → 19, 16 → 20, 17 → 20, 20 → 24, 24 → 29, 32 → 39 pt. Der Faktor 1,21 ergäbe z. B. 14,52 statt 15 für 12 pt und 13,31 statt 14 für 11 pt.
+> - Messbare Folgen auf iOS: `StatusBadge` kompakt 22,52 → 23, roomy 24,52 → 25, mini 19,31 → 20 pt (`ComponentMetricsStatusInputTests.testStatusBadgeHeights`, jetzt aus `InterMetrics.lineBox` berechnet). Alle anderen Maßtests blieben unverändert.
+> - Android-Zeilenboxen (Roboto, `TypographyTest.lineBoxMatchesChromeRounding`): 11 → 13, 12 → 14, 13 → 15, 14 → 16, 16 → 19, 18 → 21, 22 → 25 dp.
+> - Belege in den Referenzen: iOS Zeitplan-Karte oben bei 129,0 und erste Diagrammzeile bei 340,0 (das 1,21-Modell verfehlt beide um etwa 1,3 pt).
+> - Alle 16 iOS-Galerie-Goldens wurden mit dem Aufnahme-Flag neu aufgenommen. Geändert haben sich 12 (Bars, Containers, StatusInput, Steps, Structure, Tiles, je hell und dunkel); Buttons und Icons blieben pixelgleich. Jedes Bild wurde angesehen, danach lief die Suite ohne Flag grün.
+
 Die Abschnitte nennen nur Maße, die ein Test prüft, und Maße, die dieselbe Zeile im Prototyp festlegt. Eine Zeile mit „kein Maßtest“ wird nur über die Galerie-Goldens abgesichert.
 
 ## iOS

@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -226,7 +227,7 @@ internal fun baupilotTopAppBarMeasured(
 
 @Composable
 private fun NavButton(nav: Nav, iconColor: ColorToken) {
-    RoundButton(nav.label, nav.onClick) {
+    RoundButton(nav.label, nav.onClick, if (nav is Nav.Back) Modifier.testTag("nav.back") else Modifier) {
         Icon(
             icon = if (nav is Nav.Back) BaupilotIcon.ArrowLeft else BaupilotIcon.X,
             size = 24.dp,
@@ -239,10 +240,11 @@ private fun NavButton(nav: Nav, iconColor: ColorToken) {
 private fun RoundButton(
     label: String,
     onClick: (() -> Unit)?,
+    modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit,
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(48.dp)
             .clip(RoundedCornerShape(24.dp))
             .optionalClick(onClick)

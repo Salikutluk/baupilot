@@ -4,7 +4,10 @@ import java.io.File
 import java.time.LocalDate
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -92,5 +95,38 @@ class MockRepositoryTest {
         assertThrows(SerializationException::class.java) {
             Json.decodeFromString<PlatformText>("42")
         }
+    }
+
+    @Serializable
+    private data class OnlyTitle(val title: String)
+
+    @Test
+    fun screenTextDecodesTheAndroidMember() = runTest {
+        val login = repository.screenText("Login", LoginScreenText.serializer())
+        assertEquals("Willkommen bei Baupilot", login.title)
+        assertEquals(listOf("Zeitplan", "Angebote", "Dokumente"), login.chips)
+    }
+
+    @Test
+    fun screenTextWithoutScreenOrAndroidMemberIsFixtureMissing() = runTest {
+        val noScreen = runCatching { repository.screenText("DoesNotExist", LoginScreenText.serializer()) }
+        assertEquals("screens.DoesNotExist.android", (noScreen.exceptionOrNull() as RepositoryException.FixtureMissing).path)
+
+        val root = Json.parseToJsonElement(fixture).jsonObject
+        val screens = root.getValue("screens").jsonObject
+        val iosOnlyLogin = JsonObject(mapOf("ios" to screens.getValue("Login").jsonObject.getValue("ios")))
+        val iosOnly = MockRepository(
+            JsonObject(root + ("screens" to JsonObject(screens + ("Login" to iosOnlyLogin)))).toString(),
+        )
+        val missing = runCatching { iosOnly.screenText("Login", LoginScreenText.serializer()) }
+        assertEquals("screens.Login.android", (missing.exceptionOrNull() as RepositoryException.FixtureMissing).path)
+    }
+
+    @Test
+    fun screenTextShapeMismatchIsDecoding() = runTest {
+        val unknownKey = runCatching { repository.screenText("Login", OnlyTitle.serializer()) }
+        assertEquals(true, unknownKey.exceptionOrNull() is RepositoryException.Decoding)
+        val wrongType = runCatching { repository.screenText("Home", LoginScreenText.serializer()) }
+        assertEquals(true, wrongType.exceptionOrNull() is RepositoryException.Decoding)
     }
 }

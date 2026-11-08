@@ -63,11 +63,8 @@ public struct InfoCallout: View {
                 .padding(.top, tone == .accent ? 1 : 0)
                 .layoutPriority(1)
             Text(text)
-                .font(.inter(textSize, .regular))
+                .interText(textSize, .regular, lineHeight: .factor(1.4), lines: .multi)
                 .foregroundStyle(tone.foreground(warnFg: warnFg).color)
-                // CSS line-height 1.4 vs. the natural Inter line height 1.21:
-                // lineSpacing = (1.4 - 1.21) * textSize.
-                .lineSpacing((1.4 - 1.21) * textSize)
                 .multilineTextAlignment(tone == .locked ? .center : .leading)
                 .frame(maxWidth: .infinity, alignment: tone == .locked ? .center : .leading)
         }

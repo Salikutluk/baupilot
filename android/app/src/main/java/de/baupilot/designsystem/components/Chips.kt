@@ -39,6 +39,8 @@ private fun ChipFrame(
     var frame = modifier.height(32.dp)
     if (background != null) frame = frame.background(background.color(), shape)
     if (border != null) frame = frame.border(1.dp, border.color(), shape)
+    // CSS border-box: the padding sits inside the border, so the content starts a border width further in.
+    if (border != null) frame = frame.padding(1.dp)
     Row(
         modifier = frame.padding(padding),
         verticalAlignment = Alignment.CenterVertically,

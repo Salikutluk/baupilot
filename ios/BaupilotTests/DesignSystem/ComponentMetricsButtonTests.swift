@@ -44,4 +44,13 @@ final class ComponentMetricsButtonTests: XCTestCase {
         XCTAssertEqual(naturalSize(of: PhotoButton(label: "Foto aufnehmen", action: nil)),
                        CGSize(width: 50, height: 50))
     }
+
+    /// Login's primary and inverted buttons are 52 tall; the primary default stays 50.
+    func testTallPrimaryAndInvertedButtonsAre52() {
+        BaupilotFonts.registerIfNeeded()
+        XCTAssertEqual(size(of: PrimaryButton("Anmelden", height: .tall, action: nil), width: width).height, 52)
+        XCTAssertEqual(size(of: PrimaryButton("Anmelden", height: .regular, action: nil), width: width).height, 50)
+        XCTAssertEqual(size(of: InvertedButton("Mit Apple anmelden", icon: .apple, action: nil), width: width).height, 52)
+        XCTAssertEqual(size(of: InvertedButton("Mit Apple anmelden", action: nil), width: width).height, 52)
+    }
 }

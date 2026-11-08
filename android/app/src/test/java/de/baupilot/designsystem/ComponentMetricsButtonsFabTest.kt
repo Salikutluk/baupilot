@@ -9,7 +9,11 @@ import de.baupilot.designsystem.components.FabIcon
 import de.baupilot.designsystem.components.FilledButton
 import de.baupilot.designsystem.components.FilledContainer
 import de.baupilot.designsystem.components.OutlinedButton
+import de.baupilot.designsystem.components.TextButton
+import de.baupilot.designsystem.components.TextButtonSize
+import de.baupilot.designsystem.components.TonalButton
 import de.baupilot.snapshot.NoopSnapshotHandler
+import de.baupilot.snapshot.SNAPSHOT_WIDTH
 import de.baupilot.snapshot.baupilotPaparazzi
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -86,5 +90,38 @@ class ComponentMetricsButtonsFabTest {
         }
 
         assertEquals(56 * 3, sizes.getValue("fab").second)
+    }
+
+    @Test
+    fun tonalButtonIs40() {
+        paparazzi.snapshot {
+            Column {
+                TonalButton(label = "Bearbeiten", onClick = {}, modifier = Modifier.record("tonal"))
+            }
+        }
+
+        assertEquals(40 * 3, sizes.getValue("tonal").second)
+    }
+
+    @Test
+    fun wideTextButtonIs44() {
+        paparazzi.snapshot {
+            Column {
+                TextButton(
+                    label = "Neues Bauvorhaben anlegen",
+                    size = TextButtonSize.Wide44,
+                    modifier = Modifier.record("wide"),
+                )
+                TextButton(
+                    label = "Alle",
+                    size = TextButtonSize.Compact40,
+                    modifier = Modifier.record("compact"),
+                )
+            }
+        }
+
+        assertEquals(44 * 3, sizes.getValue("wide").second)
+        assertEquals(SNAPSHOT_WIDTH, sizes.getValue("wide").first)
+        assertEquals(40 * 3, sizes.getValue("compact").second)
     }
 }

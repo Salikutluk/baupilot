@@ -8,6 +8,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 
+/** Strict on purpose: an unknown key in the fixture or a screen text is an error. */
+internal val FixtureJson = Json { ignoreUnknownKeys = false }
+
 sealed class RepositoryException(message: String) : Exception(message) {
     class FixtureMissing(val path: String) : RepositoryException("Fixture missing: $path")
     class Decoding(val detail: String) : RepositoryException("Fixture decoding failed: $detail")
@@ -15,7 +18,7 @@ sealed class RepositoryException(message: String) : Exception(message) {
 
 class MockRepository(json: String) : BackendRepository {
     private val fixture: Fixture = try {
-        strictJson.decodeFromString(Fixture.serializer(), json)
+        FixtureJson.decodeFromString(Fixture.serializer(), json)
     } catch (e: SerializationException) {
         throw RepositoryException.Decoding(e.message ?: e.toString())
     } catch (e: IllegalArgumentException) {
@@ -51,7 +54,6 @@ class MockRepository(json: String) : BackendRepository {
 
     companion object {
         private const val ASSET_PATH = "baupilot.json"
-        private val strictJson = Json { ignoreUnknownKeys = false }
 
         fun fromAssets(context: Context): MockRepository {
             val text = try {

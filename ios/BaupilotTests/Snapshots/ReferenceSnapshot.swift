@@ -39,7 +39,7 @@ enum ReferenceSnapshot {
         .deletingLastPathComponent()
         .deletingLastPathComponent()
 
-    /// A wrong-size render is a thrown error, so `expectRedUntil` cannot absorb it as a pixel difference (I7).
+    /// A wrong-size render is a thrown error, so it is never mistaken for a pixel difference (I7).
     static func checkSize(_ image: UIImage) throws {
         guard let cgImage = image.cgImage, cgImage.width == 1170, cgImage.height == 2532 else {
             throw ReferenceSnapshotError.sizeMismatch(actual: image.cgImage.map {
@@ -158,10 +158,5 @@ enum ReferenceSnapshot {
         options.isStrict = false
         options.issueMatcher = { $0.type == .assertionFailure }
         return options
-    }
-
-    static func expectRedUntil(_ milestone: String) {
-        XCTExpectFailure(
-            "M0: Login-Screen folgt in \(milestone)", options: expectedFailureOptions())
     }
 }

@@ -16,6 +16,17 @@ public struct TabBar: View {
             }
         }
 
+        /// UI-test hook (§5.6).
+        var identifier: String {
+            switch self {
+            case .overview: return "tab.home"
+            case .schedule: return "tab.schedule"
+            case .inspections: return "tab.inspections"
+            case .documents: return "tab.documents"
+            case .profile: return "tab.profile"
+            }
+        }
+
         var icon: BaupilotIcon {
             switch self {
             case .overview: return .home
@@ -65,7 +76,7 @@ public struct TabBar: View {
             VStack(spacing: 4) {
                 Icon(tab.icon, size: 24, color: color)
                 Text(tab.title)
-                    .font(.inter(10, .semibold))
+                    .interText(10, .semibold)
                     .foregroundStyle(color)
             }
             .frame(maxWidth: .infinity, minHeight: 44, alignment: .top)
@@ -73,6 +84,7 @@ public struct TabBar: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(tab.title)
+        .accessibilityIdentifier(tab.identifier)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }

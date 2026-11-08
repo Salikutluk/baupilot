@@ -52,19 +52,21 @@ private struct TextButtonFace: View {
     let foreground: ColorToken
     let background: ColorToken?
     let outline: ColorToken?
+    var height: CGFloat = ButtonMetrics.height
+    var iconSpacing: CGFloat = 6
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: ButtonMetrics.radius)
-        HStack(spacing: 6) {
+        HStack(spacing: iconSpacing) {
             if let icon {
                 Icon(icon, size: iconSize, color: foreground.color)
             }
             Text(title)
-                .font(.inter(size.fontSize, .semibold))
+                .interText(size.fontSize, .semibold)
                 .foregroundStyle(foreground.color)
         }
         .frame(maxWidth: .infinity)
-        .frame(height: ButtonMetrics.height)
+        .frame(height: height)
         .background {
             if let background {
                 shape.fill(background.color)
@@ -81,15 +83,32 @@ private struct TextButtonFace: View {
     }
 }
 
-/// Filled accent button, 50 tall, radius 14.
+/// Content height of a text button: `.regular` is the 50 pt default, `.tall` the 52 pt Login look.
+public enum ButtonHeight {
+    case regular, tall
+
+    var points: CGFloat {
+        switch self {
+        case .regular: return ButtonMetrics.height
+        case .tall: return 52
+        }
+    }
+}
+
+/// Filled accent button, 50 tall (52 with `.tall`), radius 14.
 public struct PrimaryButton: View {
     private let title: String
     private let size: ButtonSize
+    private let height: ButtonHeight
     private let action: (() -> Void)?
 
-    public init(_ title: String, size: ButtonSize = .large, action: (() -> Void)?) {
+    public init(
+        _ title: String, size: ButtonSize = .large, height: ButtonHeight = .regular,
+        action: (() -> Void)?
+    ) {
         self.title = title
         self.size = size
+        self.height = height
         self.action = action
     }
 
@@ -97,7 +116,35 @@ public struct PrimaryButton: View {
         FlatButton(action: action) {
             TextButtonFace(
                 title: title, size: size, icon: nil, iconSize: 0,
-                foreground: Tokens.onAccent, background: Tokens.accent, outline: nil)
+                foreground: Tokens.onAccent, background: Tokens.accent, outline: nil,
+                height: height.points)
+        }
+    }
+}
+
+/// Inverted button (fill `text`, ink `bg`) with an optional leading icon; 52 tall by default.
+public struct InvertedButton: View {
+    private let title: String
+    private let icon: BaupilotIcon?
+    private let height: ButtonHeight
+    private let action: (() -> Void)?
+
+    public init(
+        _ title: String, icon: BaupilotIcon? = nil, height: ButtonHeight = .tall,
+        action: (() -> Void)?
+    ) {
+        self.title = title
+        self.icon = icon
+        self.height = height
+        self.action = action
+    }
+
+    public var body: some View {
+        FlatButton(action: action) {
+            TextButtonFace(
+                title: title, size: .large, icon: icon, iconSize: 18,
+                foreground: Tokens.bg, background: Tokens.text, outline: nil,
+                height: height.points, iconSpacing: 8)
         }
     }
 }
@@ -259,7 +306,7 @@ public struct PhotoButton: View {
                 HStack(spacing: 8) {
                     Icon(.camera, size: 20, color: Tokens.accent.color)
                     Text(title)
-                        .font(.inter(15, .semibold))
+                        .interText(15, .semibold)
                         .foregroundStyle(Tokens.accent.color)
                 }
                 .frame(maxWidth: .infinity)

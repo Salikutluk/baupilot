@@ -42,7 +42,7 @@ public struct FilterChips: View {
             onSelect(index)
         } label: {
             Text(items[index])
-                .font(.inter(14, .semibold))
+                .interText(14, .semibold)
                 .foregroundStyle((active ? Tokens.bg : Tokens.text).color)
                 .lineLimit(1)
                 .fixedSize()
@@ -106,7 +106,7 @@ public struct SelectionChip: View {
                 Icon(.checkW30, size: 14, color: foreground.color)
             }
             Text(text)
-                .font(.inter(14, .semibold))
+                .interText(14, .semibold)
                 .foregroundStyle(foreground.color)
                 .lineLimit(1)
         }

@@ -93,4 +93,52 @@ final class MockRepositoryTests: XCTestCase {
             }
         }
     }
+
+    func testScreenTextDecodesLogin() async throws {
+        let login = try await repository().screenText("Login", as: LoginScreenText.self)
+        XCTAssertEqual(login.title, "Baupilot")
+        XCTAssertEqual(login.headline, ["Ihr Bauvorhaben.", "Ein Plan."])
+        XCTAssertEqual(login.features.count, 3)
+        XCTAssertEqual(login.social, "Mit Apple anmelden")
+        XCTAssertEqual(login.newHere, "Neu hier?")
+        XCTAssertEqual(login.create, "Bauvorhaben anlegen")
+    }
+
+    func testScreenTextMissingScreenThrowsFixtureMissing() async throws {
+        let repo = try repository()
+        do {
+            _ = try await repo.screenText("Nope", as: LoginScreenText.self)
+            XCTFail("Expected RepositoryError.fixtureMissing")
+        } catch {
+            XCTAssertEqual(error as? RepositoryError, .fixtureMissing("screens.Nope.ios"))
+        }
+    }
+
+    func testScreenTextShapeErrorThrowsDecoding() async throws {
+        let repo = try repository()
+        do {
+            _ = try await repo.screenText("Home", as: LoginScreenText.self)
+            XCTFail("Expected RepositoryError.decoding")
+        } catch {
+            guard case let RepositoryError.decoding(path)? = error as? RepositoryError else {
+                return XCTFail("Expected RepositoryError.decoding, got \(error)")
+            }
+            XCTAssertTrue(path.contains("features"), path)
+        }
+    }
+
+    func testJSONValueRoundTrips() async throws {
+        let repo = try repository()
+        let url = try XCTUnwrap(Bundle.main.url(forResource: "baupilot", withExtension: "json"))
+        struct Screens: Decodable { let screens: JSONValue }
+        let original = try JSONDecoder().decode(Screens.self, from: Data(contentsOf: url)).screens
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let encoded = try encoder.encode(original)
+        let decoded = try JSONDecoder().decode(JSONValue.self, from: encoded)
+        XCTAssertEqual(decoded, original)
+        XCTAssertEqual(try encoder.encode(decoded), encoded)
+        let projected = try await repo.screen("Login")
+        XCTAssertNotNil(projected)
+    }
 }

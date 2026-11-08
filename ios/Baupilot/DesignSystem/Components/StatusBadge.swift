@@ -79,7 +79,7 @@ public struct StatusBadge: View {
 
     public var body: some View {
         Text(text)
-            .font(.inter(size.fontSize, weight))
+            .interText(size.fontSize, weight)
             .foregroundStyle(tone.foreground.color)
             .lineLimit(1)
             .fixedSize()

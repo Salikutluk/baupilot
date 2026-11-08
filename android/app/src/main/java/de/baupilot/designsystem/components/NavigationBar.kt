@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -34,6 +35,16 @@ enum class Tab(val icon: BaupilotIcon, val label: String) {
     Documents(BaupilotIcon.Folder, "Dokumente"),
     Profile(BaupilotIcon.User, "Profil"),
 }
+
+/** UI-test identifier of the tab item (§5.6); the strings equal the iOS identifiers. */
+private val Tab.testTag: String
+    get() = when (this) {
+        Tab.Overview -> "tab.home"
+        Tab.Schedule -> "tab.schedule"
+        Tab.Acceptance -> "tab.inspections"
+        Tab.Documents -> "tab.documents"
+        Tab.Profile -> "tab.profile"
+    }
 
 /** Bottom navigation: 80 high, five equal columns, 56 x 32 pill behind the active icon. */
 @Composable
@@ -80,6 +91,7 @@ internal fun baupilotNavigationBarMeasured(
             Column(
                 modifier = Modifier
                     .weight(1f)
+                    .testTag(tab.testTag)
                     .clickable { onSelect(tab) }
                     .semantics { this.selected = active },
                 horizontalAlignment = Alignment.CenterHorizontally,
