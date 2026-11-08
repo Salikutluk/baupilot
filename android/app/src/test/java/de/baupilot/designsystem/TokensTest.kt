@@ -9,13 +9,19 @@ import org.junit.Test
 class TokensTest {
     @Test
     fun perScreenVariantDiffersFromCoreToken() {
-        assertEquals(Color(0xFFE4D7CF), Tokens.track.abnElemente.light)
-        assertEquals(Color(0xFFF0E0D6), Tokens.track.light)
+        assertEquals(Color(0xFFE4D7CF), Tokens.track.abnElemente.light) // lint-hex: allow token value assertion
+        assertEquals(Color(0xFFF0E0D6), Tokens.track.light) // lint-hex: allow token value assertion
     }
 
     @Test
     fun primaryLight() {
-        assertEquals(Color(0xFF9C4300), Tokens.primary.light)
+        assertEquals(Color(0xFF9C4300), Tokens.primary.light) // lint-hex: allow token value assertion
+    }
+
+    @Test
+    fun supplementTokensExist() {
+        assertEquals(Tokens.placeholder.light, Tokens.placeholder.dark)
+        assertEquals(Tokens.fabShadow.light, Tokens.fabShadow.dark)
     }
 
     @Test

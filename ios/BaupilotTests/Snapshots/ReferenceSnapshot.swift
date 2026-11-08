@@ -32,14 +32,12 @@ enum ReferenceSnapshot {
     static let size = CGSize(width: 390, height: 844)
     static let scale: CGFloat = 3
 
-    private static func repoRoot(from file: StaticString) -> URL {
-        // <repo>/ios/BaupilotTests/Snapshots/<file>.swift
-        URL(fileURLWithPath: "\(file)")
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-    }
+    /// <repo>/ios/BaupilotTests/Snapshots/ReferenceSnapshot.swift, four levels up from this file.
+    static let repoRootURL: URL = URL(fileURLWithPath: "\(#filePath)")
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
 
     /// A wrong-size render is a thrown error, so `expectRedUntil` cannot absorb it as a pixel difference (I7).
     static func checkSize(_ image: UIImage) throws {
@@ -50,29 +48,26 @@ enum ReferenceSnapshot {
         }
     }
 
-    static func loadReference(
-        name: String, mode: SnapshotMode, file: StaticString = #filePath
-    ) throws -> UIImage {
-        let url = repoRoot(from: file)
-            .appendingPathComponent("design/reference/ios/\(name)_\(mode.rawValue).png")
+    static func loadImage(at url: URL) throws -> UIImage {
         guard let data = try? Data(contentsOf: url), let image = UIImage(data: data, scale: scale) else {
             throw ReferenceSnapshotError.referenceMissing(url.path)
         }
         return image
     }
 
-    static func assertMatches<V: View>(
-        _ view: V,
-        reference: UIImage,
-        name: String,
-        mode: SnapshotMode,
-        writeArtifact: Bool = true,
-        file: StaticString = #filePath,
-        line: UInt = #line
-    ) throws {
+    /// `file` is kept for source compatibility; the path is resolved from `repoRootURL`.
+    static func loadReference(
+        name: String, mode: SnapshotMode, file: StaticString = #filePath
+    ) throws -> UIImage {
+        try loadImage(
+            at: repoRootURL.appendingPathComponent("design/reference/ios/\(name)_\(mode.rawValue).png"))
+    }
+
+    static func render<V: View>(_ view: V, mode: SnapshotMode) throws -> UIImage {
         let traits = UITraitCollection { traits in
             traits.displayScale = scale
             traits.userInterfaceStyle = mode.interfaceStyle
+            traits.preferredContentSizeCategory = .large
         }
         let strategy = Snapshotting<V, UIImage>.image(
             precision: precision,
@@ -82,7 +77,7 @@ enum ReferenceSnapshot {
         )
 
         let box = RenderedImageBox()
-        let expectation = XCTestExpectation(description: "render \(name)_\(mode.rawValue)")
+        let expectation = XCTestExpectation(description: "render \(mode.rawValue)")
         strategy.snapshot(view).run { image in
             box.image = image
             expectation.fulfill()
@@ -90,11 +85,28 @@ enum ReferenceSnapshot {
         guard XCTWaiter.wait(for: [expectation], timeout: 5) == .completed, let actual = box.image else {
             throw ReferenceSnapshotError.renderTimeout
         }
-
         try checkSize(actual)
+        return actual
+    }
+
+    static func assertMatches<V: View>(
+        _ view: V,
+        reference: UIImage,
+        name: String,
+        mode: SnapshotMode,
+        writeArtifact: Bool = true,
+        artifactDirectory: String = "ios",
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        let actual = try render(view, mode: mode)
 
         if writeArtifact {
-            try writeArtifactPNG(actual, name: name, mode: mode, file: file)
+            try writeArtifactPNG(
+                actual, name: name, mode: mode,
+                directory: artifactDirectoryURL(
+                    env: ProcessInfo.processInfo.environment["SNAPSHOT_ARTIFACTS"],
+                    artifactDirectory: artifactDirectory))
         }
 
         let diffing = Diffing<UIImage>.image(
@@ -112,15 +124,21 @@ enum ReferenceSnapshot {
         XCTFail(message, file: file, line: line)
     }
 
-    private static func writeArtifactPNG(
-        _ image: UIImage, name: String, mode: SnapshotMode, file: StaticString
-    ) throws {
-        let directory: URL
-        if let custom = ProcessInfo.processInfo.environment["SNAPSHOT_ARTIFACTS"], !custom.isEmpty {
-            directory = URL(fileURLWithPath: custom, isDirectory: true)
-        } else {
-            directory = repoRoot(from: file).appendingPathComponent("build/snapshots/ios", isDirectory: true)
+    /// `$SNAPSHOT_ARTIFACTS` names the "ios" directory; other artifact directories are its siblings.
+    static func artifactDirectoryURL(env: String?, artifactDirectory: String) -> URL {
+        if let env, !env.isEmpty {
+            let base = URL(fileURLWithPath: env, isDirectory: true)
+            return artifactDirectory == "ios"
+                ? base
+                : base.deletingLastPathComponent()
+                    .appendingPathComponent(artifactDirectory, isDirectory: true)
         }
+        return repoRootURL.appendingPathComponent("build/snapshots/\(artifactDirectory)", isDirectory: true)
+    }
+
+    private static func writeArtifactPNG(
+        _ image: UIImage, name: String, mode: SnapshotMode, directory: URL
+    ) throws {
         let format = UIGraphicsImageRendererFormat()
         format.scale = scale
         format.preferredRange = .standard

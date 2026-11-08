@@ -3,25 +3,36 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { parseScreens } from './lib/screens.mjs';
-import { generateKotlin, generateSwift, TokenError, validateTokens } from './lib/tokens.mjs';
+import { generateKotlin, generateSwift, mergeSupplement, TokenError, validateSupplement, validateTokens } from './lib/tokens.mjs';
 
 const DEFAULT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SWIFT_PATH = 'ios/Baupilot/DesignSystem/Tokens.swift';
 const KOTLIN_PATH = 'android/app/src/main/java/de/baupilot/designsystem/Tokens.kt';
 
-export function run({ root = DEFAULT_ROOT, tokensPath, check = false } = {}) {
+export function run({ root = DEFAULT_ROOT, tokensPath, supplementPath, check = false } = {}) {
   const tokensFile = tokensPath ? resolve(tokensPath) : join(root, 'design', 'tokens.json');
   const json = JSON.parse(readFileSync(tokensFile, 'utf8'));
   const screenNames = parseScreens(readFileSync(join(root, 'design', 'screens.md'), 'utf8')).map((s) => s.name);
+  const supplementFile = supplementPath ? resolve(supplementPath) : join(root, 'scripts', 'tokens-supplement.json');
+  const hasSupplement = existsSync(supplementFile);
+  if (supplementPath && !hasSupplement) {
+    throw new TokenError('supplement-missing', supplementFile, `gen-tokens: supplement file not found: ${supplementFile}`);
+  }
+  const supplement = hasSupplement ? JSON.parse(readFileSync(supplementFile, 'utf8')) : null;
+  let merged = json;
   try {
     validateTokens(json, screenNames);
+    if (supplement) {
+      validateSupplement(supplement, json);
+      merged = mergeSupplement(json, supplement);
+    }
   } catch (error) {
     if (error instanceof TokenError) return { code: 2, written: [], stale: [], error };
     throw error;
   }
   const outputs = [
-    [join(root, SWIFT_PATH), generateSwift(json)],
-    [join(root, KOTLIN_PATH), generateKotlin(json)],
+    [join(root, SWIFT_PATH), generateSwift(merged, { supplement: hasSupplement })],
+    [join(root, KOTLIN_PATH), generateKotlin(merged, { supplement: hasSupplement })],
   ];
   if (check) {
     const stale = outputs
@@ -41,11 +52,20 @@ function main() {
     options: {
       check: { type: 'boolean', default: false },
       tokens: { type: 'string' },
+      supplement: { type: 'string' },
       root: { type: 'string' },
     },
   });
   const root = values.root ? resolve(values.root) : DEFAULT_ROOT;
-  const result = run({ root, tokensPath: values.tokens, check: values.check });
+  let result;
+  try {
+    result = run({ root, tokensPath: values.tokens, supplementPath: values.supplement, check: values.check });
+  } catch (error) {
+    if (!(error instanceof TokenError)) throw error;
+    console.error(error.message);
+    process.exitCode = 2;
+    return;
+  }
   if (result.error) {
     console.error(result.error.message);
   } else if (result.stale.length > 0) {
