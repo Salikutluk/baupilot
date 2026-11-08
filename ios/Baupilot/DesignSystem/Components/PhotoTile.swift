@@ -73,7 +73,7 @@ public struct PhotoTile: View {
             .overlay(alignment: .bottom) {
                 if let caption {
                     Text(caption)
-                        .font(.inter(11, .semibold))
+                        .interText(11, .semibold)
                         .foregroundStyle(Tokens.onPhoto.color)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 6)
@@ -92,7 +92,7 @@ public struct PhotoTile: View {
             illustration
             if !title.isEmpty {
                 Text(title)
-                    .font(.inter(11, .semibold))
+                    .interText(11, .semibold)
                     .foregroundStyle(Tokens.muted.color)
             }
         }
@@ -107,7 +107,7 @@ public struct PhotoTile: View {
         VStack(spacing: 4) {
             Icon(.camera, size: 22, color: Tokens.accent.color)
             Text(label)
-                .font(.inter(12, .semibold))
+                .interText(12, .semibold)
                 .foregroundStyle(Tokens.accent.color)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

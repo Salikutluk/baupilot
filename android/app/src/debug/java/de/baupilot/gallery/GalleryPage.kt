@@ -26,6 +26,10 @@ enum class GalleryPage(val goldenName: String) {
     Buttons("GalleryButtons"),
     Inputs("GalleryInputs"),
     Icons("GalleryIcons"),
+    Forms("GalleryForms"),
+    Overview("GalleryOverview"),
+    Schedule("GallerySchedule"),
+    Settings("GallerySettings"),
 }
 
 @Composable
@@ -44,6 +48,10 @@ fun GalleryPageContent(page: GalleryPage) {
                 GalleryPage.Buttons -> ButtonsPage()
                 GalleryPage.Inputs -> InputsPage()
                 GalleryPage.Icons -> IconsPage()
+                GalleryPage.Forms -> FormsPage()
+                GalleryPage.Overview -> OverviewPage()
+                GalleryPage.Schedule -> SchedulePage()
+                GalleryPage.Settings -> SettingsPage()
             }
         }
     }

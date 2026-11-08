@@ -48,6 +48,19 @@ targets:
         SWIFT_VERSION: "6.0"
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Baupilot.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Baupilot"
         BUNDLE_LOADER: "$(TEST_HOST)"
+  BaupilotUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: BaupilotUITests
+    dependencies:
+      - target: Baupilot
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: de.baupilot.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "6.0"
+        TEST_TARGET_NAME: Baupilot
 schemes:
   Baupilot:
     build:
@@ -56,3 +69,4 @@ schemes:
     test:
       targets:
         - BaupilotTests
+        - BaupilotUITests

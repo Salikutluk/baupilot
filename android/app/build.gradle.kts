@@ -23,6 +23,10 @@ android {
         compose = true
     }
 
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
+
     sourceSets["main"].assets.directories.add(File(repoRoot, "fixtures").path)
 }
 
@@ -40,10 +44,14 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.compose.ui.test.junit4)
+    testImplementation(libs.robolectric)
+    debugImplementation(libs.compose.ui.test.manifest)
 }
 
 tasks.withType<Test> {
     systemProperty("baupilot.repoRoot", repoRoot.path)
+    jvmArgs("--add-exports=java.base/jdk.internal.access=ALL-UNNAMED")
     inputs.dir(File(repoRoot, "design/reference/android"))
     inputs.file(File(repoRoot, "fixtures/baupilot.json"))
     inputs.files(fileTree(File(projectDir, "src/test/goldens"))).withPropertyName("goldens")
@@ -51,4 +59,8 @@ tasks.withType<Test> {
     systemProperty("baupilot.recordGoldens", record)
     inputs.property("baupilot.recordGoldens", record)
     if (record == "true") outputs.upToDateWhen { false }
+}
+
+tasks.withType<Test>().matching { it.name.endsWith("UnitTest") }.configureEach {
+    forkEvery = 1
 }

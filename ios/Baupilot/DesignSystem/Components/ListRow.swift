@@ -87,7 +87,7 @@ public struct ListRow: View {
                     .background(bg.color, in: RoundedRectangle(cornerRadius: size.radius))
             case .textTile(let text, let size, let chip):
                 Text(text)
-                    .font(.inter(size.fontSize, .bold))
+                    .interText(size.fontSize, .bold)
                     .foregroundStyle(Tokens.muted.color)
                     .lineLimit(1)
                     .fixedSize()
@@ -150,11 +150,11 @@ public struct ListRow: View {
             LeadingView(leading: leading)
             VStack(alignment: .leading, spacing: density.textGap) {
                 Text(title)
-                    .font(.inter(titleSize.fontSize, .semibold))
+                    .interText(titleSize.fontSize, .semibold)
                     .foregroundStyle(Tokens.text.color)
                 if let subtitle {
                     Text(subtitle)
-                        .font(.inter(13, .regular))
+                        .interText(13, .regular)
                         .foregroundStyle(Tokens.muted.color)
                 }
             }
@@ -196,7 +196,7 @@ public struct ListRow: View {
 
     private func value(_ text: String, _ weight: InterWeight) -> some View {
         Text(text)
-            .font(.inter(13, weight))
+            .interText(13, weight)
             .foregroundStyle(Tokens.muted.color)
             .lineLimit(1)
             .fixedSize()

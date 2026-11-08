@@ -77,7 +77,27 @@ Launch the gallery (Debug builds only):
 - iOS: launch argument `-BaupilotGallery YES`
 - Android: `adb shell am start -n de.baupilot/.gallery.GalleryActivity`
 
-The Login example snapshot tests are expected-red until M2 (D17). The reference comparison runs; the failure is tolerated only for pixel differences.
+### Screen snapshots and UI tests (M2)
+
+The 16 screen snapshots (Login, Übersicht, Zeitplan, Profil; light and dark; iOS and Android) compare the real app content with `design/reference/<ios|android>/<Name>_<light|dark>.png`. They are ordinary tests and must pass; the tolerances never change.
+
+```sh
+# iOS: screen snapshots (class ScreenSnapshotTests, in BaupilotTests)
+cd ios && xcodebuild test -project Baupilot.xcodeproj -scheme Baupilot -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:BaupilotTests/ScreenSnapshotTests
+
+# iOS: UI tests (XCUITest target BaupilotUITests: login, tab switching, push hides the tab bar, back)
+cd ios && xcodebuild test -project Baupilot.xcodeproj -scheme Baupilot -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:BaupilotUITests
+
+# Android: screen snapshots (Paparazzi, classes *SnapshotTest in de.baupilot.snapshot)
+cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests 'de.baupilot.snapshot.*SnapshotTest'
+
+# Android: UI test (Compose UI test on Robolectric, JVM only, no emulator)
+cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests 'de.baupilot.app.AppNavigationUiTest'
+```
+
+The Android UI test needs Robolectric (`org.robolectric:robolectric`) and `androidx.compose.ui:ui-test-junit4` in `src/test`; both are declared in `android/app/build.gradle.kts`. Under JDK 21 Robolectric needs `--add-exports=java.base/jdk.internal.access=ALL-UNNAMED`, which `tasks.withType<Test>` sets. Robolectric and Paparazzi do not share one JVM, so `testDebugUnitTest` runs with `forkEvery = 1` (each test class in its own JVM; the task takes about 1.5 minutes longer). Details: [`docs/m2-offene-punkte.md`](docs/m2-offene-punkte.md). No emulator is needed locally or in CI.
+
+To record a screen golden of a gallery page you own, use the record flags above (`TEST_RUNNER_BAUPILOT_RECORD_GOLDENS=1` on iOS, `-Pbaupilot.recordGoldens=true` on Android), then view the image and run again without the flag. The screen snapshots compare against `design/reference/` and are never recorded.
 
 ## Font provenance
 

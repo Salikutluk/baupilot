@@ -2,7 +2,7 @@ import SwiftUI
 import XCTest
 @testable import Baupilot
 
-/// T-GAL-1: one golden pair per gallery page. No `expectRedUntil`: `GoldenSnapshot` documents why.
+/// T-GAL-1: one golden pair per gallery page.
 @MainActor
 final class GallerySnapshotTests: XCTestCase {
     func testGalleryLight() throws {

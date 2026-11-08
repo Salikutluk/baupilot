@@ -49,12 +49,13 @@ public struct BackBar: View {
                     HStack(spacing: 2) {
                         Icon(.chevronLeftW24, size: 24, color: Tokens.accent.color)
                         Text(label)
-                            .font(.inter(17, .regular))
+                            .interText(17, .regular)
                             .foregroundStyle(Tokens.accent.color)
                     }
                     .frame(minHeight: 44)
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("nav.back")
                 .padding(.leading, -6)
                 Spacer(minLength: 0)
                 trailingView(trailing)
@@ -64,21 +65,21 @@ public struct BackBar: View {
             HStack(spacing: 0) {
                 Button(action: { onCancel?() }) {
                     Text(cancel)
-                        .font(.inter(17, .regular))
+                        .interText(17, .regular)
                         .foregroundStyle(Tokens.accent.color)
                         .frame(minHeight: 44)
                 }
                 .buttonStyle(.plain)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 Text(title)
-                    .font(.inter(17, .semibold))
+                    .interText(17, .semibold)
                     .foregroundStyle(Tokens.text.color)
                     .fixedSize()
                     .layoutPriority(1)
                     .accessibilityAddTraits(.isHeader)
                 Button(action: { onConfirm?() }) {
                     Text(confirm)
-                        .font(.inter(17, .semibold))
+                        .interText(17, .semibold)
                         .foregroundStyle(Tokens.accent.color)
                         .frame(minHeight: 44)
                 }
@@ -96,11 +97,11 @@ public struct BackBar: View {
             EmptyView()
         case let .counter(text):
             Text(text)
-                .font(.inter(15, .semibold))
+                .interText(15, .semibold)
                 .foregroundStyle(Tokens.muted.color)
         case let .note(text):
             Text(text)
-                .font(.inter(15, .regular))
+                .interText(15, .regular)
                 .foregroundStyle(Tokens.muted.color)
         case let .icon(icon, size, label, action):
             Button(action: { action?() }) {
@@ -112,7 +113,7 @@ public struct BackBar: View {
         case let .text(text, action):
             Button(action: { action?() }) {
                 Text(text)
-                    .font(.inter(17, .regular))
+                    .interText(17, .regular)
                     .foregroundStyle(Tokens.accent.color)
                     .frame(minHeight: 44)
             }

@@ -26,3 +26,39 @@ enum JSONValue: Decodable, Sendable, Equatable {
         }
     }
 }
+
+extension JSONValue: Encodable {
+    private struct Key: CodingKey {
+        let stringValue: String
+        let intValue: Int? = nil
+
+        init(_ stringValue: String) { self.stringValue = stringValue }
+        init?(stringValue: String) { self.stringValue = stringValue }
+        init?(intValue: Int) { return nil }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        switch self {
+        case .null:
+            var container = encoder.singleValueContainer()
+            try container.encodeNil()
+        case let .bool(value):
+            var container = encoder.singleValueContainer()
+            try container.encode(value)
+        case let .number(value):
+            var container = encoder.singleValueContainer()
+            try container.encode(value)
+        case let .string(value):
+            var container = encoder.singleValueContainer()
+            try container.encode(value)
+        case let .array(values):
+            var container = encoder.unkeyedContainer()
+            for value in values { try container.encode(value) }
+        case let .object(members):
+            var container = encoder.container(keyedBy: Key.self)
+            for name in members.keys.sorted() {
+                try container.encode(members[name], forKey: Key(name))
+            }
+        }
+    }
+}

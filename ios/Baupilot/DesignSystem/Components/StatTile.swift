@@ -40,9 +40,9 @@ public struct CountTile: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(value)
-                .font(.inter(24, .bold))
+                .interText(24, .bold)
             Text(label)
-                .font(.inter(13, .regular))
+                .interText(13, .regular)
         }
         .foregroundStyle(foreground.color)
         .padding(12)
@@ -94,16 +94,16 @@ public struct PhaseTile: View {
         let shape = RoundedRectangle(cornerRadius: 14)
         VStack(alignment: .leading, spacing: isActive ? 6 : 4) {
             Text(label)
-                .font(.inter(12, .semibold))
+                .interText(12, .semibold)
                 .foregroundStyle(Tokens.muted.color)
             Text(value)
-                .font(.inter(15, .semibold))
+                .interText(15, .semibold)
                 .foregroundStyle(valueColor.color)
             if case .active(let progress) = state {
                 ProgressBar(value: progress, style: .card, track: track)
             } else if let date {
                 Text(date)
-                    .font(.inter(12, .regular))
+                    .interText(12, .regular)
                     .foregroundStyle(Tokens.muted.color)
             }
         }
@@ -159,10 +159,10 @@ public struct FactStrip: View {
     private func fact(_ item: Item, gap: CGFloat, valueSize: CGFloat, valueWeight: InterWeight) -> some View {
         VStack(alignment: .leading, spacing: gap) {
             Text(item.label)
-                .font(.inter(12, .semibold))
+                .interText(12, .semibold)
                 .foregroundStyle(Tokens.muted.color)
             Text(item.value)
-                .font(.inter(valueSize, valueWeight))
+                .interText(valueSize, valueWeight)
                 .foregroundStyle(Tokens.text.color)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -42,7 +42,7 @@ public struct BottomActionBar<Content: View>: View {
                 content
                 if let caption {
                     Text(caption)
-                        .font(.inter(12, .regular))
+                        .interText(12, .regular, lines: .multi)
                         .foregroundStyle(Tokens.muted.color)
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)

@@ -1,10 +1,30 @@
 package de.baupilot.designsystem
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.width
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.FirstBaseline
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import de.baupilot.designsystem.components.AskRow
+import de.baupilot.designsystem.components.AvatarSize
+import de.baupilot.designsystem.components.BaupilotAvatar
+import de.baupilot.designsystem.components.BaupilotOutlinedTextField
+import de.baupilot.designsystem.components.ScheduleChart
+import de.baupilot.schedule.MonthLabel
+import de.baupilot.schedule.ScheduleLayout
+import de.baupilot.schedule.ScheduleRowLayout
+import de.baupilot.schedule.ScheduleState
 import de.baupilot.designsystem.components.BaupilotSearchBar
+import de.baupilot.designsystem.components.DocumentTile
+import de.baupilot.designsystem.components.SectionHeader
+import de.baupilot.designsystem.components.SectionHeaderStyle
+import de.baupilot.designsystem.components.SectionLink
+import de.baupilot.designsystem.components.FieldLook
 import de.baupilot.designsystem.components.BaupilotLinearProgress
 import de.baupilot.designsystem.components.Step
 import de.baupilot.designsystem.components.StepState
@@ -14,6 +34,7 @@ import de.baupilot.designsystem.components.baupilotVerticalStepperMeasured
 import de.baupilot.snapshot.NoopSnapshotHandler
 import de.baupilot.snapshot.baupilotPaparazzi
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -45,6 +66,89 @@ class ComponentMetricsOtherTest {
         }
 
         assertEquals(56 * 3, sizes.getValue("search").second)
+    }
+
+    @Test
+    fun outlinedTextFieldIs56() {
+        paparazzi.snapshot {
+            Column {
+                BaupilotOutlinedTextField(
+                    label = "E-Mail",
+                    value = "",
+                    onValueChange = {},
+                    placeholder = "name@beispiel.de",
+                    look = FieldLook.Focused,
+                    modifier = Modifier.record("focused"),
+                )
+                BaupilotOutlinedTextField(
+                    label = "Passwort",
+                    value = "",
+                    onValueChange = {},
+                    placeholder = "••••••••",
+                    isPassword = true,
+                    modifier = Modifier.record("idle"),
+                )
+            }
+        }
+
+        assertEquals(56 * 3, sizes.getValue("focused").second)
+        assertEquals(56 * 3, sizes.getValue("idle").second)
+    }
+
+    @Test
+    fun documentTileIs56() {
+        paparazzi.snapshot {
+            Column {
+                DocumentTile(BaupilotIcon.Document, "Angebote", "7", onClick = null, modifier = Modifier.width(171.dp).record("tile"))
+                SectionHeader("Als Nächstes benötigt", SectionHeaderStyle.Overview(SectionLink("Alle")), Modifier.record("withLink"))
+                SectionHeader("Dokumente", SectionHeaderStyle.Overview(), Modifier.record("noLink"))
+                SectionHeader("Konto", SectionHeaderStyle.Settings, Modifier.record("settings"))
+            }
+        }
+
+        assertEquals(56 * 3, sizes.getValue("tile").second)
+        assertEquals(40 * 3, sizes.getValue("withLink").second)
+        assertEquals(32 * 3, sizes.getValue("noLink").second)
+        val settings = sizes.getValue("settings").second
+        assertTrue("settings header $settings", settings > (12 + 4) * 3)
+    }
+
+    @Test
+    fun avatarS56() {
+        paparazzi.snapshot {
+            Column {
+                BaupilotAvatar("MM", AvatarSize.S56, Tokens.primaryContainer, Tokens.onPrimaryContainer, Modifier.record("s56"))
+                BaupilotAvatar("MM", AvatarSize.S40, Tokens.primaryContainer, Tokens.onPrimaryContainer, Modifier.record("s40"))
+            }
+        }
+
+        assertEquals(56 * 3 to 56 * 3, sizes.getValue("s56"))
+        assertEquals(40 * 3 to 40 * 3, sizes.getValue("s40"))
+    }
+
+    @Test
+    fun askRowMinHeight52() {
+        paparazzi.snapshot {
+            Column {
+                AskRow("Estrich", "Start KW 8", onClick = null, modifier = Modifier.width(326.dp).record("row"))
+            }
+        }
+
+        assertEquals(52 * 3, sizes.getValue("row").second)
+    }
+
+    @Test
+    fun scheduleChartHeight() {
+        val rows = List(3) { ScheduleRowLayout("t$it", "Gewerk $it", ScheduleState.Planned, 126f, 20f, null) }
+        val layout = ScheduleLayout(rows, 200f, 186f, listOf(MonthLabel(126f, "Mär 26")))
+        paparazzi.snapshot {
+            Column {
+                ScheduleChart(layout, "Heute", "Zeitplan", Modifier.width(358.dp).record("chart"))
+            }
+        }
+
+        val labelLine = RobotoMetrics.lineBox(11f)
+        assertEquals((20 + 3 * 34 + 4 + labelLine) * 3, sizes.getValue("chart").second.toFloat(), 0.5f)
     }
 
     @Test
@@ -103,5 +207,63 @@ class ComponentMetricsOtherTest {
         }
 
         assertEquals(4 * 3, sizes.getValue("bar").second)
+    }
+
+    @Test
+    fun textLineBoxHeight() {
+        paparazzi.snapshot {
+            Column {
+                BaupilotText(text = "Hg", size = 14.sp, color = Tokens.onPrimaryContainer, modifier = Modifier.record("default"))
+                BaupilotText(
+                    text = "Hg",
+                    size = 14.sp,
+                    color = Tokens.onPrimaryContainer,
+                    lineHeight = TextUnit.Unspecified,
+                    modifier = Modifier.record("explicit"),
+                )
+                BaupilotText(
+                    text = "Hg",
+                    size = 14.sp,
+                    color = Tokens.onPrimaryContainer,
+                    lineHeight = 28.sp,
+                    modifier = Modifier.record("concrete"),
+                )
+            }
+        }
+
+        assertEquals(16 * 3, sizes.getValue("default").second)
+        assertEquals(16 * 3, sizes.getValue("explicit").second)
+        assertEquals(28 * 3, sizes.getValue("concrete").second)
+    }
+
+    @Test
+    fun textBaselineMatchesRoundedAscent() {
+        val sizesSp = listOf(11, 12, 13, 14, 15, 16, 18, 20, 22, 25)
+        val baselines = mutableMapOf<Int, Int>()
+        val heights = mutableMapOf<Int, Int>()
+        paparazzi.snapshot {
+            Column {
+                for (size in sizesSp) {
+                    BaupilotText(
+                        text = "Hg",
+                        size = size.sp,
+                        color = Tokens.onPrimaryContainer,
+                        overflow = TextOverflow.Clip,
+                        modifier = Modifier.onGloballyPositioned {
+                            baselines[size] = it[FirstBaseline]
+                            heights[size] = it.size.height
+                        },
+                    )
+                }
+            }
+        }
+
+        for (size in sizesSp) {
+            val box = RobotoMetrics.lineBox(size.toFloat())
+            val base = RobotoMetrics.baselineOffset(size.toFloat())
+            assertEquals("height $size", box * 3, heights.getValue(size).toFloat(), 0.5f)
+            val deltaDp = Math.abs(baselines.getValue(size) / 3f - base)
+            assertTrue("baseline $size sp: ${baselines.getValue(size) / 3f} dp, want $base", deltaDp <= 0.5f)
+        }
     }
 }

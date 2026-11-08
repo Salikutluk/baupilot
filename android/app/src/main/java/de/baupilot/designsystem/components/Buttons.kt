@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.baupilot.designsystem.BaupilotIcon
@@ -48,22 +49,29 @@ private fun ButtonContent(
     size: ButtonSize,
     icon: BaupilotIcon?,
     contentColor: ColorToken,
+    letterSpacing: TextUnit = 0.sp,
+    leading: (@Composable () -> Unit)? = null,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(if (leading != null) 10.dp else 8.dp, Alignment.CenterHorizontally),
     ) {
+        if (leading != null) leading()
         if (icon != null) Icon(icon, 18.dp, contentColor.color())
         BaupilotText(
             text = label,
             size = if (size == ButtonSize.Regular) 15.sp else 14.sp,
             weight = 500,
             color = contentColor,
+            letterSpacing = letterSpacing,
         )
     }
 }
 
-/** Filled pill button, height 48, radius 24. `Regular` 15 / 500 full width, `Compact` 14 / 500 with padding-x 16. */
+/**
+ * Filled pill button, height 48, radius 24. `Regular` 15 / 500 full width, `Compact` 14 / 500 with padding-x 16.
+ * [letterSpacing] is the prototype's `letter-spacing` (AndLogin:44 uses 0.1).
+ */
 @Composable
 fun FilledButton(
     label: String,
@@ -76,6 +84,7 @@ fun FilledButton(
     primaryContent: ColorToken = Tokens.onPrimary,
     errorBackground: ColorToken = Tokens.errBtn,
     errorContent: ColorToken = Tokens.onErrBtn,
+    letterSpacing: TextUnit = 0.sp,
 ) {
     val background = if (container == FilledContainer.Primary) primaryBackground else errorBackground
     val content = if (container == FilledContainer.Primary) primaryContent else errorContent
@@ -89,13 +98,14 @@ fun FilledButton(
             .padding(horizontal = if (size == ButtonSize.Compact) 16.dp else 0.dp),
         contentAlignment = Alignment.Center,
     ) {
-        ButtonContent(label, size, icon, content)
+        ButtonContent(label, size, icon, content, letterSpacing)
     }
 }
 
 /**
  * Outlined pill button: 1 border, transparent background, radius 24. Height 48 border-box, or
  * 50 when [borderOutside] is set (the prototype's `<a>` buttons draw the border outside the box).
+ * [leading] is drawn before the label with a gap of 10 (the Google mark, AndLogin:46).
  */
 @Composable
 fun OutlinedButton(
@@ -106,6 +116,7 @@ fun OutlinedButton(
     size: ButtonSize = ButtonSize.Regular,
     icon: BaupilotIcon? = null,
     borderOutside: Boolean = false,
+    leading: (@Composable () -> Unit)? = null,
     onClick: (() -> Unit)? = null,
 ) {
     Box(
@@ -118,7 +129,7 @@ fun OutlinedButton(
             .padding(horizontal = if (size == ButtonSize.Compact) 16.dp else 0.dp),
         contentAlignment = Alignment.Center,
     ) {
-        ButtonContent(label, size, icon, contentColor)
+        ButtonContent(label, size, icon, contentColor, leading = leading)
     }
 }
 
@@ -145,22 +156,78 @@ fun OutlinedIconButton(
     }
 }
 
-/** Text button: minimum height 48, padding-x 12, 14 / 500, radius 24. */
+/** Height and width rule of a [TextButton]. */
+enum class TextButtonSize {
+    /** Minimum height 48, padding-x 12, 14 / 500. */
+    Default,
+
+    /** Height 40, padding 10 x 12, 14 / 500 (the Home "Alle" link). */
+    Compact40,
+
+    /** Height 44, full width, radius 22, 15 / 500 (AndLogin:49). */
+    Wide44,
+}
+
+/** Text button, 14 / 500, radius 24. [size] sets the height and width, see [TextButtonSize]. */
 @Composable
 fun TextButton(
     label: String,
     modifier: Modifier = Modifier,
     color: ColorToken = Tokens.primary,
+    size: TextButtonSize = TextButtonSize.Default,
     onClick: (() -> Unit)? = null,
 ) {
+    val shape = if (size == TextButtonSize.Wide44) RoundedCornerShape(22.dp) else ButtonShape
+    val sized = when (size) {
+        TextButtonSize.Default -> modifier.heightIn(min = 48.dp)
+        TextButtonSize.Compact40 -> modifier.height(40.dp)
+        TextButtonSize.Wide44 -> modifier.fillMaxWidth().height(44.dp)
+    }
     Box(
-        modifier = modifier
-            .heightIn(min = 48.dp)
-            .clip(ButtonShape)
+        modifier = sized
+            .clip(shape)
             .pressable(onClick)
-            .padding(horizontal = 12.dp),
+            .padding(
+                horizontal = 12.dp,
+                vertical = if (size == TextButtonSize.Compact40) 10.dp else 0.dp,
+            ),
         contentAlignment = Alignment.Center,
     ) {
-        BaupilotText(text = label, size = 14.sp, weight = 500, color = color)
+        BaupilotText(
+            text = label,
+            size = if (size == TextButtonSize.Wide44) 15.sp else 14.sp,
+            weight = 500,
+            color = color,
+        )
+    }
+}
+
+/** Tonal pill button: height 40, radius 20, padding-x 16, `secondaryContainer`, 14 / 500. */
+@Composable
+fun TonalButton(label: String, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
+    val shape = RoundedCornerShape(20.dp)
+    Box(
+        modifier = modifier
+            .height(40.dp)
+            .clip(shape)
+            .background(Tokens.secondaryContainer.color(), shape)
+            .pressable(onClick)
+            .padding(horizontal = 16.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        BaupilotText(text = label, size = 14.sp, weight = 500, color = Tokens.onSecondaryContainer)
+    }
+}
+
+/** Round 20 social mark: 2 `muted` border, [mark] in 11 / 700 `muted` (AndLogin:47). */
+@Composable
+fun GoogleMark(mark: String = "G", modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .size(20.dp)
+            .border(2.dp, Tokens.muted.color(), CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        BaupilotText(text = mark, size = 11.sp, weight = 700, color = Tokens.muted)
     }
 }

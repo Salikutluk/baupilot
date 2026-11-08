@@ -13,7 +13,7 @@ enum GoldenSnapshot {
         ProcessInfo.processInfo.environment["BAUPILOT_RECORD_GOLDENS"] == "1"
     }
 
-    /// Gallery tests never use `expectRedUntil`: the record-mode `XCTFail` is an assertion failure and would be absorbed.
+    /// Record mode ends in an `XCTFail`, so a recording run is never green.
     static func verify<V: View>(
         _ view: V, name: String, mode: SnapshotMode,
         file: StaticString = #filePath, line: UInt = #line

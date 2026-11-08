@@ -71,7 +71,7 @@ public struct SegmentedControl: View {
             onSelect(index)
         } label: {
             Text(segments[index])
-                .font(.inter(14, active ? .semibold : .medium))
+                .interText(14, active ? .semibold : .medium)
                 .foregroundStyle(Tokens.text.color)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity)

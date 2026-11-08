@@ -24,12 +24,11 @@ public struct LargeTitleHeader: View {
             VStack(alignment: .leading, spacing: 2) {
                 if let kicker {
                     Text(kicker)
-                        .font(.inter(13, .semibold))
+                        .interText(13, .semibold)
                         .foregroundStyle(Tokens.muted.color)
                 }
                 Text(title)
-                    .font(.inter(32, .bold))
-                    .tracking(-0.6)
+                    .interText(32, .bold, tracking: -0.6)
                     .foregroundStyle(Tokens.text.color)
                     .accessibilityAddTraits(.isHeader)
             }
@@ -77,7 +76,7 @@ public struct LargeTitleHeader: View {
             case let .link(text, action):
                 Button(action: { action?() }) {
                     Text(text)
-                        .font(.inter(15, .semibold))
+                        .interText(15, .semibold)
                         .foregroundStyle(Tokens.accent.color)
                         .frame(minHeight: 44)
                 }

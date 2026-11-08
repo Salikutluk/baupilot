@@ -41,7 +41,7 @@ public struct StepRow: View {
 
         var body: some View {
             Text("\(number)")
-                .font(.inter(11, .bold))
+                .interText(11, .bold)
                 .foregroundStyle(Tokens.muted.color)
                 .frame(width: 22, height: 22)
                 .overlay { Circle().strokeBorder(track.color, lineWidth: 2) }
@@ -88,7 +88,7 @@ public struct StepRow: View {
         HStack(spacing: 12) {
             DoneRing(ok: ok, okInk: okInk)
             Text(title)
-                .font(.inter(15, .regular))
+                .interText(15, .regular)
                 .foregroundStyle(Tokens.muted.color)
                 .frame(maxWidth: .infinity, alignment: .leading)
             if let meta { metaView(meta) }
@@ -103,12 +103,12 @@ public struct StepRow: View {
         HStack(spacing: 12) {
             OpenRing(number: number, track: track)
             Text(title)
-                .font(.inter(15, .regular))
+                .interText(15, .regular)
                 .foregroundStyle(Tokens.text.color)
                 .frame(maxWidth: .infinity, alignment: .leading)
             if let tag {
                 Text(tag)
-                    .font(.inter(12, .semibold))
+                    .interText(12, .semibold)
                     .foregroundStyle(Tokens.eFg.color)
             }
         }
@@ -121,11 +121,11 @@ public struct StepRow: View {
     private func metaView(_ meta: Meta) -> some View {
         switch meta {
         case .text(let value):
-            Text(value).font(.inter(13, .regular)).foregroundStyle(Tokens.muted.color)
+            Text(value).interText(13, .regular).foregroundStyle(Tokens.muted.color)
         case .strong(let value):
-            Text(value).font(.inter(13, .semibold)).foregroundStyle(Tokens.text.color)
+            Text(value).interText(13, .semibold).foregroundStyle(Tokens.text.color)
         case .ok(let value):
-            Text(value).font(.inter(14, .semibold)).foregroundStyle(Tokens.oFg.color)
+            Text(value).interText(14, .semibold).foregroundStyle(Tokens.oFg.color)
         case .swatch(let color):
             Circle().fill(color.color).frame(width: 14, height: 14)
         }
@@ -140,7 +140,7 @@ public struct CurrentStepCard<Content: View>: View {
 
         var body: some View {
             Text("\(number)")
-                .font(.inter(14, .bold))
+                .interText(14, .bold)
                 .foregroundStyle(Tokens.onAccent.color)
                 .frame(width: 26, height: 26)
                 .background(Tokens.accent.color, in: Circle())
@@ -165,7 +165,7 @@ public struct CurrentStepCard<Content: View>: View {
                 HStack(spacing: 12) {
                     NumberCircle(number: number)
                     Text(title)
-                        .font(.inter(19, .bold))
+                        .interText(19, .bold)
                         .foregroundStyle(Tokens.text.color)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -176,13 +176,11 @@ public struct CurrentStepCard<Content: View>: View {
 }
 
 public extension CurrentStepCard {
-    /// Body paragraph of a step: 15 muted, line-height 1.45. Inter's natural line is 1.21 em, so
-    /// `lineSpacing` = (1.45 - 1.21) * 15 = 3.6 pt.
+    /// Body paragraph of a step: 15 muted, line-height 1.45 (`interText` turns it into `lineSpacing`).
     static func body(_ text: String) -> some View {
         Text(text)
-            .font(.inter(15, .regular))
+            .interText(15, .regular, lineHeight: .factor(1.45), lines: .multi)
             .foregroundStyle(Tokens.muted.color)
-            .lineSpacing((1.45 - 1.21) * 15)
             .fixedSize(horizontal: false, vertical: true)
     }
 }

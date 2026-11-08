@@ -12,7 +12,7 @@ public struct Chip: View {
 
     public var body: some View {
         Text(text)
-            .font(.inter(13, .semibold))
+            .interText(13, .semibold)
             .foregroundStyle(tone.foreground.color)
             .lineLimit(1)
             .fixedSize()
