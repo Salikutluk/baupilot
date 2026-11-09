@@ -236,3 +236,29 @@ class MitteilungenDarkSnapshotTest {
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
+
+/** Abnahmen, Gewerke view, logged in, compared with `design/reference/android/AbnGewerke_light.png`. */
+class AbnGewerkeLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("AbnGewerke", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun abnGewerke() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections)
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Abnahmen, Gewerke view, logged in, compared with `design/reference/android/AbnGewerke_dark.png`. */
+class AbnGewerkeDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("AbnGewerke", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun abnGewerke() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections)
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}

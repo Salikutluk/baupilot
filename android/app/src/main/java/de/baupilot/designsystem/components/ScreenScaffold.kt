@@ -21,9 +21,9 @@ import androidx.compose.ui.unit.dp
 import de.baupilot.designsystem.Tokens
 
 /**
- * Tab-root screen frame: `bg` over the whole screen, [topBar], then the scrolling [content] with padding
- * 8 16 0 and [spacing] between children. The optional [fab] sits at end 16 / bottom 96. The shell draws the
- * navigation bar over the bottom, so the scaffold has none.
+ * Tab-root screen frame: `bg` over the whole screen, [topBar], then the scrolling [content] with
+ * [contentPadding] (default 16 8 16 0: start, top, end, bottom) and [spacing] between children. The optional
+ * [fab] sits at end 16 / bottom 96. The shell draws the navigation bar over the bottom, so the scaffold has none.
  */
 @Composable
 fun TabScreenScaffold(
@@ -31,6 +31,7 @@ fun TabScreenScaffold(
     spacing: Dp,
     modifier: Modifier = Modifier,
     fab: (@Composable () -> Unit)? = null,
+    contentPadding: PaddingValues = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 0.dp),
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Box(modifier.fillMaxSize().background(Tokens.bg.color())) {
@@ -40,7 +41,7 @@ fun TabScreenScaffold(
                 modifier = Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
-                    .padding(PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp)),
+                    .padding(contentPadding),
                 verticalArrangement = Arrangement.spacedBy(spacing),
                 content = content,
             )

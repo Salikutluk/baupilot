@@ -34,6 +34,7 @@ enum class GalleryPage(val goldenName: String) {
     Documents("GalleryDocuments"),
     Compare("GalleryCompare"),
     Notifications("GalleryNotifications"),
+    Inspections("GalleryInspections"),
 }
 
 @Composable
@@ -60,6 +61,7 @@ fun GalleryPageContent(page: GalleryPage) {
                 GalleryPage.Documents -> DocumentsPage()
                 GalleryPage.Compare -> ComparePage()
                 GalleryPage.Notifications -> NotificationsPage()
+                GalleryPage.Inspections -> InspectionsPage()
             }
         }
     }
