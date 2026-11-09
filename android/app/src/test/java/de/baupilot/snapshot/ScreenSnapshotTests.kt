@@ -350,3 +350,33 @@ class AbnMangelDarkSnapshotTest {
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
+
+/** Abnahmen, Abnahme & Unterschrift (D7: … → `inspection/windows` → `inspection/windows/sign`), compared with `design/reference/android/AbnSignatur_light.png`. */
+class AbnSignaturLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("AbnSignatur", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun abnSignatur() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections)
+            .open(AppRoute.Inspection("windows"))
+            .open(AppRoute.SignOff("windows"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Abnahmen, Abnahme & Unterschrift (D7: … → `inspection/windows` → `inspection/windows/sign`), compared with `design/reference/android/AbnSignatur_dark.png`. */
+class AbnSignaturDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("AbnSignatur", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun abnSignatur() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections)
+            .open(AppRoute.Inspection("windows"))
+            .open(AppRoute.SignOff("windows"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
