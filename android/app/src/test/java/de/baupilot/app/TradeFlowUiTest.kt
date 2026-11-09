@@ -148,6 +148,7 @@ class TradeFlowUiTest {
         openNotifications()
         tap("notification.notif-defect-overdue")
         awaitScreen("screen.inspections")
+        awaitScreen("inspections.view.defects")
     }
 
     @Test

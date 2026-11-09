@@ -231,7 +231,7 @@ internal fun baupilotTopAppBarMeasured(
 
 @Composable
 private fun NavButton(nav: Nav, iconColor: ColorToken) {
-    RoundButton(nav.label, nav.onClick, if (nav is Nav.Back) Modifier.testTag("nav.back") else Modifier) {
+    RoundButton(nav.label, nav.onClick, Modifier.testTag(if (nav is Nav.Back) "nav.back" else "nav.close")) {
         Icon(
             icon = if (nav is Nav.Back) BaupilotIcon.ArrowLeft else BaupilotIcon.X,
             size = 24.dp,

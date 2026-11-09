@@ -15,10 +15,20 @@ import de.baupilot.screens.compare.CompareAction
 import de.baupilot.screens.compare.CompareScreen
 import de.baupilot.screens.docviewer.DocViewerAction
 import de.baupilot.screens.docviewer.DocViewerScreen
+import de.baupilot.screens.defectform.DefectFormAction
+import de.baupilot.screens.defectform.DefectFormScreen
+import de.baupilot.screens.defects.DefectsAction
+import de.baupilot.screens.defects.DefectsScreen
 import de.baupilot.screens.documents.DocumentsScreen
+import de.baupilot.screens.elements.ElementsAction
+import de.baupilot.screens.elements.ElementsScreen
 import de.baupilot.screens.gewerk.GewerkScreen
 import de.baupilot.screens.home.HomeAction
 import de.baupilot.screens.home.HomeScreen
+import de.baupilot.screens.inspections.InspectionsAction
+import de.baupilot.screens.inspections.InspectionsScreen
+import de.baupilot.screens.inspectionstep.InspectionStepScreen
+import de.baupilot.screens.inspectionstep.StepAction
 import de.baupilot.screens.notifications.NotificationsAction
 import de.baupilot.screens.notifications.NotificationsScreen
 import de.baupilot.screens.placeholder.PlaceholderPresentation
@@ -26,6 +36,8 @@ import de.baupilot.screens.placeholder.PlaceholderScreen
 import de.baupilot.screens.profile.ProfileScreen
 import de.baupilot.screens.schedule.ScheduleAction
 import de.baupilot.screens.schedule.ScheduleScreen
+import de.baupilot.screens.signoff.SignOffAction
+import de.baupilot.screens.signoff.SignOffScreen
 
 private fun AppTab.designSystemTab(): Tab = when (this) {
     AppTab.Home -> Tab.Overview
@@ -158,25 +170,80 @@ private fun TabContent(
                 }
             }
 
-            is AppRoute.Inspection -> PushedPlaceholder(
-                data.tradeNames[route.tradeId] ?: route.tradeId,
-                "screen.inspection.${route.tradeId}",
-                onBack,
+            is AppRoute.Inspection -> {
+                val model = data.inspectionElements[route.tradeId]
+                if (model != null) {
+                    ElementsScreen(
+                        model = model,
+                        onBack = onBack,
+                        onAction = { action ->
+                            when (action) {
+                                is ElementsAction.Open -> onStateChange(state.open(action.route))
+                            }
+                        },
+                    )
+                } else {
+                    val title = data.inspections.rows.firstOrNull { it.tradeId == route.tradeId }?.name ?: route.tradeId
+                    PushedPlaceholder(title, "screen.inspection.${route.tradeId}", onBack)
+                }
+            }
+
+            is AppRoute.InspectionStep -> {
+                val model = data.inspectionSteps[route]
+                if (model != null) {
+                    InspectionStepScreen(
+                        model = model,
+                        onClose = onBack,
+                        onAction = { action ->
+                            when (action) {
+                                is StepAction.Open -> onStateChange(state.open(action.route))
+                            }
+                        },
+                    )
+                } else {
+                    PushedPlaceholder(
+                        route.elementId,
+                        "screen.inspection.${route.tradeId}.${route.elementId}.step.${route.step}",
+                        onBack,
+                    )
+                }
+            }
+
+            AppRoute.NewDefect -> DefectFormScreen(
+                model = data.defectForm,
+                onAction = { action ->
+                    onStateChange(
+                        when (action) {
+                            DefectFormAction.Cancel -> state.pop()
+                            is DefectFormAction.Save -> {
+                                val inspection = AppRoute.Inspection(action.tradeId)
+                                if (data.signOffs.containsKey(action.tradeId)) {
+                                    state.open(AppRoute.SignOff(action.tradeId), above = inspection)
+                                } else {
+                                    state.open(inspection)
+                                }
+                            }
+                        },
+                    )
+                },
             )
 
-            is AppRoute.InspectionStep -> PushedPlaceholder(
-                route.elementId,
-                "screen.inspection.${route.tradeId}.step.${route.elementId}.${route.step}",
-                onBack,
-            )
-
-            AppRoute.NewDefect -> PushedPlaceholder("Mangel erfassen", "screen.defect.new", onBack)
-
-            is AppRoute.SignOff -> PushedPlaceholder(
-                route.inspectionId,
-                "screen.inspection.${route.inspectionId}.sign",
-                onBack,
-            )
+            is AppRoute.SignOff -> {
+                val model = data.signOffs[route.inspectionId]
+                if (model != null) {
+                    SignOffScreen(
+                        model = model,
+                        onBack = onBack,
+                        onAction = { action ->
+                            when (action) {
+                                is SignOffAction.Finish -> onStateChange(state.go(action.target))
+                            }
+                        },
+                    )
+                } else {
+                    PushedPlaceholder(route.inspectionId, "screen.inspection.${route.inspectionId}.sign", onBack)
+                }
+            }
 
             AppRoute.Notifications -> NotificationsScreen(
                 model = data.notifications,
@@ -213,12 +280,30 @@ private fun TabContent(
             },
         )
 
-        // Step 5 replaces this with the two views (state.inspectionsView) of the Abnahmen root.
-        AppTab.Inspections -> PlaceholderScreen(
-            title = Tab.Acceptance.label,
-            presentation = PlaceholderPresentation.TabRoot,
-            modifier = Modifier.testTag("screen.inspections"),
-        )
+        AppTab.Inspections -> when (state.inspectionsView) {
+            InspectionsView.Trades -> InspectionsScreen(
+                model = data.inspections,
+                modifier = Modifier.testTag("screen.inspections"),
+                onAction = { action ->
+                    onStateChange(
+                        when (action) {
+                            is InspectionsAction.SelectView -> state.selectInspectionsView(action.view)
+                            is InspectionsAction.Open -> state.open(action.route)
+                        },
+                    )
+                },
+            )
+
+            InspectionsView.Defects -> DefectsScreen(
+                model = data.defectsBoard,
+                modifier = Modifier.testTag("screen.inspections"),
+                onAction = { action ->
+                    when (action) {
+                        is DefectsAction.SelectView -> onStateChange(state.selectInspectionsView(action.view))
+                    }
+                },
+            )
+        }
 
         AppTab.Documents -> DocumentsScreen(
             model = data.documents,
