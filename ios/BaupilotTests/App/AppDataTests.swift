@@ -363,7 +363,7 @@ final class AppDataTests: XCTestCase {
     func testNotificationTargets() async throws {
         let items = try await loaded().notifications.groups.flatMap(\.items)
         XCTAssertEqual(items.map(\.target), [
-            .tab(.inspections), .tab(.documents), .push(.compare(tradeId: "screed")),
+            .defects, .tab(.documents), .push(.compare(tradeId: "screed")),
             .push(.trade(id: "screed")), nil,
         ])
     }

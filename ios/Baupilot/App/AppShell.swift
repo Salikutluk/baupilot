@@ -96,6 +96,8 @@ struct AppShell: View {
                 PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
                     .accessibilityIdentifier("screen.document.\(id)")
             }
+        case .inspection, .inspectionStep, .newDefect, .signOff:
+            PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
         }
     }
 

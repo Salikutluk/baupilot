@@ -34,4 +34,35 @@ final class RouteTitlesTests: XCTestCase {
         XCTAssertEqual(titles.title(.notifications), "Mitteilungen")
         XCTAssertEqual(titles.backLabel(path: [], index: 0, tab: .profile), "")
     }
+
+    func testInspectionTitlesAndFallbacks() {
+        let step = AppRoute.inspectionStep(tradeId: "windows", elementId: "F8", step: 3)
+        var full = titles
+        full.inspectionTitles = ["windows": "Fenster & Türen"]
+        full.stepTitles = [step: "F8 · Schlafen"]
+        full.newDefectTitle = "Mangel erfassen"
+        full.signOffTitles = ["windows": "Abnahme abschließen"]
+        XCTAssertEqual(full.title(.inspection(tradeId: "windows")), "Fenster & Türen")
+        XCTAssertEqual(full.title(step), "F8 · Schlafen")
+        XCTAssertEqual(full.title(.newDefect), "Mangel erfassen")
+        XCTAssertEqual(full.title(.signOff(inspectionId: "windows")), "Abnahme abschließen")
+
+        XCTAssertEqual(titles.title(.inspection(tradeId: "roofing")), "roofing")
+        XCTAssertEqual(titles.title(.inspectionStep(tradeId: "windows", elementId: "F9", step: 1)), "F9")
+        XCTAssertEqual(titles.title(.signOff(inspectionId: "windows")), "windows")
+    }
+
+    func testBackLabelsOnInspectionPaths() {
+        let step = AppRoute.inspectionStep(tradeId: "windows", elementId: "F8", step: 3)
+        var full = RouteTitles(
+            tabLabels: [.inspections: "Abnahmen"], tradeNames: [:], documentTitles: [:],
+            compareTitle: "Angebote vergleichen", notificationsTitle: "Mitteilungen")
+        full.inspectionTitles = ["windows": "Fenster & Türen"]
+        let inspection = AppRoute.inspection(tradeId: "windows")
+        XCTAssertEqual(full.backLabel(path: [inspection], index: 0, tab: .inspections), "Abnahmen")
+        XCTAssertEqual(full.backLabel(path: [inspection, step], index: 1, tab: .inspections), "Fenster & Türen")
+        XCTAssertEqual(
+            full.backLabel(path: [inspection, .signOff(inspectionId: "windows")], index: 1, tab: .inspections),
+            "Fenster & Türen")
+    }
 }
