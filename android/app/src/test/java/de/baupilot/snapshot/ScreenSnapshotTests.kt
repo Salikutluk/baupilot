@@ -4,6 +4,7 @@ import de.baupilot.app.AppNavigationState
 import de.baupilot.app.AppRoute
 import de.baupilot.app.AppTab
 import de.baupilot.app.BaupilotAppContent
+import de.baupilot.app.NavigationTarget
 import org.junit.Rule
 import org.junit.Test
 
@@ -377,6 +378,32 @@ class AbnSignaturDarkSnapshotTest {
         val state = AppNavigationState().logIn().select(AppTab.Inspections)
             .open(AppRoute.Inspection("windows"))
             .open(AppRoute.SignOff("windows"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Abnahmen, Offene Mängel (D7: `logIn` then `go(Defects)`), compared with `design/reference/android/AbnMaengel_light.png`. */
+class AbnMaengelLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("AbnMaengel", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun abnMaengel() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().go(NavigationTarget.Defects)
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Abnahmen, Offene Mängel (D7: `logIn` then `go(Defects)`), compared with `design/reference/android/AbnMaengel_dark.png`. */
+class AbnMaengelDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("AbnMaengel", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun abnMaengel() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().go(NavigationTarget.Defects)
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }

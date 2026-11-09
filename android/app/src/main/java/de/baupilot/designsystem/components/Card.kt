@@ -15,20 +15,25 @@ import de.baupilot.designsystem.ColorToken
 import de.baupilot.designsystem.Tokens
 
 /**
- * Card surface: [container] fill, [radius], optional 1 [border], [padding] inside. Built on
+ * Card surface: [container] fill (null = transparent), [radius], optional 1 [border], [padding] inside. The
+ * border is drawn inside the [padding] unless [borderOutside] is set: then it is a further 1 dp frame
+ * outside the padding, like a CSS `border` on a content-box element (AndAbnMaengel:31). Built on
  * foundation modifiers (no Material 3 Card).
  */
 @Composable
 fun BaupilotCard(
     modifier: Modifier = Modifier,
-    container: ColorToken = Tokens.surfaceContainer,
+    container: ColorToken? = Tokens.surfaceContainer,
     radius: Dp = Tokens.Radius.card,
     border: ColorToken? = null,
     padding: PaddingValues = PaddingValues(16.dp),
+    borderOutside: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val shape = RoundedCornerShape(radius)
-    var frame = modifier.background(container.color(), shape)
+    var frame = modifier
+    if (container != null) frame = frame.background(container.color(), shape)
     if (border != null) frame = frame.border(1.dp, border.color(), shape)
+    if (borderOutside && border != null) frame = frame.padding(1.dp)
     Column(modifier = frame.padding(padding), content = content)
 }
