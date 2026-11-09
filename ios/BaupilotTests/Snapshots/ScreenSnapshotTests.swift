@@ -84,6 +84,21 @@ final class ScreenSnapshotTests: XCTestCase {
         try await verify("Gewerk", mode: .dark, navigation: gewerk)
     }
 
+    /// D7: logged in, Abnahmen tab (view "Gewerke").
+    private var abnGewerke: AppNavigation {
+        var navigation = home
+        navigation.select(.inspections)
+        return navigation
+    }
+
+    func testAbnGewerkeLight() async throws {
+        try await verify("AbnGewerke", mode: .light, navigation: abnGewerke)
+    }
+
+    func testAbnGewerkeDark() async throws {
+        try await verify("AbnGewerke", mode: .dark, navigation: abnGewerke)
+    }
+
     /// D7: logged in, Dokumente tab.
     private var documents: AppNavigation {
         var navigation = home

@@ -51,6 +51,26 @@ final class ComponentMetricsListRowTests: XCTestCase {
             ListRow(title: "Titel", showsDivider: true, action: nil).dividerColor, Tokens.border.core)
     }
 
+    /// CSS `background` on the row's anchor: it paints under the divider too and adds no height.
+    func testListRowBackgroundIsOptionalAndKeepsHeight() {
+        XCTAssertNil(ListRow(title: "Titel", showsDivider: true, action: nil).background)
+        let tinted = ListRow(title: "Titel", showsDivider: true, background: Tokens.hi, action: nil)
+        XCTAssertEqual(tinted.background, Tokens.hi)
+        XCTAssertEqual(
+            size(of: tinted, width: 350).height,
+            size(of: ListRow(title: "Titel", showsDivider: true, action: nil), width: 350).height)
+    }
+
+    func testListRowSubtitleWrapsOnlyWhenAsked() {
+        let long = "9 Prüfschritte · abgenommen 14.04. und noch ein langer Text bis zum Umbruch"
+        let single = ListRow(title: "Titel", subtitle: long, density: .minHeight(54), showsDivider: false, action: nil)
+        let block = ListRow(
+            title: "Titel", subtitle: long, density: .minHeight(54), showsDivider: false,
+            subtitleLines: .block, action: nil)
+        XCTAssertEqual(size(of: single, width: 200).height, 54)
+        XCTAssertGreaterThan(size(of: block, width: 200).height, 54)
+    }
+
     func testListRowAmountTrailingStacksBadgeUnderAmountWithGap4() {
         let amount = ListRow(
             title: "Wagner", trailing: .amount("4.820 €", size: 15, weight: .bold, color: Tokens.text),
