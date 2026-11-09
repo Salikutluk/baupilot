@@ -288,3 +288,33 @@ class AbnElementeDarkSnapshotTest {
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
+
+/** Abnahmen, Prüfschritt F8 (D7: … → `inspection/windows` → `inspection/windows/F8/step/3`), compared with `design/reference/android/AbnPruefung_light.png`. */
+class AbnPruefungLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("AbnPruefung", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun abnPruefung() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections)
+            .open(AppRoute.Inspection("windows"))
+            .open(AppRoute.InspectionStep("windows", "F8", 3))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Abnahmen, Prüfschritt F8 (D7: … → `inspection/windows` → `inspection/windows/F8/step/3`), compared with `design/reference/android/AbnPruefung_dark.png`. */
+class AbnPruefungDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("AbnPruefung", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun abnPruefung() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections)
+            .open(AppRoute.Inspection("windows"))
+            .open(AppRoute.InspectionStep("windows", "F8", 3))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
