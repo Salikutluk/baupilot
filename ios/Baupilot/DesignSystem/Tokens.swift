@@ -290,6 +290,11 @@ public enum Tokens {
     public static let onPhoto = ColorToken(light: 0xFFFFFFFF, dark: 0xFFFFFFFF)
     public static let photoBadge = ColorToken(light: 0x15803DFF, dark: 0x15803DFF)
     public static let photoCaption = ColorToken(light: 0x00000073, dark: 0x00000073)
+    public static let photoFrame = ColorToken(light: 0xF4F6F7FF, dark: 0xF4F6F7FF)
+    public static let photoLevel = ColorToken(light: 0xE8B23AFF, dark: 0xE8B23AFF)
+    public static let photoSkyBottom = ColorToken(light: 0x56626CFF, dark: 0x56626CFF)
+    public static let photoSkyMid = ColorToken(light: 0x6F8090FF, dark: 0x6F8090FF)
+    public static let photoSkyTop = ColorToken(light: 0xA9B7C0FF, dark: 0xA9B7C0FF)
     public static let placeholder = ColorToken(light: 0x757575FF, dark: 0x757575FF)
     public static let segShadow = ColorToken(light: 0x0000001F, dark: 0x0000001F)
 

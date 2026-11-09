@@ -36,6 +36,24 @@ class TokensTest {
     }
 
     @Test
+    fun photoSceneTokensAreThemeIndependent() {
+        val pairs = listOf(
+            Tokens.photoSkyTop, Tokens.photoSkyMid, Tokens.photoSkyBottom,
+            Tokens.photoFrame, Tokens.photoLevel,
+            Tokens.photoBadge, Tokens.onPhoto, Tokens.photoCaption,
+        )
+        pairs.forEach { assertEquals(it.light, it.dark) }
+        assertEquals(Color(0xFFA9B7C0), Tokens.photoSkyTop.light) // lint-hex: allow token value assertion
+        assertEquals(Color(0xFF6F8090), Tokens.photoSkyMid.light) // lint-hex: allow token value assertion
+        assertEquals(Color(0xFF56626C), Tokens.photoSkyBottom.light) // lint-hex: allow token value assertion
+        assertEquals(Color(0xFFF4F6F7), Tokens.photoFrame.light) // lint-hex: allow token value assertion
+        assertEquals(Color(0xFFE8B23A), Tokens.photoLevel.light) // lint-hex: allow token value assertion
+        assertEquals(Color(0xFF15803D), Tokens.photoBadge.light) // lint-hex: allow token value assertion
+        assertEquals(Color(0xFFFFFFFF), Tokens.onPhoto.light) // lint-hex: allow token value assertion
+        assertEquals(Color(0x73000000), Tokens.photoCaption.light) // lint-hex: allow token value assertion
+    }
+
+    @Test
     fun navPillLayout() {
         assertEquals(DpSize(56.dp, 32.dp), Tokens.Layout.navPill)
     }
