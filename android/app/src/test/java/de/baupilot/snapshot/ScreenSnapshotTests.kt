@@ -262,3 +262,29 @@ class AbnGewerkeDarkSnapshotTest {
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
+
+/** Abnahmen, Fenster – Elemente (D7: Abnahmen tab, then `inspection/windows`), compared with `design/reference/android/AbnElemente_light.png`. */
+class AbnElementeLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("AbnElemente", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun abnElemente() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("windows"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Abnahmen, Fenster – Elemente (D7), compared with `design/reference/android/AbnElemente_dark.png`. */
+class AbnElementeDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("AbnElemente", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun abnElemente() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("windows"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}

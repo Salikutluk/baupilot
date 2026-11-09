@@ -52,14 +52,18 @@ fun TabScreenScaffold(
     }
 }
 
-private enum class DetailSlot { Body, Bar }
+private val FAB_END = 16.dp
+private val FAB_BOTTOM = 24.dp
+
+private enum class DetailSlot { Body, Bar, Fab }
 
 /**
  * Pushed detail screen frame (AndGewerk:13): `bg` over the whole screen, [topBar], then the scrolling [content]
  * with [contentPadding] and [spacing] between children. The optional [bottomBar] is pinned to the bottom edge
  * and drawn over the content, like the prototype's absolute bar. The bar is measured first and its height is
  * added below the scrolling content, so on a screen shorter than the content the last item can be scrolled
- * above the bar. [scrollState] lets a caller observe or drive the scroll position.
+ * above the bar. [scrollState] lets a caller observe or drive the scroll position. The optional [fab] floats
+ * over the content at end 16 / bottom 24 (AndAbnElemente:64).
  */
 @Composable
 fun DetailScreenScaffold(
@@ -69,6 +73,7 @@ fun DetailScreenScaffold(
     modifier: Modifier = Modifier,
     scrollState: ScrollState = rememberScrollState(),
     bottomBar: (@Composable () -> Unit)? = null,
+    fab: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     SubcomposeLayout(modifier.fillMaxSize().background(Tokens.bg.color())) { constraints ->
@@ -91,9 +96,19 @@ fun DetailScreenScaffold(
                 )
             }
         }.map { it.measure(constraints) }
+        val floating = fab
+            ?.let { subcompose(DetailSlot.Fab, it) }
+            .orEmpty()
+            .map { it.measure(constraints.copy(minWidth = 0, minHeight = 0)) }
         layout(constraints.maxWidth, constraints.maxHeight) {
             body.forEach { it.place(0, 0) }
             bar.forEach { it.place(0, constraints.maxHeight - it.height) }
+            floating.forEach {
+                it.place(
+                    constraints.maxWidth - it.width - FAB_END.roundToPx(),
+                    constraints.maxHeight - it.height - FAB_BOTTOM.roundToPx(),
+                )
+            }
         }
     }
 }
