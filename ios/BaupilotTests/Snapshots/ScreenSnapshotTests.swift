@@ -99,6 +99,36 @@ final class ScreenSnapshotTests: XCTestCase {
         try await verify("AbnGewerke", mode: .dark, navigation: abnGewerke)
     }
 
+    /// D7: logged in, Abnahmen tab, Fenster & Türen opened (back label "Abnahmen").
+    private var abnElemente: AppNavigation {
+        var navigation = abnGewerke
+        navigation.open(.inspection(tradeId: "windows"))
+        return navigation
+    }
+
+    func testAbnElementeLight() async throws {
+        try await verify("AbnElemente", mode: .light, navigation: abnElemente)
+    }
+
+    func testAbnElementeDark() async throws {
+        try await verify("AbnElemente", mode: .dark, navigation: abnElemente)
+    }
+
+    /// D7: logged in, Abnahmen tab, Fenster & Türen, Prüfschritt F8 opened (back label "Fenster & Türen").
+    private var abnPruefung: AppNavigation {
+        var navigation = abnElemente
+        navigation.open(.inspectionStep(tradeId: "windows", elementId: "F8", step: 3))
+        return navigation
+    }
+
+    func testAbnPruefungLight() async throws {
+        try await verify("AbnPruefung", mode: .light, navigation: abnPruefung)
+    }
+
+    func testAbnPruefungDark() async throws {
+        try await verify("AbnPruefung", mode: .dark, navigation: abnPruefung)
+    }
+
     /// D7: logged in, Dokumente tab.
     private var documents: AppNavigation {
         var navigation = home
