@@ -5,6 +5,7 @@ import de.baupilot.data.RepositoryException
 import de.baupilot.designsystem.BaupilotIcon
 import de.baupilot.designsystem.components.StatusChipColors
 import java.io.File
+import java.time.LocalDate
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -453,5 +454,357 @@ class AppDataTest {
         assertEquals("2", data.home.badge)
         assertEquals(data.notifications.unreadCount.toString(), data.home.badge)
         assertEquals(data.notifications.unreadCount, repository.project().unreadNotifications)
+    }
+
+    // --- M4: inspections (step 4) ---
+
+    private val checksPath = "inspections.byTrade.windows.checks"
+
+    /** The fixture with [edit] applied to `inspections.byTrade.windows.checks.<key>`. */
+    private fun editCheck(key: String, edit: (JsonObject) -> JsonObject): MockRepository = edited { root ->
+        root.editObject("inspections") { inspections ->
+            inspections.editObject("byTrade") { byTrade ->
+                byTrade.editObject("windows") { windows ->
+                    windows.editObject("checks") { checks -> checks.editObject(key, edit) }
+                }
+            }
+        }
+    }
+
+    private fun JsonObject.with(key: String, value: kotlinx.serialization.json.JsonElement) = JsonObject(this + (key to value))
+
+    private fun platform(ios: String?, android: String?) = JsonObject(
+        mapOf(
+            "ios" to (ios?.let { JsonPrimitive(it) } ?: JsonNull),
+            "android" to (android?.let { JsonPrimitive(it) } ?: JsonNull),
+        ),
+    )
+
+    @Test
+    fun loadsInspectionsOverview() = runTest {
+        val inspections = AppData.load(repository).inspections
+        assertEquals("Abnahmen", inspections.title)
+        assertEquals("Vorlagen", inspections.templatesLabel)
+        assertEquals(listOf("Gewerke", "Offene Mängel (3)"), inspections.views)
+        assertEquals("Ansicht", inspections.viewsLabel)
+        val rows = inspections.rows
+        assertEquals(
+            listOf("earthworks", "shell", "carpentry", "roofing", "windows", "electrical", "plumbing", "screed", "tiles", "painting"),
+            rows.map { it.tradeId },
+        )
+        assertEquals(AppRoute.Inspection("windows"), rows[4].target)
+        assertEquals(AppRoute.Inspection("earthworks"), rows[0].target)
+        assertNull(rows[3].target)
+        assertEquals(InspectionStatus.Reserved, rows[1].status)
+        assertEquals("Vorbehalt", rows[1].statusLabel)
+        assertEquals("9 Prüfschritte · 14.04.", rows[0].subtitle)
+        assertEquals("6 Schritte je Element · 7 / 12", rows[4].subtitle)
+        assertEquals("Heute", rows[4].statusLabel)
+        assertEquals(InspectionStatus.Planned, rows[9].status)
+    }
+
+    @Test
+    fun loadsDefectsBoard() = runTest {
+        val board = AppData.load(repository).defectsBoard
+        assertEquals("Abnahmen", board.title)
+        assertEquals(listOf("Gewerke", "Offene Mängel (3)"), board.views)
+        assertEquals(listOf("defect-shell-crack", "defect-roof-verge", "defect-window-f2"), board.cards.map { it.id })
+        assertEquals(listOf(DefectUrgency.Late, DefectUrgency.Soon, DefectUrgency.Later), board.cards.map { it.urgency })
+        assertEquals(listOf(true, false, false), board.cards.map { it.showsActions })
+        assertEquals("ROHBAU", board.cards[0].trade)
+        assertEquals("3 Tage überfällig", board.cards[0].dueLabel)
+        assertEquals("Frist 15.01.2027 · 2 Fotos", board.cards[2].meta)
+        assertEquals("Erinnern", board.remindLabel)
+        assertEquals("Behoben prüfen", board.resolveLabel)
+        assertEquals("Behobene Mängel", board.resolvedLabel)
+        assertEquals("3", board.resolvedCount)
+    }
+
+    @Test
+    fun resolvedDefectsComeFromTheRepository() = runTest {
+        assertEquals("3", repository.resolvedDefects().count)
+    }
+
+    @Test
+    fun loadsElements() = runTest {
+        val elements = AppData.load(repository).inspectionElements
+        assertEquals(setOf("windows"), elements.keys)
+        val model = elements.getValue("windows")
+        assertEquals("windows", model.tradeId)
+        assertEquals("Fenster & Türen", model.title)
+        assertEquals("Fensterbau Weber GmbH · 18.12.2026", model.subtitle)
+        assertEquals("7 von 12 geprüft", model.counter)
+        assertEquals("6 Schritte je Element", model.guide)
+        assertEquals("Prüfanleitung", model.helpLabel)
+        assertEquals(12, model.progress.size)
+        assertEquals(listOf("Alle 12", "Offen 5", "Mängel 1"), model.chips)
+        assertEquals(listOf("F1", "F2", "F3", "F7", "F8", "F9"), model.floors.flatMap { it.items }.map { it.id })
+        assertEquals("Alle 6", model.floors[0].moreLabel)
+        val items = model.floors.flatMap { it.items }.associateBy { it.id }
+        assertEquals(AppRoute.NewDefect, items.getValue("F2").target)
+        assertEquals(ElementStatus.Defect, items.getValue("F2").status)
+        assertNull(items.getValue("F1").target)
+        val step = AppRoute.InspectionStep("windows", "F8", 3)
+        assertEquals(step, items.getValue("F8").target)
+        assertEquals(ElementStatus.Now, items.getValue("F8").status)
+        assertEquals(step, model.nextTarget)
+        assertEquals("Weiter: F8 · Schlafen", model.nextLabel)
+    }
+
+    @Test
+    fun loadsStepModel() = runTest {
+        val steps = AppData.load(repository).inspectionSteps
+        assertEquals(setOf<AppRoute>(AppRoute.InspectionStep("windows", "F8", 3)), steps.keys)
+        val step = steps.getValue(AppRoute.InspectionStep("windows", "F8", 3))
+        assertEquals("3 / 6", step.counter)
+        assertEquals("F8 · Schlafen", step.title)
+        assertEquals("OG · Dreh-Kipp-Fenster, 1-flügelig", step.subtitle)
+        assertEquals(2, step.done.size)
+        assertEquals("In Ordnung · 1 Foto", step.done[0].meta)
+        assertEquals(3, step.current.n)
+        assertEquals("Foto oben", step.current.photoCaption)
+        assertEquals("Foto seitlich", step.current.addPhotoLabel)
+        assertEquals("So prüfen", step.guideLabel)
+        assertEquals("Mangel", step.defectLabel)
+        assertEquals("In Ordnung", step.okLabel)
+        assertEquals(listOf("4", "5", "6"), step.next.map { it.n })
+        assertEquals("Schließen & Verriegeln", step.next[0].label)
+        assertEquals(AppRoute.NewDefect, step.defectTarget)
+        assertEquals(0.42f, step.progress, 0.0001f)
+    }
+
+    @Test
+    fun loadsDefectForm() = runTest {
+        val form = AppData.load(repository).defectForm
+        assertEquals("windows", form.tradeId)
+        assertEquals("Mangel erfassen", form.title)
+        assertEquals("Sichern", form.saveLabel)
+        assertEquals("F2 · Wohnen · Schritt 1", form.context)
+        assertEquals("Drehstellung: Flügel bleibt nicht stehen", form.finding)
+        assertEquals("Beschreibung", form.descriptionLabel)
+        assertEquals("Flügel fällt ab ca. 45° Öffnung selbstständig wieder zu.", form.description)
+        assertEquals("Fotos (2)", form.photosLabel)
+        assertEquals(listOf("Foto 1", "Foto 2"), form.photoLabels)
+        assertEquals("Foto aufnehmen", form.addPhotoLabel)
+        assertEquals("Schwere", form.severityLabel)
+        assertEquals(listOf("Gering", "Mittel", "Erheblich"), form.severities)
+        assertEquals(1, form.initialSeverity)
+        assertEquals("✓ ", form.selectedPrefix)
+        assertEquals("Behebung bis", form.deadlineLabel)
+        assertEquals(listOf("+ 14 Tage", "+ 4 Wochen", "+ 6 Wochen"), form.deadlineOptions.map { it.label })
+        assertEquals(listOf<Int?>(14, 28, 42), form.deadlineOptions.map { it.offsetDays })
+        assertEquals(LocalDate.of(2026, 12, 18), form.deadlineBase)
+        assertEquals(1, form.initialDeadline)
+        assertEquals("01.01.2027", form.deadlineText(0))
+        assertEquals("15.01.2027", form.deadlineText(1))
+        assertEquals("29.01.2027", form.deadlineText(2))
+        assertNull(form.deadlineText(3))
+        assertEquals("Zuständig", form.responsibleLabel)
+        assertEquals("Fensterbau Weber GmbH", form.responsible)
+        assertEquals("Handwerker per E-Mail informieren", form.notifyLabel)
+        assertTrue(form.notifyInitial)
+    }
+
+    @Test
+    fun loadsSignOff() = runTest {
+        val signOffs = AppData.load(repository).signOffs
+        assertEquals(setOf("windows"), signOffs.keys)
+        val sign = signOffs.getValue("windows")
+        assertEquals("windows", sign.inspectionId)
+        assertEquals("Abnahme abschließen", sign.title)
+        assertEquals("Fenster & Türen · 18.12.2026", sign.subtitle)
+        assertEquals(listOf("12", "11", "1"), sign.stats.map { it.value })
+        assertEquals(listOf("geprüft", "in Ordnung", "Mangel"), sign.stats.map { it.label })
+        assertEquals(listOf(CountTone.Surface, CountTone.Ok, CountTone.Error), sign.stats.map { it.tone })
+        assertEquals("Vorbehaltene Mängel", sign.reservedHeading)
+        assertEquals(listOf("F2 · Flügel fällt zu"), sign.defects.map { it.title })
+        assertEquals("bis 15.01.", sign.defects[0].due)
+        assertEquals("Mittel · 2 Fotos", sign.defects[0].meta)
+        assertEquals("Die Abnahme erfolgt unter Vorbehalt der aufgeführten Mängel und Fristen.", sign.reservation)
+        assertEquals("Handwerker", sign.craftsmanLabel)
+        assertEquals("Fensterbau Weber", sign.craftsmanName)
+        assertEquals("Unterschrieben 14:32", sign.craftsmanStatus)
+        assertEquals("Bauherr · Max Mustermann", sign.ownerLabel)
+        assertEquals("Zum Unterschreiben tippen", sign.signHereLabel)
+        assertEquals("Unterschrift Handwerker", sign.signatureLabel)
+        assertEquals("Protokoll abschließen", sign.finishLabel)
+        assertEquals("PDF mit Fotos geht an Sie und den Handwerker", sign.note)
+        assertEquals(NavigationTarget.Defects, sign.finishTarget)
+    }
+
+    @Test
+    fun loadsAllM4ScreenTexts() = runTest {
+        for (name in listOf("AbnGewerke", "AbnElemente", "AbnPruefung", "AbnMangel", "AbnSignatur", "AbnMaengel")) {
+            val broken = edited { root ->
+                root.editObject("screens") { screens ->
+                    JsonObject(screens + (name to JsonObject(screens.getValue(name).jsonObject - "android")))
+                }
+            }
+            val error = runCatching { AppData.load(broken) }.exceptionOrNull()
+            assertTrue(name, error is RepositoryException.FixtureMissing)
+            assertEquals("screens.$name.android", (error as RepositoryException.FixtureMissing).path)
+        }
+        for (name in listOf("AbnGewerke", "AbnMaengel")) {
+            val strict = edited { root ->
+                root.editObject("screens") { screens ->
+                    screens.editObject(name) { screen ->
+                        screen.editObject("android") { it.with("extra", JsonPrimitive("x")) }
+                    }
+                }
+            }
+            failure { AppData.load(strict) }
+        }
+        val tabless = edited { root ->
+            root.editObject("screens") { screens ->
+                screens.editObject("AbnGewerke") { screen -> screen.editObject("android") { JsonObject(it - "tabs") } }
+            }
+        }
+        failure { AppData.load(tabless) }
+        assertNotNull(AppData.load(repository))
+    }
+
+    @Test
+    fun loadsAllM4Routes() = runTest {
+        val data = AppData.load(repository)
+        val routes = data.inspections.rows.mapNotNull { it.target } +
+            data.inspectionElements.getValue("windows").floors.flatMap { it.items }.mapNotNull { it.target }
+        assertEquals(
+            listOf<AppRoute>(
+                AppRoute.Inspection("earthworks"),
+                AppRoute.Inspection("shell"),
+                AppRoute.Inspection("carpentry"),
+                AppRoute.Inspection("windows"),
+                AppRoute.Inspection("electrical"),
+                AppRoute.Inspection("plumbing"),
+                AppRoute.Inspection("screed"),
+                AppRoute.Inspection("tiles"),
+                AppRoute.Inspection("painting"),
+                AppRoute.NewDefect,
+                AppRoute.InspectionStep("windows", "F8", 3),
+            ),
+            routes,
+        )
+    }
+
+    @Test
+    fun windowFiguresAreConsistent() = runTest {
+        val data = AppData.load(repository)
+        val elements = data.inspectionElements.getValue("windows")
+        val sign = data.signOffs.getValue("windows")
+        val defect = repository.defects().single { it.tradeId == "windows" }
+        val total = elements.progress.size
+        val defects = elements.progress.count { it == ElementStatus.Defect }
+        assertEquals(total.toString(), sign.stats[0].value)
+        assertEquals(defects.toString(), sign.stats[2].value)
+        assertEquals((total - defects).toString(), sign.stats[1].value)
+        val defectItems = elements.floors.flatMap { it.items }.filter { it.status == ElementStatus.Defect }
+        assertEquals(listOf("F2"), defectItems.map { it.id })
+        assertTrue(data.defectForm.context.startsWith("F2"))
+        assertEquals(defect.title, sign.defects.single().title)
+        assertEquals("${defect.severity} · ${defect.photos} Fotos", sign.defects.single().meta)
+        val (year, month, day) = defect.deadline.split("-")
+        assertEquals("bis $day.$month.", sign.defects.single().due)
+        assertEquals("$day.$month.$year", data.defectForm.deadlineText(data.defectForm.initialDeadline))
+        assertEquals(data.defectsBoard.cards.size, 3)
+        assertEquals("Offene Mängel (${data.defectsBoard.cards.size})", data.defectsBoard.views[1])
+        assertEquals("Offene Mängel (${data.defectsBoard.cards.size})", data.inspections.views[1])
+    }
+
+    @Test
+    fun missingAndroidAllLabelFailsLoad() = runTest {
+        val bad = editCheck("elements") { it.with("allLabel", platform("Alle 12", null)) }
+        assertEquals("$checksPath.elements.allLabel", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun missingAndroidGuideFailsLoad() = runTest {
+        val bad = editCheck("elements") { it.with("guide", platform("x", null)) }
+        assertEquals("$checksPath.elements.guide", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun unknownElementStatusFailsLoad() = runTest {
+        val bad = editCheck("elements") { elements ->
+            elements.with("progress", JsonArray(elements.getValue("progress").jsonArray.map { JsonPrimitive("maybe") }))
+        }
+        assertEquals("$checksPath.elements.progress", failure { AppData.load(bad) }.detail)
+        val badItem = editCheck("elements") { elements ->
+            elements.mapArray("floors") { _, floor ->
+                floor.mapArray("items") { _, item -> item.with("status", JsonPrimitive("maybe")) }
+            }
+        }
+        assertEquals("$checksPath.elements.floors.items.status", failure { AppData.load(badItem) }.detail)
+    }
+
+    @Test
+    fun twoNowElementsFailLoad() = runTest {
+        val bad = editCheck("elements") { elements ->
+            elements.mapArray("floors") { _, floor ->
+                floor.mapArray("items") { _, item ->
+                    if (item.getValue("id").toString() == "\"F9\"") item.with("status", JsonPrimitive("now")) else item
+                }
+            }
+        }
+        assertEquals("$checksPath.elements.floors", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun stepNumberMismatchFailsLoad() = runTest {
+        val bad = editCheck("stepF8") { step ->
+            step.editObject("current") { it.with("n", JsonPrimitive("4")) }
+        }
+        assertEquals("$checksPath.stepF8", failure { AppData.load(bad) }.detail)
+        val badTitle = editCheck("stepF8") { it.with("title", JsonPrimitive("F9 · Schlafen")) }
+        assertEquals("$checksPath.stepF8", failure { AppData.load(badTitle) }.detail)
+    }
+
+    @Test
+    fun severityNotInOptionsFailsLoad() = runTest {
+        val bad = editCheck("defectF2") { form ->
+            form.editObject("severity") { it.with("selected", JsonPrimitive("Kritisch")) }
+        }
+        assertEquals("$checksPath.defectF2.severity", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun deadlineMismatchFailsLoad() = runTest {
+        val bad = editCheck("defectF2") { it.with("deadlineLabel", platform("Sa, 16.01.2027", "16.01.2027")) }
+        assertEquals("$checksPath.defectF2.deadlineLabel", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun malformedOverviewRouteFailsLoad() = runTest {
+        val bad = edited { root ->
+            root.editObject("inspections") { inspections ->
+                inspections.editObject("overview") { overview ->
+                    overview.mapArray("rows") { i, row -> if (i == 0) row.with("route", JsonPrimitive("inspection/")) else row }
+                }
+            }
+        }
+        assertEquals("inspections.overview.rows.route", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun statsCountMismatchFailsLoad() = runTest {
+        val bad = editCheck("signature") { sign ->
+            sign.with("stats", JsonArray(sign.getValue("stats").jsonArray.take(2)))
+        }
+        assertEquals("$checksPath.signature.stats", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun inspectionDecodingErrorIsRepositoryException() = runTest {
+        val bad = editCheck("elements") { it.with("title", JsonPrimitive(7)) }
+        assertEquals("$checksPath.elements", failure { AppData.load(bad) }.detail)
+        val unknownKey = editCheck("stepF8") { it.with("extra", JsonPrimitive("x")) }
+        assertEquals("$checksPath.stepF8", failure { AppData.load(unknownKey) }.detail)
+        val missingKey = editCheck("signature") { JsonObject(it - "kind") }
+        assertEquals("$checksPath.signature", failure { AppData.load(missingKey) }.detail)
+        val badOverview = edited { root ->
+            root.editObject("inspections") { inspections ->
+                inspections.editObject("overview") { it.with("rows", JsonPrimitive("none")) }
+            }
+        }
+        assertEquals("inspections.overview", failure { AppData.load(badOverview) }.detail)
     }
 }

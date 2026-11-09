@@ -177,4 +177,92 @@ object ScreenCopy {
         /** AndProfil.dc.html:91, the row drawn in `error` without an action */
         const val SIGN_OUT = "Abmelden"
     }
+
+    /** Abnahmen root, shared by the Gewerke and Mängel views (M4 D6). */
+    object AbnGewerke {
+        /** AndAbnGewerke.dc.html:20 (placeholder link, no action) */
+        const val TEMPLATES = "Vorlagen"
+
+        /** AndAbnGewerke.dc.html:24 */
+        const val TRADES_VIEW = "Gewerke"
+
+        /** AndAbnGewerke.dc.html:25 and AndAbnMaengel.dc.html:25: the count is `defects.size`. */
+        const val DEFECTS_VIEW_FORMAT = "Offene Mängel (%d)"
+
+        /** AndAbnGewerke.dc.html:23, the aria label of the tablist */
+        const val VIEWS = "Ansicht"
+    }
+
+    object AbnMaengel {
+        /** AndAbnMaengel.dc.html:39 (own entry; the Vergleich prototype has its own, placeholder, no action) */
+        const val REMIND = "Erinnern"
+
+        /** AndAbnMaengel.dc.html:40 (placeholder, no action) */
+        const val RESOLVE = "Behoben prüfen"
+
+        /** AndAbnMaengel.dc.html:47 (placeholder row, no action) */
+        const val RESOLVED = "Behobene Mängel"
+    }
+
+    object AbnElemente {
+        /** AndAbnElemente.dc.html:26, the aria label of the help button (placeholder, no action) */
+        const val GUIDE = "Prüfanleitung"
+    }
+
+    object AbnPruefung {
+        /** AndAbnPruefung.dc.html:57 */
+        const val GUIDE = "So prüfen"
+
+        /** AndAbnPruefung.dc.html:29: the bar is hard-coded at 42 % in the prototype. */
+        const val PROGRESS = 0.42f
+    }
+
+    object AbnMangel {
+        /** AndAbnMangel.dc.html:22 */
+        const val TITLE = "Mangel erfassen"
+
+        /** AndAbnMangel.dc.html:23 */
+        const val SAVE = "Sichern"
+
+        /** AndAbnMangel.dc.html:36 */
+        const val DESCRIPTION = "Beschreibung"
+
+        /** AndAbnMangel.dc.html:49, the aria label of the photo button */
+        const val ADD_PHOTO = "Foto aufnehmen"
+
+        /** AndAbnMangel.dc.html:56 */
+        const val SEVERITY = "Schwere"
+
+        /** AndAbnMangel.dc.html:59, prefix of the selected severity */
+        const val SELECTED_PREFIX = "✓ "
+
+        /** AndAbnMangel.dc.html:66 */
+        const val DEADLINE = "Behebung bis"
+
+        /** AndAbnMangel.dc.html:80 */
+        const val RESPONSIBLE = "Zuständig"
+
+        /** AndAbnMangel.dc.html:71-73: chip i adds `DEADLINE_OFFSET_DAYS[i]` days to `meta.now` (+ 14 Tage, + 4 Wochen, + 6 Wochen). */
+        val DEADLINE_OFFSET_DAYS = listOf(14, 28, 42)
+    }
+
+    object AbnSignatur {
+        /** AndAbnSignatur.dc.html:39 */
+        const val RESERVED = "Vorbehaltene Mängel"
+
+        /** AndAbnSignatur.dc.html:47, prefix of the due date */
+        const val DUE_PREFIX = "bis"
+
+        /** AndAbnSignatur.dc.html:56 */
+        const val CRAFTSMAN = "Handwerker"
+
+        /** AndAbnSignatur.dc.html:60, the aria label of the craftsman signature */
+        const val SIGNATURE = "Unterschrift Handwerker"
+
+        /** AndAbnSignatur.dc.html:64 */
+        const val SIGN_HERE = "Zum Unterschreiben tippen"
+
+        /** AndAbnSignatur.dc.html:71 */
+        const val FINISH = "Protokoll abschließen"
+    }
 }
