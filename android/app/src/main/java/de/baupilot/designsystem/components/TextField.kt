@@ -19,8 +19,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import de.baupilot.designsystem.BaupilotIcon
 import de.baupilot.designsystem.BaupilotText
 import de.baupilot.designsystem.ColorToken
+import de.baupilot.designsystem.Icon
 import de.baupilot.designsystem.Roboto
 import de.baupilot.designsystem.Tokens
 
@@ -31,6 +33,9 @@ enum class FieldLook { Focused, Idle }
  * Outlined text field (AndLogin:34-41): height 56, radius 4, text inset 16 from the outer edge (CSS padding plus
  * border), 16 text, placeholder in `Tokens.placeholder`. The 12 label sits at top -8, left 12 with padding 0 4 on
  * [notch], which hides the border behind it. [look] is static: the prototype draws it regardless of real focus (D15).
+ * A [trailingIcon] is a 24 `muted` icon at end 14, top 16 (AndAbnMangel:67-69); the text then ends 48 before the border
+ * (CSS padding-right 48 plus the border). [fieldModifier] sits on the editable text node itself, so a test tag
+ * there finds the node that carries the text.
  */
 @Composable
 fun BaupilotOutlinedTextField(
@@ -42,6 +47,8 @@ fun BaupilotOutlinedTextField(
     look: FieldLook = FieldLook.Idle,
     isPassword: Boolean = false,
     notch: ColorToken = Tokens.bg,
+    trailingIcon: BaupilotIcon? = null,
+    fieldModifier: Modifier = Modifier,
 ) {
     val focused = look == FieldLook.Focused
     val shape = RoundedCornerShape(4.dp)
@@ -55,7 +62,7 @@ fun BaupilotOutlinedTextField(
                     color = (if (focused) Tokens.primary else Tokens.outline).color(),
                     shape = shape,
                 )
-                .padding(horizontal = 16.dp),
+                .padding(start = 16.dp, end = if (trailingIcon != null) (if (focused) 50.dp else 49.dp) else 16.dp),
             contentAlignment = Alignment.CenterStart,
         ) {
             BasicTextField(
@@ -70,12 +77,17 @@ fun BaupilotOutlinedTextField(
                 ),
                 cursorBrush = SolidColor(Tokens.primary.color()),
                 visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = fieldModifier.fillMaxWidth(),
                 decorationBox = { inner ->
                     if (value.isEmpty()) BaupilotText(text = placeholder, size = 16.sp, color = Tokens.placeholder)
                     inner()
                 },
             )
+        }
+        if (trailingIcon != null) {
+            Box(Modifier.align(Alignment.TopEnd).padding(top = 16.dp, end = 14.dp)) {
+                Icon(trailingIcon, 24.dp, Tokens.muted.color())
+            }
         }
         Box(
             Modifier

@@ -98,11 +98,12 @@ sealed interface Action {
         override val onClick: (() -> Unit)? = null,
     ) : Action
 
-    /** Text button, 14 / 500 `primary`, [height] 40 or 48. */
+    /** Text button, 14 / 500 `primary`, [height] 40 or 48. A non-null [testTag] identifies the button for UI tests. */
     data class Text(
         val label: String,
         val height: Int = 40,
         override val onClick: (() -> Unit)? = null,
+        val testTag: String? = null,
     ) : Action
 }
 
@@ -112,11 +113,13 @@ enum class BarPadding(val start: Dp, val end: Dp, val gap: Dp) {
     NavCounter(4.dp, 16.dp, 4.dp),
     TopLevelAction(16.dp, 4.dp, 0.dp),
     TitleOnly(16.dp, 16.dp, 0.dp),
-    Modal(4.dp, 8.dp, 0.dp),
+    Modal(4.dp, 8.dp, 4.dp),
 }
 
 private fun Modifier.optionalClick(onClick: (() -> Unit)?): Modifier =
     if (onClick != null) clickable(onClick = onClick) else this
+
+private fun Modifier.optionalTestTag(tag: String?): Modifier = if (tag != null) testTag(tag) else this
 
 /** Top bar: status bar spacer 32 plus a 64 high header. */
 @Composable
@@ -215,6 +218,7 @@ internal fun baupilotTopAppBarMeasured(
 
                     is Action.Text -> Box(
                         modifier = Modifier
+                            .optionalTestTag(action.testTag)
                             .height(action.height.dp)
                             .clip(RoundedCornerShape((action.height / 2).dp))
                             .optionalClick(action.onClick)
