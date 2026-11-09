@@ -32,6 +32,19 @@ final class TokensTests: XCTestCase {
         XCTAssertEqual(Tokens.docShadow.light & 0xFF, 0x2E) // lint-hex: allow token value assertion
     }
 
+    func testPhotoSceneTokensAreThemeIndependent() {
+        let pairs = [
+            Tokens.photoSkyTop, Tokens.photoSkyMid, Tokens.photoSkyBottom,
+            Tokens.photoFrame, Tokens.photoLevel,
+        ]
+        for pair in pairs { XCTAssertEqual(pair.light, pair.dark) }
+        XCTAssertEqual(Tokens.photoSkyTop.light, 0xA9B7C0FF) // lint-hex: allow token value assertion
+        XCTAssertEqual(Tokens.photoSkyMid.light, 0x6F8090FF) // lint-hex: allow token value assertion
+        XCTAssertEqual(Tokens.photoSkyBottom.light, 0x56626CFF) // lint-hex: allow token value assertion
+        XCTAssertEqual(Tokens.photoFrame.light, 0xF4F6F7FF) // lint-hex: allow token value assertion
+        XCTAssertEqual(Tokens.photoLevel.light, 0xE8B23AFF) // lint-hex: allow token value assertion
+    }
+
     func testLayoutConstants() {
         XCTAssertEqual(Tokens.Layout.screen, CGSize(width: 390, height: 844))
         XCTAssertEqual(Tokens.Layout.actionBarPadding.bottom, 34)

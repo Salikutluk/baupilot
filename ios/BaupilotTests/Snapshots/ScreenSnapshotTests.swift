@@ -84,6 +84,96 @@ final class ScreenSnapshotTests: XCTestCase {
         try await verify("Gewerk", mode: .dark, navigation: gewerk)
     }
 
+    /// D7: logged in, Abnahmen tab (view "Gewerke").
+    private var abnGewerke: AppNavigation {
+        var navigation = home
+        navigation.select(.inspections)
+        return navigation
+    }
+
+    func testAbnGewerkeLight() async throws {
+        try await verify("AbnGewerke", mode: .light, navigation: abnGewerke)
+    }
+
+    func testAbnGewerkeDark() async throws {
+        try await verify("AbnGewerke", mode: .dark, navigation: abnGewerke)
+    }
+
+    /// D7: logged in, Abnahmen tab, Fenster & Türen opened (back label "Abnahmen").
+    private var abnElemente: AppNavigation {
+        var navigation = abnGewerke
+        navigation.open(.inspection(tradeId: "windows"))
+        return navigation
+    }
+
+    func testAbnElementeLight() async throws {
+        try await verify("AbnElemente", mode: .light, navigation: abnElemente)
+    }
+
+    func testAbnElementeDark() async throws {
+        try await verify("AbnElemente", mode: .dark, navigation: abnElemente)
+    }
+
+    /// D7: logged in, Abnahmen tab, Fenster & Türen, Prüfschritt F8 opened (back label "Fenster & Türen").
+    private var abnPruefung: AppNavigation {
+        var navigation = abnElemente
+        navigation.open(.inspectionStep(tradeId: "windows", elementId: "F8", step: 3))
+        return navigation
+    }
+
+    func testAbnPruefungLight() async throws {
+        try await verify("AbnPruefung", mode: .light, navigation: abnPruefung)
+    }
+
+    func testAbnPruefungDark() async throws {
+        try await verify("AbnPruefung", mode: .dark, navigation: abnPruefung)
+    }
+
+    /// D7: logged in, Abnahmen tab, Fenster & Türen, Prüfschritt F8, Mangel erfassen opened (pushed, D14).
+    private var abnMangel: AppNavigation {
+        var navigation = abnPruefung
+        navigation.open(.newDefect)
+        return navigation
+    }
+
+    func testAbnMangelLight() async throws {
+        try await verify("AbnMangel", mode: .light, navigation: abnMangel)
+    }
+
+    func testAbnMangelDark() async throws {
+        try await verify("AbnMangel", mode: .dark, navigation: abnMangel)
+    }
+
+    /// D7: logged in, Abnahmen tab, Fenster & Türen opened, then the sign-off (back label "Fenster & Türen").
+    private var abnSignatur: AppNavigation {
+        var navigation = abnElemente
+        navigation.open(.signOff(inspectionId: "windows"))
+        return navigation
+    }
+
+    func testAbnSignaturLight() async throws {
+        try await verify("AbnSignatur", mode: .light, navigation: abnSignatur)
+    }
+
+    func testAbnSignaturDark() async throws {
+        try await verify("AbnSignatur", mode: .dark, navigation: abnSignatur)
+    }
+
+    /// D7: logged in, then the open-defects view of the Abnahmen root (`go(.defects)`).
+    private var abnMaengel: AppNavigation {
+        var navigation = home
+        navigation.go(.defects)
+        return navigation
+    }
+
+    func testAbnMaengelLight() async throws {
+        try await verify("AbnMaengel", mode: .light, navigation: abnMaengel)
+    }
+
+    func testAbnMaengelDark() async throws {
+        try await verify("AbnMaengel", mode: .dark, navigation: abnMaengel)
+    }
+
     /// D7: logged in, Dokumente tab.
     private var documents: AppNavigation {
         var navigation = home

@@ -98,9 +98,13 @@ data class DokumenteScreenText(
     val countBadge: String,
 )
 
-/** Mirror of `screens.DokViewer.android`, `screens.Vergleich.android` and `screens.Mitteilungen.android`: no keys. */
+/** Mirror of `screens.DokViewer.android`, `screens.Vergleich.android`, `screens.Mitteilungen.android` and the four other Abn screens: no keys. */
 @Serializable
 class EmptyScreenText
+
+/** Mirror of `screens.AbnGewerke.android` and `screens.AbnMaengel.android`. */
+@Serializable
+data class TabsScreenText(val tabs: List<TabText>)
 
 /**
  * Decodes `screens.<name>.android` with the strict [FixtureJson].

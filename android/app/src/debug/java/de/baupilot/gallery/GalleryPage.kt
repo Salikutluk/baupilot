@@ -34,6 +34,11 @@ enum class GalleryPage(val goldenName: String) {
     Documents("GalleryDocuments"),
     Compare("GalleryCompare"),
     Notifications("GalleryNotifications"),
+    Inspections("GalleryInspections"),
+    InspectionElements("GalleryInspectionElements"),
+    InspectionStep("GalleryInspectionStep"),
+    DefectForm("GalleryDefectForm"),
+    SignOff("GallerySignOff"),
 }
 
 @Composable
@@ -60,6 +65,11 @@ fun GalleryPageContent(page: GalleryPage) {
                 GalleryPage.Documents -> DocumentsPage()
                 GalleryPage.Compare -> ComparePage()
                 GalleryPage.Notifications -> NotificationsPage()
+                GalleryPage.Inspections -> InspectionsPage()
+                GalleryPage.InspectionElements -> InspectionElementsPage()
+                GalleryPage.InspectionStep -> InspectionStepPage()
+                GalleryPage.DefectForm -> DefectFormPage()
+                GalleryPage.SignOff -> SignOffPage()
             }
         }
     }

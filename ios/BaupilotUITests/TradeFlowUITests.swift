@@ -133,6 +133,7 @@ final class TradeFlowUITests: XCTestCase {
         openBell()
         tap("notification.notif-defect-overdue")
         expectScreen("screen.inspections")
+        expectScreen("inspections.view.defects")
     }
 
     func testNotificationWithoutTargetDoesNothing() {

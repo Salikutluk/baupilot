@@ -52,6 +52,7 @@ struct MockRepository: BackendRepository {
 
     func documents() async throws -> Documents { fixture.documents }
     func defects() async throws -> [Defect] { fixture.defects }
+    func resolvedDefects() async throws -> ResolvedDefects { fixture.resolvedDefects }
     func notifications() async throws -> [NotificationGroup] { fixture.notifications }
     func inspections() async throws -> JSONValue { fixture.inspections }
     func measurements() async throws -> JSONValue { fixture.measurements }

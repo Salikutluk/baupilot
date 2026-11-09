@@ -98,11 +98,12 @@ sealed interface Action {
         override val onClick: (() -> Unit)? = null,
     ) : Action
 
-    /** Text button, 14 / 500 `primary`, [height] 40 or 48. */
+    /** Text button, 14 / 500 `primary`, [height] 40 or 48. A non-null [testTag] identifies the button for UI tests. */
     data class Text(
         val label: String,
         val height: Int = 40,
         override val onClick: (() -> Unit)? = null,
+        val testTag: String? = null,
     ) : Action
 }
 
@@ -112,11 +113,13 @@ enum class BarPadding(val start: Dp, val end: Dp, val gap: Dp) {
     NavCounter(4.dp, 16.dp, 4.dp),
     TopLevelAction(16.dp, 4.dp, 0.dp),
     TitleOnly(16.dp, 16.dp, 0.dp),
-    Modal(4.dp, 8.dp, 0.dp),
+    Modal(4.dp, 8.dp, 4.dp),
 }
 
 private fun Modifier.optionalClick(onClick: (() -> Unit)?): Modifier =
     if (onClick != null) clickable(onClick = onClick) else this
+
+private fun Modifier.optionalTestTag(tag: String?): Modifier = if (tag != null) testTag(tag) else this
 
 /** Top bar: status bar spacer 32 plus a 64 high header. */
 @Composable
@@ -152,12 +155,13 @@ fun BaupilotTopAppBar(
     )
 }
 
-/** Same bar with a layout hook for the metric tests: [headerModifier] sits on the 64 high header. */
+/** Same bar with layout hooks for the metric tests: [headerModifier] sits on the 64 high header, [titleModifier] on the title column. */
 @Composable
 internal fun baupilotTopAppBarMeasured(
     title: String,
     padding: BarPadding,
     headerModifier: Modifier = Modifier,
+    titleModifier: Modifier = Modifier,
     navigation: Nav? = null,
     subtitle: String? = null,
     titleStyle: TitleStyle = TitleStyle.Large,
@@ -181,7 +185,7 @@ internal fun baupilotTopAppBarMeasured(
             horizontalArrangement = Arrangement.spacedBy(padding.gap),
         ) {
             if (navigation != null) NavButton(navigation, iconColor)
-            Column(Modifier.weight(1f).then(wholeDpCentered())) {
+            Column(Modifier.weight(1f).then(titleModifier).then(wholeDpCentered())) {
                 BaupilotText(
                     text = title,
                     size = titleStyle.size,
@@ -215,6 +219,7 @@ internal fun baupilotTopAppBarMeasured(
 
                     is Action.Text -> Box(
                         modifier = Modifier
+                            .optionalTestTag(action.testTag)
                             .height(action.height.dp)
                             .clip(RoundedCornerShape((action.height / 2).dp))
                             .optionalClick(action.onClick)
@@ -231,7 +236,7 @@ internal fun baupilotTopAppBarMeasured(
 
 @Composable
 private fun NavButton(nav: Nav, iconColor: ColorToken) {
-    RoundButton(nav.label, nav.onClick, if (nav is Nav.Back) Modifier.testTag("nav.back") else Modifier) {
+    RoundButton(nav.label, nav.onClick, Modifier.testTag(if (nav is Nav.Back) "nav.back" else "nav.close")) {
         Icon(
             icon = if (nav is Nav.Back) BaupilotIcon.ArrowLeft else BaupilotIcon.X,
             size = 24.dp,

@@ -117,6 +117,37 @@ cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests 'de.bau
 
 To record a screen golden of a gallery page you own, use the record flags above (`TEST_RUNNER_BAUPILOT_RECORD_GOLDENS=1` on iOS, `-Pbaupilot.recordGoldens=true` on Android), then view the image and run again without the flag. The screen snapshots compare against `design/reference/` and are never recorded.
 
+### Screen snapshots and UI tests (M4)
+
+M4 adds the window inspection flow (Abnahme-Kernflow) with six screens: Abnahmen je Gewerk (`AbnGewerke`), Fenster – Elemente (`AbnElemente`), Prüfschritt F8 (`AbnPruefung`), Mangel erfassen (`AbnMangel`), Abnahme & Unterschrift (`AbnSignatur`) and Offene Mängel & Fristen (`AbnMaengel`). 6 screens × 2 platforms × light/dark = 24 snapshots against `design/reference/`, in `ScreenSnapshotTests` (iOS) and the `Abn*SnapshotTest` classes (Android). The tolerances never change. Measured results, decisions and known gaps: [`docs/m4-offene-punkte.md`](docs/m4-offene-punkte.md).
+
+| Screen | Route |
+|---|---|
+| Abnahmen je Gewerk | `inspections` (Tab 3 root, view "Gewerke") |
+| Fenster – Elemente | `inspection/windows` |
+| Prüfschritt F8 | `inspection/windows/{el}/step/{n}` |
+| Mangel erfassen | `defect/new` |
+| Abnahme & Unterschrift | `inspection/{id}/sign` (`{id}` is the trade id, `windows`) |
+| Offene Mängel & Fristen | `defects` (Tab 3 root, view "Offene Mängel") |
+
+The Abnahmen tab root has two views, "Gewerke" and "Offene Mängel", switched by the "Ansicht" segment control; the selected view is part of the navigation state. The target `defects` (for example from a notification, or "Protokoll abschließen") selects the Abnahmen tab, clears its stack and shows the Mängel view. Other trades' rows open a pushed placeholder (their screens come in M5/M6); Dachdecker has no route and no action.
+
+**How to reach the signature screen (decision D3):** no prototype links into Abnahme & Unterschrift, but the flow Elemente → Prüfschritt → Mangel → Unterschrift → Offene Mängel must be clickable. "Sichern" on Mangel erfassen therefore opens the sign-off on top of the Elemente screen (`[…, inspection/windows, inspection/windows/sign]`); the signature screen's back button returns to Elemente. "Abbrechen" (iOS) / the close button (Android) returns to the screen below. This is a plan decision, not a prototype link. Nothing is persisted: "Sichern", severity, deadline, the e-mail switch, the signature and "Protokoll abschließen" change only UI and navigation state (M8).
+
+```sh
+# iOS: screen snapshots (the six M4 screens are part of ScreenSnapshotTests)
+cd ios && xcodebuild test -project Baupilot.xcodeproj -scheme Baupilot -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:BaupilotTests/ScreenSnapshotTests
+
+# iOS: inspection flow UI tests (including the acceptance flow Elemente → Prüfschritt → Mangel → Unterschrift → Offene Mängel)
+cd ios && xcodebuild test -project Baupilot.xcodeproj -scheme Baupilot -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:BaupilotUITests/InspectionFlowUITests
+
+# Android: screen snapshots
+cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests 'de.baupilot.snapshot.*SnapshotTest'
+
+# Android: inspection flow UI test (Compose UI test on Robolectric)
+cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests 'de.baupilot.app.InspectionFlowUiTest'
+```
+
 ## Font provenance
 
 Fonts are embedded as TTF and also used in the test path.

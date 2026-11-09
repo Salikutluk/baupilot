@@ -10,6 +10,13 @@ struct RouteTitles: Sendable, Equatable {
     let documentTitles: [String: String]
     let compareTitle: String
     let notificationsTitle: String
+    /// Overview row names by trade id ("Fenster & Türen").
+    var inspectionTitles: [String: String] = [:]
+    /// Step model titles by their route ("F8 · Schlafen").
+    var stepTitles: [AppRoute: String] = [:]
+    var newDefectTitle: String = ""
+    /// Sign-off titles by inspection id ("Abnahme abschließen").
+    var signOffTitles: [String: String] = [:]
 
     /// A missing name falls back to the id, so a title is never empty.
     func title(_ route: AppRoute) -> String {
@@ -18,6 +25,10 @@ struct RouteTitles: Sendable, Equatable {
         case .compare: return compareTitle
         case let .document(id): return documentTitles[id] ?? id
         case .notifications: return notificationsTitle
+        case let .inspection(tradeId): return inspectionTitles[tradeId] ?? tradeId
+        case let .inspectionStep(_, elementId, _): return stepTitles[route] ?? elementId
+        case .newDefect: return newDefectTitle
+        case let .signOff(inspectionId): return signOffTitles[inspectionId] ?? inspectionId
         }
     }
 

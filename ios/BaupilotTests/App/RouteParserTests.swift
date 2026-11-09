@@ -15,8 +15,36 @@ final class RouteParserTests: XCTestCase {
         XCTAssertEqual(try RouteParser.target("document/d-1_a", field: field), .push(.document(id: "d-1_a")))
     }
 
-    func testDefectsMapsToInspectionsTab() throws {
-        XCTAssertEqual(try RouteParser.target("defects", field: field), .tab(.inspections))
+    func testDefectsIsDefectsTarget() throws {
+        XCTAssertEqual(try RouteParser.target("defects", field: field), .defects)
+    }
+
+    func testParsesInspectionRoutes() throws {
+        XCTAssertEqual(
+            try RouteParser.target("inspection/windows", field: field), .push(.inspection(tradeId: "windows")))
+        XCTAssertEqual(
+            try RouteParser.target("inspection/windows/F8/step/3", field: field),
+            .push(.inspectionStep(tradeId: "windows", elementId: "F8", step: 3)))
+        XCTAssertEqual(
+            try RouteParser.target("inspection/windows/F8/step/12", field: field),
+            .push(.inspectionStep(tradeId: "windows", elementId: "F8", step: 12)))
+        XCTAssertEqual(
+            try RouteParser.target("inspection/windows/sign", field: field),
+            .push(.signOff(inspectionId: "windows")))
+        XCTAssertEqual(try RouteParser.target("defect/new", field: field), .push(.newDefect))
+    }
+
+    func testRejectsMalformedInspectionRoutes() {
+        let malformed = [
+            "inspection/", "inspection/a/b", "inspection/a/F8/step", "inspection/a/F8/step/0",
+            "inspection/a/F8/step/03", "inspection/a/F8/step/x", "inspection/a/F8/steps/3",
+            "defect/old", "defect/new/x", "inspection/a/sign/x",
+        ]
+        for raw in malformed {
+            XCTAssertThrowsError(try RouteParser.target(raw, field: field), raw) { error in
+                XCTAssertEqual(error as? RepositoryError, .decoding(field), raw)
+            }
+        }
     }
 
     func testNilIsNil() throws {
@@ -36,7 +64,13 @@ final class RouteParserTests: XCTestCase {
         XCTAssertThrowsError(try RouteParser.route("home", field: field)) { error in
             XCTAssertEqual(error as? RepositoryError, .decoding(field))
         }
-        XCTAssertThrowsError(try RouteParser.route("defects", field: field))
         XCTAssertEqual(try RouteParser.route("trade/screed", field: field), .trade(id: "screed"))
+        XCTAssertEqual(try RouteParser.route("defect/new", field: field), .newDefect)
+    }
+
+    func testRouteRejectsDefectsTarget() {
+        XCTAssertThrowsError(try RouteParser.route("defects", field: field)) { error in
+            XCTAssertEqual(error as? RepositoryError, .decoding(field))
+        }
     }
 }

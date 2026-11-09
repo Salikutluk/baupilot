@@ -93,6 +93,14 @@ object Tokens {
     val docRuleLight = ColorToken(Color(0xFFEEEEEE), Color(0xFFEEEEEE))
     val docShadow = ColorToken(Color(0x2E000000), Color(0x2E000000))
     val fabShadow = ColorToken(Color(0x2E000000), Color(0x2E000000))
+    val onPhoto = ColorToken(Color(0xFFFFFFFF), Color(0xFFFFFFFF))
+    val photoBadge = ColorToken(Color(0xFF15803D), Color(0xFF15803D))
+    val photoCaption = ColorToken(Color(0x73000000), Color(0x73000000))
+    val photoFrame = ColorToken(Color(0xFFF4F6F7), Color(0xFFF4F6F7))
+    val photoLevel = ColorToken(Color(0xFFE8B23A), Color(0xFFE8B23A))
+    val photoSkyBottom = ColorToken(Color(0xFF56626C), Color(0xFF56626C))
+    val photoSkyMid = ColorToken(Color(0xFF6F8090), Color(0xFF6F8090))
+    val photoSkyTop = ColorToken(Color(0xFFA9B7C0), Color(0xFFA9B7C0))
     val placeholder = ColorToken(Color(0xFF757575), Color(0xFF757575))
 
     object FontFamilyName {

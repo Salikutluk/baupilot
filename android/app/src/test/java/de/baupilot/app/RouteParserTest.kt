@@ -30,8 +30,41 @@ class RouteParserTest {
     }
 
     @Test
-    fun defectsMapsToInspectionsTab() {
-        assertEquals(NavigationTarget.Tab(AppTab.Inspections), RouteParser.target("defects", "f"))
+    fun defectsIsDefectsTarget() {
+        assertEquals(NavigationTarget.Defects, RouteParser.target("defects", "f"))
+    }
+
+    @Test
+    fun parsesInspectionRoutes() {
+        assertEquals(
+            NavigationTarget.Push(AppRoute.Inspection("windows")),
+            RouteParser.target("inspection/windows", "f"),
+        )
+        assertEquals(
+            NavigationTarget.Push(AppRoute.InspectionStep("windows", "F8", 3)),
+            RouteParser.target("inspection/windows/F8/step/3", "f"),
+        )
+        assertEquals(
+            NavigationTarget.Push(AppRoute.InspectionStep("a", "b-1", 12)),
+            RouteParser.target("inspection/a/b-1/step/12", "f"),
+        )
+        assertEquals(
+            NavigationTarget.Push(AppRoute.SignOff("windows")),
+            RouteParser.target("inspection/windows/sign", "f"),
+        )
+        assertEquals(NavigationTarget.Push(AppRoute.NewDefect), RouteParser.target("defect/new", "f"))
+        assertEquals(AppRoute.NewDefect, RouteParser.route("defect/new", "f"))
+        assertEquals(AppRoute.Inspection("roofing"), RouteParser.route("inspection/roofing", "f"))
+    }
+
+    @Test
+    fun malformedInspectionRoutesThrowDecoding() {
+        listOf(
+            "inspection/", "inspection", "inspection/a/b", "inspection/a/F8/step", "inspection/a/F8/step/0",
+            "inspection/a/F8/step/03", "inspection/a/F8/step/x", "inspection/a/F8/steps/3", "inspection/a/F8/step/-1",
+            "inspection/a/F8/step/3/x", "inspection/-a", "inspection/a/-F8/step/3", "defect/old", "defect/new/x",
+            "defect/", "defect", "inspection/a/sign/x", "inspection//sign",
+        ).forEach { raw -> assertDecoding("inspections.overview.rows.route") { RouteParser.target(raw, "inspections.overview.rows.route") } }
     }
 
     @Test
@@ -65,6 +98,11 @@ class RouteParserTest {
             "trade/a/compare/b", "trade/a/other", "document/", "document", "document/a/b",
             "Home", "notifications/1", "/trade/a",
         ).forEach { raw -> assertDecoding("schedule.asks.target") { RouteParser.target(raw, "schedule.asks.target") } }
+    }
+
+    @Test
+    fun routeRejectsDefectsTarget() {
+        assertDecoding("field") { RouteParser.route("defects", "field") }
     }
 
     @Test

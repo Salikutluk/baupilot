@@ -26,10 +26,18 @@ struct AppShell: View {
                 }
             }
             if navigation.showsTabBar {
-                TabBar(selected: Self.barTab(navigation.selectedTab), onSelect: { navigation.select(Self.appTab($0)) })
+                TabBar(
+                    selected: Self.barTab(navigation.selectedTab), border: tabBarBorder,
+                    onSelect: { navigation.select(Self.appTab($0)) })
             }
         }
         .ignoresSafeArea()
+    }
+
+    /// The open-defects view draws the tab bar's top border in its own token (IosAbnMaengel.dc.html:56).
+    private var tabBarBorder: ColorToken {
+        navigation.selectedTab == .inspections && navigation.inspectionsView == .defects && navigation.showsTabBar
+            ? Tokens.border.abnMaengel : Tokens.border.core
     }
 
     private func stack(for tab: AppTab) -> some View {
@@ -61,8 +69,20 @@ struct AppShell: View {
         case .documents:
             DocumentsScreen(model: data.documents, filter: $documentsFilter, onAction: handle)
         case .inspections:
-            PlaceholderScreen(title: label(of: tab), presentation: .tabRoot)
+            inspectionsRoot
+                .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("screen.\(tab.rawValue)")
+        }
+    }
+
+    /// Only the visible view is composed, so the hidden one never reaches the accessibility tree.
+    @ViewBuilder
+    private var inspectionsRoot: some View {
+        switch navigation.inspectionsView {
+        case .trades:
+            InspectionsScreen(model: data.inspections, onAction: handle)
+        case .defects:
+            DefectsScreen(model: data.defectsBoard, onAction: handle)
         }
     }
 
@@ -96,6 +116,29 @@ struct AppShell: View {
                 PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
                     .accessibilityIdentifier("screen.document.\(id)")
             }
+        case let .inspection(tradeId):
+            if let model = data.inspectionElements[tradeId] {
+                ElementsScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else {
+                PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
+                    .accessibilityIdentifier("screen.inspection.\(tradeId)")
+            }
+        case let .inspectionStep(tradeId, elementId, step):
+            if let model = data.inspectionSteps[route] {
+                InspectionStepScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else {
+                PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
+                    .accessibilityIdentifier("screen.inspection.\(tradeId).\(elementId).step.\(step)")
+            }
+        case .newDefect:
+            DefectFormScreen(model: data.defectForm, onAction: handle)
+        case let .signOff(inspectionId):
+            if let model = data.signOffs[inspectionId] {
+                SignOffScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else {
+                PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
+                    .accessibilityIdentifier("screen.inspection.\(inspectionId).sign")
+            }
         }
     }
 
@@ -103,11 +146,6 @@ struct AppShell: View {
     private func backLabel(for route: AppRoute, from tab: AppTab) -> String {
         let path = navigation.path(for: tab)
         return data.routeTitles.backLabel(path: path, index: path.firstIndex(of: route) ?? 0, tab: tab)
-    }
-
-    /// Tab label from the screen models; every tab bar of the fixture lists the same five.
-    private func label(of tab: AppTab) -> String {
-        data.home.tabs.first { $0.tab == tab }?.label ?? ""
     }
 
     private func handle(_ action: HomeAction) {
@@ -153,6 +191,50 @@ struct AppShell: View {
     private func handle(_ action: NotificationsAction) {
         switch action {
         case let .open(target): navigation.go(target)
+        }
+    }
+
+    private func handle(_ action: InspectionsAction) {
+        switch action {
+        case let .selectView(view): navigation.selectInspectionsView(view)
+        case let .open(route): navigation.open(route)
+        }
+    }
+
+    private func handle(_ action: DefectsAction) {
+        switch action {
+        case let .selectView(view): navigation.selectInspectionsView(view)
+        }
+    }
+
+    private func handle(_ action: ElementsAction) {
+        switch action {
+        case let .open(route): navigation.open(route)
+        }
+    }
+
+    private func handle(_ action: StepAction) {
+        switch action {
+        case let .open(route): navigation.open(route)
+        }
+    }
+
+    private func handle(_ action: DefectFormAction) {
+        switch action {
+        case .cancel:
+            navigation.pop()
+        case let .save(tradeId):
+            if data.signOffs[tradeId] != nil {
+                navigation.open(.signOff(inspectionId: tradeId), above: .inspection(tradeId: tradeId))
+            } else {
+                navigation.open(.inspection(tradeId: tradeId))
+            }
+        }
+    }
+
+    private func handle(_ action: SignOffAction) {
+        switch action {
+        case let .finish(target): navigation.go(target)
         }
     }
 

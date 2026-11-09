@@ -12,6 +12,7 @@ interface BackendRepository {
     suspend fun comparison(tradeId: String): Comparison?
     suspend fun documents(): Documents
     suspend fun defects(): List<Defect>
+    suspend fun resolvedDefects(): ResolvedDefects
     suspend fun notifications(): List<NotificationGroup>
     suspend fun inspections(): JsonElement
     suspend fun measurements(): JsonElement

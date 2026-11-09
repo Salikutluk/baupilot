@@ -99,6 +99,11 @@ struct DokumenteScreenText: Decodable, Sendable, Equatable {
     let tabs: [TabText]
 }
 
+/// AbnGewerke and AbnMaengel: the tab bar entries are the only text the fixture carries for them.
+struct TabsScreenText: Decodable, Sendable, Equatable {
+    let tabs: [TabText]
+}
+
 /// The `ios` side of DokViewer, Vergleich and Mitteilungen is `{}`: loading it proves the screen exists.
 struct EmptyScreenText: Decodable, Sendable, Equatable {}
 

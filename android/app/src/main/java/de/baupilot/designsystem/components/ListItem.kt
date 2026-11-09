@@ -79,11 +79,12 @@ sealed interface Trailing {
         val size: StatusChipSize = StatusChipSize.H32,
     ) : Trailing
 
-    /** Text with size 14, 13 or 12 at weight 500. */
+    /** Text with size 14, 13 or 12 at [weight] 500 (400 for the "Behobene Mängel" count, AndAbnMaengel:46). */
     class Text(
         val text: String,
         val size: TextUnit = 14.sp,
         val color: ColorToken = Tokens.muted,
+        val weight: Int = 500,
     ) : Trailing
 
     /** A switch; pass the BaupilotSwitch call as [content] so the row does not own its state. */
@@ -181,7 +182,7 @@ private fun TrailingContent(trailing: Trailing) {
         is Trailing.Text -> BaupilotText(
             text = trailing.text,
             size = trailing.size,
-            weight = 500,
+            weight = trailing.weight,
             color = trailing.color,
         )
 

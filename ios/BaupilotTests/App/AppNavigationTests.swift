@@ -161,4 +161,110 @@ final class AppNavigationTests: XCTestCase {
         XCTAssertEqual(nav.path(for: .documents), [.document(id: "d1")])
         XCTAssertEqual(nav.path(for: .home), [])
     }
+
+    // MARK: Inspections (M4)
+
+    func testShowDefectsSelectsInspectionsRootWithDefectsView() {
+        var nav = loggedIn()
+        nav.showDefects()
+        XCTAssertEqual(nav.selectedTab, .inspections)
+        XCTAssertEqual(nav.inspectionsView, .defects)
+        XCTAssertEqual(nav.path(for: .inspections), [])
+        XCTAssertTrue(nav.showsTabBar)
+    }
+
+    func testShowDefectsClearsOnlyInspectionsStack() {
+        var nav = loggedIn()
+        nav.open(.notifications)
+        nav.select(.inspections)
+        nav.open(.inspection(tradeId: "windows"))
+        nav.open(.newDefect)
+        nav.select(.schedule)
+        nav.push(.trade(id: "screed"))
+        nav.showDefects()
+        XCTAssertEqual(nav.selectedTab, .inspections)
+        XCTAssertEqual(nav.path(for: .inspections), [])
+        XCTAssertEqual(nav.path(for: .home), [.notifications])
+        XCTAssertEqual(nav.path(for: .schedule), [.trade(id: "screed")])
+    }
+
+    func testGoDefectsCallsShowDefects() {
+        var viaGo = loggedIn()
+        viaGo.open(.notifications)
+        var direct = viaGo
+        viaGo.go(.defects)
+        direct.showDefects()
+        XCTAssertEqual(viaGo, direct)
+        XCTAssertEqual(viaGo.inspectionsView, .defects)
+    }
+
+    func testSelectInspectionsViewKeepsPathsAndTab() {
+        var nav = loggedIn()
+        nav.select(.inspections)
+        nav.open(.inspection(tradeId: "windows"))
+        let before = nav
+        nav.selectInspectionsView(.defects)
+        XCTAssertEqual(nav.inspectionsView, .defects)
+        XCTAssertEqual(nav.paths, before.paths)
+        XCTAssertEqual(nav.selectedTab, before.selectedTab)
+        nav.selectInspectionsView(.trades)
+        XCTAssertEqual(nav, before)
+
+        nav.selectInspectionsView(.defects)
+        nav.select(.inspections)
+        XCTAssertEqual(nav.inspectionsView, .defects, "re-tap keeps the view")
+        nav.select(.home)
+        nav.select(.inspections)
+        XCTAssertEqual(nav.inspectionsView, .defects, "tab round trip keeps the view")
+    }
+
+    func testLogInResetsInspectionsView() {
+        var nav = loggedIn()
+        nav.showDefects()
+        nav.logIn()
+        XCTAssertEqual(nav.inspectionsView, .trades)
+        XCTAssertEqual(nav.selectedTab, .home)
+    }
+
+    func testOpenAboveBuildsAnchorThenRoute() {
+        var nav = loggedIn()
+        nav.select(.inspections)
+        nav.open(.inspection(tradeId: "windows"))
+        nav.open(.inspectionStep(tradeId: "windows", elementId: "F8", step: 3))
+        nav.open(.newDefect)
+        nav.open(.signOff(inspectionId: "windows"), above: .inspection(tradeId: "windows"))
+        XCTAssertEqual(
+            nav.path(for: .inspections),
+            [.inspection(tradeId: "windows"), .signOff(inspectionId: "windows")])
+
+        var fresh = loggedIn()
+        fresh.select(.inspections)
+        fresh.open(.signOff(inspectionId: "windows"), above: .inspection(tradeId: "windows"))
+        XCTAssertEqual(
+            fresh.path(for: .inspections),
+            [.inspection(tradeId: "windows"), .signOff(inspectionId: "windows")])
+    }
+
+    func testOpenAboveNeverDuplicates() {
+        var nav = loggedIn()
+        nav.select(.inspections)
+        let anchor = AppRoute.inspection(tradeId: "windows")
+        let route = AppRoute.signOff(inspectionId: "windows")
+        nav.open(route, above: anchor)
+        nav.open(route, above: anchor)
+        XCTAssertEqual(nav.path(for: .inspections), [anchor, route])
+    }
+
+    func testNewOpsAreNoOpsWhenLoggedOut() {
+        var nav = AppNavigation()
+        let before = nav
+        nav.showDefects()
+        XCTAssertEqual(nav, before)
+        nav.selectInspectionsView(.defects)
+        XCTAssertEqual(nav, before)
+        nav.open(.newDefect, above: .inspection(tradeId: "windows"))
+        XCTAssertEqual(nav, before)
+        nav.go(.defects)
+        XCTAssertEqual(nav, before)
+    }
 }

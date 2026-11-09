@@ -43,6 +43,8 @@ class MockRepository(json: String) : BackendRepository {
 
     override suspend fun defects(): List<Defect> = fixture.defects
 
+    override suspend fun resolvedDefects(): ResolvedDefects = fixture.resolvedDefects
+
     override suspend fun notifications(): List<NotificationGroup> = fixture.notifications
 
     override suspend fun inspections(): JsonElement = fixture.inspections

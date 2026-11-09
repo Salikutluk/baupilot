@@ -7,23 +7,34 @@ enum AppRoute: Hashable, Sendable {
     case compare(tradeId: String)
     case document(id: String)
     case notifications
+    case inspection(tradeId: String)
+    case inspectionStep(tradeId: String, elementId: String, step: Int)
+    case newDefect
+    case signOff(inspectionId: String)
 }
+
+/// The two views of the Abnahmen tab root (the "Ansicht" tablist of IosAbnGewerke / IosAbnMaengel).
+enum InspectionsView: String, CaseIterable, Sendable { case trades, defects }
 
 /// What a target string from the fixture opens: a pushed route or a whole tab.
 enum NavigationTarget: Equatable, Sendable {
     case push(AppRoute)
     case tab(AppTab)
+    /// The open-defects view of the Abnahmen tab root.
+    case defects
 }
 
 struct AppNavigation: Equatable, Sendable {
     var isLoggedIn: Bool = false
     var selectedTab: AppTab = .home
     var paths: [AppTab: [AppRoute]] = [:]
+    var inspectionsView: InspectionsView = .trades
 
     mutating func logIn() {
         isLoggedIn = true
         selectedTab = .home
         paths = [:]
+        inspectionsView = .trades
     }
 
     /// Another tab: switch only. The same tab: pop to its root.
@@ -52,10 +63,32 @@ struct AppNavigation: Equatable, Sendable {
         }
     }
 
+    /// Pushes `anchor`, then `route` on top of it, in one state change (each through `open`, so no duplicates).
+    mutating func open(_ route: AppRoute, above anchor: AppRoute) {
+        guard isLoggedIn else { return }
+        open(anchor)
+        open(route)
+    }
+
+    /// Changes the view of the Abnahmen root only; tab and stacks stay.
+    mutating func selectInspectionsView(_ view: InspectionsView) {
+        guard isLoggedIn else { return }
+        inspectionsView = view
+    }
+
+    /// The open-defects list is a root view: selects the Abnahmen tab, clears its stack and shows that view.
+    mutating func showDefects() {
+        guard isLoggedIn else { return }
+        selectedTab = .inspections
+        paths[.inspections] = nil
+        inspectionsView = .defects
+    }
+
     mutating func go(_ target: NavigationTarget) {
         switch target {
         case let .push(route): open(route)
         case let .tab(tab): select(tab)
+        case .defects: showDefects()
         }
     }
 

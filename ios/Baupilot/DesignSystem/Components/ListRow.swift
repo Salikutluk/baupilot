@@ -1,7 +1,9 @@
 import SwiftUI
 
 /// Row used in the iOS lists. Place rows inside a `Card(padding: EdgeInsets())`; the divider
-/// sits on top of every row that is not the first.
+/// sits on top of every row that is not the first. An optional `background` is painted under the whole
+/// row, divider included. `subtitleLines: .block` lets a long subtitle wrap inside the flex column (CSS
+/// `min-width: 0`) instead of truncating.
 public struct ListRow: View {
     public enum TitleSize {
         case regular
@@ -109,6 +111,8 @@ public struct ListRow: View {
     private let density: Density
     private let showsDivider: Bool
     let dividerColor: ColorToken
+    let background: ColorToken?
+    let subtitleLines: TextLines
     private let action: (() -> Void)?
 
     public init(
@@ -120,6 +124,8 @@ public struct ListRow: View {
         density: Density = .padded(v: 12),
         showsDivider: Bool,
         dividerColor: ColorToken = Tokens.border.core,
+        background: ColorToken? = nil,
+        subtitleLines: TextLines = .single,
         action: (() -> Void)?
     ) {
         self.title = title
@@ -130,6 +136,8 @@ public struct ListRow: View {
         self.density = density
         self.showsDivider = showsDivider
         self.dividerColor = dividerColor
+        self.background = background
+        self.subtitleLines = subtitleLines
         self.action = action
     }
 
@@ -144,6 +152,8 @@ public struct ListRow: View {
                 row
             }
         }
+        // CSS paints the anchor's background under its own top border, so the divider is tinted too.
+        .background { if let background { background.color } }
     }
 
     @ViewBuilder
@@ -156,7 +166,7 @@ public struct ListRow: View {
                     .foregroundStyle(Tokens.text.color)
                 if let subtitle {
                     Text(subtitle)
-                        .interText(13, .regular)
+                        .interText(13, .regular, lines: subtitleLines)
                         .foregroundStyle(Tokens.muted.color)
                 }
             }

@@ -1,21 +1,32 @@
 package de.baupilot.app
 
 import de.baupilot.data.BackendRepository
+import de.baupilot.data.DefectFormCheck
 import de.baupilot.data.DokumenteScreenText
+import de.baupilot.data.ElementsCheck
 import de.baupilot.data.EmptyScreenText
 import de.baupilot.data.Fact
 import de.baupilot.data.GewerkScreenText
 import de.baupilot.data.HomeScreenText
 import de.baupilot.data.LoginScreenText
+import de.baupilot.data.PlatformText
 import de.baupilot.data.ProfilScreenText
 import de.baupilot.data.RepositoryException
+import de.baupilot.data.SignatureCheck
+import de.baupilot.data.StepCheck
 import de.baupilot.data.TabText
+import de.baupilot.data.TabsScreenText
 import de.baupilot.data.ZeitplanScreenText
+import de.baupilot.data.inspectionCheck
+import de.baupilot.data.inspectionOverview
 import de.baupilot.data.screenText
 import de.baupilot.designsystem.BaupilotIcon
 import de.baupilot.designsystem.components.StatusChipColors
+import de.baupilot.inspection.DeadlineMath
+import de.baupilot.inspection.DeadlineStyle
 import de.baupilot.schedule.ScheduleLayout
 import de.baupilot.screens.ScreenCopy
+import java.util.Locale
 
 data class LoginModel(
     val chips: List<String>,
@@ -237,8 +248,23 @@ data class AppData(
     val viewers: Map<String, DocViewerModel>,
     val notifications: NotificationsModel,
     val tradeNames: Map<String, String>,
+    val inspections: InspectionsModel,
+    val defectsBoard: DefectsBoardModel,
+    val inspectionElements: Map<String, ElementsModel>,
+    val inspectionSteps: Map<AppRoute, StepModel>,
+    val defectForm: DefectFormModel,
+    val signOffs: Map<String, SignOffModel>,
 ) {
     companion object {
+        /** The one trade with inspection models in M4 (the other trades are M5/M6). */
+        private const val INSPECTED_TRADE = "windows"
+
+        private const val CHECKS = "inspections.byTrade.$INSPECTED_TRADE.checks"
+
+        private const val OVERVIEW = "inspections.overview"
+
+        private val STEP_NUMBER = Regex("^[1-9][0-9]*$")
+
         /** Content width of the Zeitplan chart on the 390 dp screen (AndZeitplan.dc.html), fixed, not measured. */
         private const val CHART_WIDTH = 358f
 
@@ -472,9 +498,257 @@ data class AppData(
                 },
                 unreadCount = notificationGroups.sumOf { group -> group.items.count { it.unread } },
             )
+            val inspection = loadInspections(repository)
             return AppData(
-                login, home, scheduleModel, profile, gewerke, comparisons, documents, viewers, notificationsModel,
-                trades.associate { it.id to it.name },
+                login = login,
+                home = home,
+                schedule = scheduleModel,
+                profile = profile,
+                trades = gewerke,
+                comparisons = comparisons,
+                documents = documents,
+                viewers = viewers,
+                notifications = notificationsModel,
+                tradeNames = trades.associate { it.id to it.name },
+                inspections = inspection.inspections,
+                defectsBoard = inspection.defectsBoard,
+                inspectionElements = mapOf(INSPECTED_TRADE to inspection.elements),
+                inspectionSteps = mapOf<AppRoute, StepModel>(inspection.step.route to inspection.step),
+                defectForm = inspection.defectForm,
+                signOffs = mapOf(INSPECTED_TRADE to inspection.signOff),
+            )
+        }
+
+        private class InspectionParts(
+            val inspections: InspectionsModel,
+            val defectsBoard: DefectsBoardModel,
+            val elements: ElementsModel,
+            val step: StepModel,
+            val defectForm: DefectFormModel,
+            val signOff: SignOffModel,
+        )
+
+        /** The platform's side of [text]; null there is a decoding error at [field] (D16, I6). */
+        private fun side(text: PlatformText, field: String): String = text.value ?: throw RepositoryException.Decoding(field)
+
+        private suspend fun loadInspections(repository: BackendRepository): InspectionParts {
+            val now = repository.now()
+            val defects = repository.defects()
+            val resolved = repository.resolvedDefects()
+            val gewerkeText = repository.screenText("AbnGewerke", TabsScreenText.serializer())
+            val maengelText = repository.screenText("AbnMaengel", TabsScreenText.serializer())
+            for (name in listOf("AbnElemente", "AbnPruefung", "AbnMangel", "AbnSignatur")) {
+                repository.screenText(name, EmptyScreenText.serializer())
+            }
+            val overview = repository.inspectionOverview()
+            val elementsCheck = repository.inspectionCheck(INSPECTED_TRADE, "elements", ElementsCheck.serializer())
+            val stepCheck = repository.inspectionCheck(INSPECTED_TRADE, "stepF8", StepCheck.serializer())
+            val formCheck = repository.inspectionCheck(INSPECTED_TRADE, "defectF2", DefectFormCheck.serializer())
+            val signatureCheck = repository.inspectionCheck(INSPECTED_TRADE, "signature", SignatureCheck.serializer())
+
+            fun tabTitle(text: TabsScreenText, screen: String): String =
+                text.tabs.firstOrNull { it.route == AppTab.Inspections.route }?.label
+                    ?: throw RepositoryException.Decoding("screens.$screen.android.tabs")
+
+            fun statusLabel(key: String): String =
+                overview.statusLabels[key]?.value ?: throw RepositoryException.Decoding("$OVERVIEW.statusLabels")
+
+            val views = listOf(
+                ScreenCopy.AbnGewerke.TRADES_VIEW,
+                String.format(Locale.ROOT, ScreenCopy.AbnGewerke.DEFECTS_VIEW_FORMAT, defects.size),
+            )
+            val inspections = InspectionsModel(
+                title = tabTitle(gewerkeText, "AbnGewerke"),
+                templatesLabel = ScreenCopy.AbnGewerke.TEMPLATES,
+                views = views,
+                viewsLabel = ScreenCopy.AbnGewerke.VIEWS,
+                rows = overview.rows.map { row ->
+                    InspectionTradeRow(
+                        tradeId = row.tradeId,
+                        name = row.name,
+                        subtitle = side(row.sub, "$OVERVIEW.rows.sub"),
+                        status = InspectionStatus.of(row.status, "$OVERVIEW.rows.status"),
+                        statusLabel = statusLabel(row.status),
+                        target = RouteParser.route(row.route, "$OVERVIEW.rows.route"),
+                    )
+                },
+            )
+            val defectsBoard = DefectsBoardModel(
+                title = tabTitle(maengelText, "AbnMaengel"),
+                templatesLabel = ScreenCopy.AbnGewerke.TEMPLATES,
+                views = views,
+                viewsLabel = ScreenCopy.AbnGewerke.VIEWS,
+                cards = defects.map { defect ->
+                    val urgency = DefectUrgency.of(defect.urgency, "defects.urgency")
+                    DefectCard(
+                        id = defect.id,
+                        trade = side(defect.trade, "defects.trade"),
+                        title = defect.title,
+                        dueLabel = defect.dueLabel,
+                        meta = defect.meta,
+                        urgency = urgency,
+                        showsActions = urgency == DefectUrgency.Late,
+                    )
+                },
+                remindLabel = ScreenCopy.AbnMaengel.REMIND,
+                resolveLabel = ScreenCopy.AbnMaengel.RESOLVE,
+                resolvedLabel = ScreenCopy.AbnMaengel.RESOLVED,
+                resolvedCount = resolved.count,
+            )
+
+            val elements = buildElements(elementsCheck)
+            val step = buildStep(stepCheck, elements.nextTarget as? AppRoute.InspectionStep
+                ?: throw RepositoryException.Decoding("$CHECKS.elements.floors.items.route"), ::statusLabel)
+            return InspectionParts(
+                inspections = inspections,
+                defectsBoard = defectsBoard,
+                elements = elements,
+                step = step,
+                defectForm = buildDefectForm(formCheck, now),
+                signOff = buildSignOff(signatureCheck),
+            )
+        }
+
+        private fun buildElements(check: ElementsCheck): ElementsModel {
+            val path = "$CHECKS.elements"
+            val progress = check.progress.map { key ->
+                ElementStatus.of(key, "$path.progress").also {
+                    if (it == ElementStatus.Now) throw RepositoryException.Decoding("$path.progress")
+                }
+            }
+            val floors = check.floors.map { floor ->
+                FloorSection(
+                    title = floor.title,
+                    moreLabel = floor.more,
+                    items = floor.items.map { item ->
+                        ElementRow(
+                            id = item.id,
+                            room = item.room,
+                            type = item.type,
+                            label = item.label,
+                            status = ElementStatus.of(item.status, "$path.floors.items.status"),
+                            target = RouteParser.route(item.route, "$path.floors.items.route"),
+                        )
+                    },
+                )
+            }
+            val current = floors.flatMap { it.items }.filter { it.status == ElementStatus.Now }
+            if (current.size != 1) throw RepositoryException.Decoding("$path.floors")
+            val nextTarget = current.single().target ?: throw RepositoryException.Decoding("$path.floors.items.route")
+            fun summaryLabel(status: String): String =
+                side(
+                    check.summary.firstOrNull { it.status == status }?.label ?: throw RepositoryException.Decoding("$path.summary"),
+                    "$path.summary.label",
+                )
+            return ElementsModel(
+                tradeId = INSPECTED_TRADE,
+                title = check.title,
+                subtitle = side(check.subtitle, "$path.subtitle"),
+                counter = side(check.counter, "$path.counter"),
+                guide = side(check.guide, "$path.guide"),
+                helpLabel = ScreenCopy.AbnElemente.GUIDE,
+                progress = progress,
+                // AndAbnElemente.dc.html:44-49: all, open, defect.
+                chips = listOf(side(check.allLabel, "$path.allLabel"), summaryLabel("open"), summaryLabel("defect")),
+                floors = floors,
+                nextLabel = side(check.nextLabel, "$path.nextLabel"),
+                nextTarget = nextTarget,
+            )
+        }
+
+        private fun buildStep(check: StepCheck, route: AppRoute.InspectionStep, statusLabel: (String) -> String): StepModel {
+            val path = "$CHECKS.stepF8"
+            val number = check.current.n.takeIf { STEP_NUMBER.matches(it) }?.toIntOrNull()
+            if (number != route.step || !check.title.startsWith("${route.elementId} · ")) {
+                throw RepositoryException.Decoding(path)
+            }
+            if (check.current.photos.size != 2) throw RepositoryException.Decoding("$path.current.photos")
+            return StepModel(
+                route = route,
+                counter = side(check.counter, "$path.counter"),
+                title = check.title,
+                subtitle = side(check.subtitle, "$path.subtitle"),
+                done = check.done.map { StepDoneRow(it.label, side(it.meta, "$path.done.meta")) },
+                current = StepCurrent(
+                    n = number,
+                    title = check.current.title,
+                    text = check.current.text,
+                    photoCaption = check.current.photos[0],
+                    addPhotoLabel = check.current.photos[1],
+                ),
+                guideLabel = ScreenCopy.AbnPruefung.GUIDE,
+                defectLabel = statusLabel("defect"),
+                okLabel = statusLabel("ok"),
+                next = check.next.map { StepNextRow(it.n, side(it.label, "$path.next.label")) },
+                defectTarget = AppRoute.NewDefect,
+                progress = ScreenCopy.AbnPruefung.PROGRESS,
+            )
+        }
+
+        private fun buildDefectForm(check: DefectFormCheck, now: java.time.LocalDate): DefectFormModel {
+            val path = "$CHECKS.defectF2"
+            val severity = check.severity.options.indexOf(check.severity.selected)
+            if (severity < 0) throw RepositoryException.Decoding("$path.severity")
+            val offsets = ScreenCopy.AbnMangel.DEADLINE_OFFSET_DAYS
+            if (check.deadlineOptions.size > offsets.size) throw RepositoryException.Decoding("$path.deadlineOptions")
+            val options = check.deadlineOptions.mapIndexed { index, option ->
+                DeadlineOption(side(option, "$path.deadlineOptions"), offsets[index])
+            }
+            val deadline = side(check.deadlineLabel, "$path.deadlineLabel")
+            val initialDeadline = options.indexOfFirst { option ->
+                option.offsetDays?.let { DeadlineMath.label(now, it, DeadlineStyle.Android) } == deadline
+            }
+            if (initialDeadline < 0) throw RepositoryException.Decoding("$path.deadlineLabel")
+            return DefectFormModel(
+                tradeId = INSPECTED_TRADE,
+                title = ScreenCopy.AbnMangel.TITLE,
+                saveLabel = ScreenCopy.AbnMangel.SAVE,
+                context = check.context,
+                finding = check.title,
+                descriptionLabel = ScreenCopy.AbnMangel.DESCRIPTION,
+                description = check.description,
+                photosLabel = check.photosLabel,
+                photoLabels = check.photos,
+                addPhotoLabel = ScreenCopy.AbnMangel.ADD_PHOTO,
+                severityLabel = ScreenCopy.AbnMangel.SEVERITY,
+                severities = check.severity.options,
+                initialSeverity = severity,
+                selectedPrefix = ScreenCopy.AbnMangel.SELECTED_PREFIX,
+                deadlineLabel = ScreenCopy.AbnMangel.DEADLINE,
+                deadlineOptions = options,
+                deadlineBase = now,
+                initialDeadline = initialDeadline,
+                responsibleLabel = ScreenCopy.AbnMangel.RESPONSIBLE,
+                responsible = check.responsible,
+                notifyLabel = check.notify.label,
+                notifyInitial = check.notify.enabled,
+            )
+        }
+
+        private fun buildSignOff(check: SignatureCheck): SignOffModel {
+            val path = "$CHECKS.signature"
+            // Tones by position, as the renderVals stats of AndAbnSignatur.dc.html:85-88.
+            val tones = listOf(CountTone.Surface, CountTone.Ok, CountTone.Error)
+            if (check.stats.size != tones.size) throw RepositoryException.Decoding("$path.stats")
+            return SignOffModel(
+                inspectionId = INSPECTED_TRADE,
+                title = check.title,
+                subtitle = side(check.subtitle, "$path.subtitle"),
+                stats = check.stats.mapIndexed { index, stat -> SignOffStat(stat.n, stat.label, tones[index]) },
+                reservedHeading = ScreenCopy.AbnSignatur.RESERVED,
+                defects = check.defects.map {
+                    SignOffDefect(it.title, it.meta, "${ScreenCopy.AbnSignatur.DUE_PREFIX} ${it.due}")
+                },
+                reservation = check.reservation,
+                craftsmanLabel = ScreenCopy.AbnSignatur.CRAFTSMAN,
+                craftsmanName = check.craftsman.name,
+                craftsmanStatus = check.craftsman.signed,
+                ownerLabel = side(check.owner, "$path.owner"),
+                signHereLabel = ScreenCopy.AbnSignatur.SIGN_HERE,
+                signatureLabel = ScreenCopy.AbnSignatur.SIGNATURE,
+                finishLabel = ScreenCopy.AbnSignatur.FINISH,
+                note = check.note,
+                finishTarget = NavigationTarget.Defects,
             )
         }
     }
