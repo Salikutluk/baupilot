@@ -106,13 +106,55 @@ Lauf am Ende von Phase 14 auf dem Worktree `feat/m4`: iOS `xcodebuild test … -
 | 11 | Offene Mängel & Fristen | hell | 0,9838 rot | 11,4542 % | 0,6747 % rot | 2,1796 % |
 | 12 | Offene Mängel & Fristen | dunkel | 0,9831 rot | 11,4455 % | 0,6300 % rot | 2,1806 % |
 
-**Stand AC1:** iOS 0 von 12 grün, Android 0 von 12 grün: **0 von 24 grün**, 24 rot. AC1 ist nicht erfüllt. Die Gründe stehen unter „Bekannte Lücken“ (R1/R2). Zum Vergleich mit Step 0 (I9): Die M2/M3-Snapshots wurden in diesem Schritt nicht neu gemessen; deren Werte stehen in der Step-0-Tabelle oben und in `m3-offene-punkte.md`.
+**Stand AC1:** iOS 0 von 12 grün, Android 0 von 12 grün: **0 von 24 grün**, 24 rot. AC1 ist nicht erfüllt. Die Gründe stehen unter „Bekannte Lücken“ (R1/R2). Zum Vergleich mit Step 0 (I9) siehe „Verifikation (Step 14)“ unten: Die M2/M3-Snapshots wurden im Endlauf neu gemessen.
 
 Die Bilder liegen unter `build/snapshots/{ios,android}/` (je 30 Dateien: 18 M2/M3 + 12 M4). Die Quellen der Werte: iOS aus den `xcodebuild`-Fehlermeldungen (`/tmp/m4-p14-ios-abn.log`), Android aus den Paparazzi-JUnit-Berichten (`android/app/build/test-results/testDebugUnitTest`).
 
+## Verifikation (Step 14)
+
+Endlauf des vollständigen Plan-§12-Blocks auf dem Worktree `feat/m4` (iOS mit `-derivedDataPath /tmp/m4-FULL-dd`, Android mit JDK 21 aus Android Studio). Keine Toleranz, keine Referenz-PNG, nichts unter `design/`, `fixtures/` oder `scripts/` wurde geändert; keine Integrationskorrektur war nötig.
+
+### Ergebnis je Befehl
+
+| Befehl | Ergebnis |
+|---|---|
+| `cd scripts && node --test test/` | 114 Tests, 114 grün (Baseline 114) |
+| `scripts/gen-tokens --check`, `scripts/gen-icons --check` | grün (Exit 0) |
+| `scripts/lint-hex` | `lint-hex: sauber` |
+| `scripts/design-freeze --check` | `design/ matches scripts/design-v1.sha256 (276 files)` |
+| iOS `xcodebuild test` (iPhone 15) | Exit 65. `BaupilotTests`: 277 Tests, 30 rot (alle `ScreenSnapshotTests`: 18 M2/M3 + 12 M4), 247 grün. `BaupilotUITests`: 27 Tests, 27 grün (`AppNavigationUITests` 7, `TradeFlowUITests` 11, `InspectionFlowUITests` 9, darunter AC2). Gesamt 304 Tests, 274 grün, 30 rot |
+| Android `:app:testDebugUnitTest` | 286 Tests, 264 grün, **22 rot** (alle `*SnapshotTest`: 10 M2/M3 + 12 M4). Alle übrigen Tests grün (Unit, Gallery, Metrik, `InspectionFlowUiTest` inkl. AC2). Der Lauf wurde wiederholt, Zahlen identisch |
+| Android `:app:compileReleaseKotlin` | grün (läuft mit `--continue` trotz roter Tests) |
+| iOS `xcodebuild build -configuration Release` (`generic/platform=iOS Simulator`) | `BUILD SUCCEEDED` |
+| `scripts/diff-report --platform ios` / `android` | Exit 0, je 30 Bilder gemessen (Werte unten) |
+| `git status --porcelain -- design fixtures scripts` | leer (I11) |
+
+Der Gradle-Gesamtlauf endet wegen der roten Snapshot-Tests mit „BUILD FAILED“, ebenso `xcodebuild test` mit „TEST FAILED“; das ist erwartet (Plan R1/R2). Kein rotes Nicht-Snapshot-Ergebnis.
+
+### M4-Snapshots (AC1): 0 von 24 grün
+
+Alle 24 sind rot, ausschließlich wegen Glyph-Raster-Rest (R1: CoreText/Layoutlib gegen Skia; Android zusätzlich R2: Roboto ohne U+2713 bei „✓ Mittel“ in AbnMangel). Die Werte des Endlaufs sind identisch mit der Tabelle „Messwerte der 24 Snapshots (M4)“ oben. Toleranzen unverändert (iOS 0,995 / 0,98, Android 0,5 %).
+
+| Screen | iOS hell / dunkel (Soll ≥ 0,995) | Android hell / dunkel (Soll ≤ 0,5 %) |
+|---|---|---|
+| AbnGewerke | 0,9735 / 0,9722 | 0,5713 % / 0,5424 % |
+| AbnElemente | 0,9770 / 0,9738 | 0,6418 % / 0,6140 % |
+| AbnPruefung | 0,9713 / 0,9699 | 0,7769 % / 0,7577 % |
+| AbnMangel | 0,9812 / 0,9800 | 0,7311 % / 0,6709 % |
+| AbnSignatur | 0,9799 / 0,9784 | 0,9711 % / 0,9432 % |
+| AbnMaengel | 0,9838 / 0,9831 | 0,6747 % / 0,6300 % |
+
+Der größte Android-Rest ist AbnSignatur (0,97 %), der kleinste AbnGewerke dunkel (0,5424 %, knapp über der Grenze). Eine Aufschlüsselung des Rests je Ursache (R1/R2/R10) wurde im Endlauf nicht neu gemessen.
+
+### I9: M2/M3-Snapshots gegenüber Step 0
+
+**Keiner schlechter.** Alle 18 iOS-Testwerte, die 10 roten Android-Testwerte und alle 36 `diff-report`-Werte (18 iOS, 18 Android) sind gegenüber der Step-0-Tabelle unverändert; die roten Mengen sind dieselben (iOS 18 von 18 rot, Android dieselben 10 rot: Dokumente hell/dunkel, Home hell, Mitteilungen hell/dunkel, Profil hell/dunkel, Vergleich hell/dunkel, Zeitplan hell; grün: DokViewer, Gewerk, Home dunkel, Login, Zeitplan dunkel).
+
+Stichproben der Endlauf-Werte: iOS Login hell 0,98143005 (Step 0: 0,981430), Zeitplan hell 0,9846802 (0,984680), Profil dunkel 0,9832916 (0,983292); Android Dokumente hell 0,717528 % (0,717528), Home hell 0,501720 % (0,501720), Vergleich hell 0,586829 % (0,586829). `diff-report` iOS und Android: alle 18 M2/M3-Zeilen Pixel für Pixel gleich der Step-0-Tabelle (z. B. iOS Home hell 348833 px, Android Home hell 67359 px).
+
 ## Testzahlen
 
-Gemessen in Phase 14; der vollständige Endlauf (Plan §12) gehört zu Phase 15, dort stehen die Gesamtzahlen von iOS `BaupilotTests` und Android `:app:testDebugUnitTest`.
+Zwischenstand aus Phase 14; die Gesamtzahlen des Endlaufs (Plan §12, Phase 15) stehen oben unter „Verifikation (Step 14)“.
 
 | Block | Ergebnis |
 |---|---|
