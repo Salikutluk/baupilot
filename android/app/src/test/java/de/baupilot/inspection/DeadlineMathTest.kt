@@ -1,6 +1,7 @@
 package de.baupilot.inspection
 
 import java.time.LocalDate
+import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -12,6 +13,18 @@ class DeadlineMathTest {
         assertEquals("01.01.2027", DeadlineMath.label(base, 14, DeadlineStyle.Android))
         assertEquals("15.01.2027", DeadlineMath.label(base, 28, DeadlineStyle.Android))
         assertEquals("29.01.2027", DeadlineMath.label(base, 42, DeadlineStyle.Android))
+    }
+
+    @Test
+    fun labelIgnoresTheDeviceLocale() {
+        val saved = Locale.getDefault()
+        try {
+            Locale.setDefault(Locale.forLanguageTag("ar-EG-u-nu-arab"))
+            assertEquals("15.01.2027", DeadlineMath.label(base, 28, DeadlineStyle.Android))
+            assertEquals("Fr, 15.01.2027", DeadlineMath.label(base, 28, DeadlineStyle.Ios))
+        } finally {
+            Locale.setDefault(saved)
+        }
     }
 
     @Test

@@ -33,6 +33,7 @@ import de.baupilot.designsystem.components.StepState
 import de.baupilot.designsystem.components.StepperVariant
 import de.baupilot.designsystem.components.TitleStyle
 import de.baupilot.designsystem.components.WindowLevelSketch
+import de.baupilot.screens.ScreenCopy
 
 /** Actions the Prüfschritt screen raises; the shell turns them into navigation. */
 sealed interface StepAction {
@@ -60,7 +61,7 @@ fun InspectionStepScreen(
                 title = model.title,
                 subtitle = model.subtitle,
                 padding = BarPadding.NavCounter,
-                navigation = Nav.Close("Schließen", onClose),
+                navigation = Nav.Close(ScreenCopy.AbnPruefung.CLOSE, onClose),
                 titleStyle = TitleStyle.Detail,
                 trailingText = model.counter,
             )

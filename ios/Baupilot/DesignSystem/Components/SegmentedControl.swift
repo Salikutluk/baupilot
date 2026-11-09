@@ -33,6 +33,7 @@ public struct SegmentedControl: View {
     private let height: SegmentHeight
     private let background: Background
     private let accessibilityLabel: String
+    private let identifiers: [String]?
     private let onSelect: (Int) -> Void
 
     public init(
@@ -41,13 +42,18 @@ public struct SegmentedControl: View {
         height: SegmentHeight = .compact,
         background: Background = .chip(),
         accessibilityLabel: String,
+        identifiers: [String]? = nil,
         onSelect: @escaping (Int) -> Void
     ) {
+        assert(
+            identifiers == nil || identifiers?.count == segments.count,
+            "SegmentedControl: one identifier per segment")
         self.segments = segments
         self.selection = selection
         self.height = height
         self.background = background
         self.accessibilityLabel = accessibilityLabel
+        self.identifiers = identifiers
         self.onSelect = onSelect
     }
 
@@ -87,5 +93,6 @@ public struct SegmentedControl: View {
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(active ? [.isButton, .isSelected] : .isButton)
+        .accessibilityIdentifier(identifiers?[index] ?? "")
     }
 }

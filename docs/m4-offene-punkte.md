@@ -80,11 +80,12 @@ Aus dem Plan (§3), in Kurzform. D1, D4, D5, D7, D8 (Teil), D12, D15, D16 und D1
 
 ## Bekannte Lücken
 
-- **R1 / R2 / AC1 (offen):** Alle 24 M4-Snapshots sind rot (siehe Tabelle unten). Die Toleranzen sind unverändert (iOS 0,995 / 0,98, Android 0,5 %). Die in den Screen-Schritten per `diff-report` gefundenen Layoutursachen wurden dort behoben; die verbleibende Abweichung ist **nicht** als reiner Glyphen-Raster-Rest (M2 R11: CoreText bzw. Layoutlib gegen Skia) belegt, sondern nur gemessen. Android Signatur liegt mit 0,94 / 0,97 % beim Doppelten der Schwelle. Roboto hat kein U+2713 (R2): „✓ Mittel“ (Mangel) kommt auf Android aus einer Ersatzschrift und kann anders gerastert sein als in Chrome; es bleibt Text (Pflicht-Text). Der Anteil dieses Effekts an den Android-Werten wurde nicht einzeln gemessen. Kein Test wurde gelockert oder umgeschrieben.
+- **R1 / R2 / AC1 (offen):** Alle 24 M4-Snapshots sind rot (siehe Tabelle unten). Die Toleranzen sind unverändert (iOS 0,995 / 0,98, Android 0,5 %). Die in den Screen-Schritten per `diff-report` gefundenen Layoutursachen wurden dort behoben; die verbleibende Abweichung besteht aus Glyphen-Raster (M2 R11: CoreText bzw. Layoutlib gegen Skia) **und** zwei sichtbaren Umbruch-Unterschieden mit eigener Ursache (siehe „Ursache je Screen“ unten); beide sind gemessen und belegt, aber nicht behebbar, ohne Text oder Toleranz anzufassen. Android Signatur liegt mit 0,94 / 0,97 % beim Doppelten der Schwelle. Roboto hat kein U+2713 (R2): „✓ Mittel“ (Mangel) kommt auf Android aus einer Ersatzschrift und kann anders gerastert sein als in Chrome; es bleibt Text (Pflicht-Text). Der Anteil dieses Effekts an den Android-Werten wurde nicht einzeln gemessen. Kein Test wurde gelockert oder umgeschrieben.
 - **R15:** Versteckte iOS-Tabs verlieren ihren `@State` (Mangel-Formular, Striche der Unterschrift) beim Tab-Wechsel. Angenommen: flüchtiges, ungespeichertes Formular (M4 speichert nichts).
 - **R16:** Touch-Ziele unter 44 / 48 (Android-Chips 32, iOS-Chips 34 mit Hit-Bereich 44 über `contentShape`) folgen der M1-Konvention; Geräteprüfung in M7.
 - **R20:** Android behält die Zustände verlassener Routen (`SaveableStateProvider`, kein `removeState`): Wird Mangel oder Unterschrift in gleicher Tiefe erneut geöffnet, erscheinen die früheren Eingaben bzw. Striche wieder; iOS beginnt frisch. Angenommen (flüchtig, nichts gespeichert, I8 unberührt).
 - **Ohne Aktion, sichtbar (Plan §1):** Kamera/Foto, „Eigenes Datum“, „Vorlagen“, „Anleitung“, „Alle 6“, „Behobene Mängel“, „Erinnern“, „Behoben? / Behoben prüfen“, „In Ordnung“ (Schritt), Android-Filter-Chips und Hilfe-Schaltfläche. Gewerke außer Fenster öffnen den gepushten Platzhalter (M5/M6), Dachdecker hat keine Aktion.
+- **Vorlesen (VoiceOver):** Die Zeichenfläche der Unterschrift (iOS `SignaturePad`) trägt den Wert „strokes: n“ als Bedienhilfen-Wert; er wird vorgelesen. Bewusst nicht lokalisiert, in M7 prüfen.
 - **R13 (Grammatik):** Nur Übersichtszeilen und Fenster-Checks werden in M4 geparst; die Fixture enthält weitere Routen (`inspection/<gewerk>/<sub>`), die M5 in die Grammatik aufnehmen muss, bevor es mehr lädt.
 
 ## Messwerte der 24 Snapshots (M4)
@@ -133,7 +134,7 @@ Der Gradle-Gesamtlauf endet wegen der roten Snapshot-Tests mit „BUILD FAILED�
 
 ### M4-Snapshots (AC1): 0 von 24 grün
 
-Alle 24 sind rot, ausschließlich wegen Glyph-Raster-Rest (R1: CoreText/Layoutlib gegen Skia; Android zusätzlich R2: Roboto ohne U+2713 bei „✓ Mittel“ in AbnMangel). Die Werte des Endlaufs sind identisch mit der Tabelle „Messwerte der 24 Snapshots (M4)“ oben. Toleranzen unverändert (iOS 0,995 / 0,98, Android 0,5 %).
+Alle 24 sind rot. Die Ursachen stehen je Screen im Abschnitt „Ursache je Screen“ (Glyphen-Raster R1: CoreText/Layoutlib gegen Skia; Android zusätzlich R2: Roboto ohne U+2713 bei „✓ Mittel“ in AbnMangel; dazu zwei Umbruch-Unterschiede in AbnGewerke iOS und AbnSignatur Android). Die Werte des Endlaufs sind identisch mit der Tabelle „Messwerte der 24 Snapshots (M4)“ oben. Toleranzen unverändert (iOS 0,995 / 0,98, Android 0,5 %).
 
 | Screen | iOS hell / dunkel (Soll ≥ 0,995) | Android hell / dunkel (Soll ≤ 0,5 %) |
 |---|---|---|
@@ -144,7 +145,20 @@ Alle 24 sind rot, ausschließlich wegen Glyph-Raster-Rest (R1: CoreText/Layoutli
 | AbnSignatur | 0,9799 / 0,9784 | 0,9711 % / 0,9432 % |
 | AbnMaengel | 0,9838 / 0,9831 | 0,6747 % / 0,6300 % |
 
-Der größte Android-Rest ist AbnSignatur (0,97 %), der kleinste AbnGewerke dunkel (0,5424 %, knapp über der Grenze). Eine Aufschlüsselung des Rests je Ursache (R1/R2/R10) wurde im Endlauf nicht neu gemessen.
+Der größte Android-Rest ist AbnSignatur (0,97 %), der kleinste AbnGewerke dunkel (0,5424 %, knapp über der Grenze). Eine Aufschlüsselung des Rests nach Pixelanteilen je Ursache (R1/R2/R10) wurde nicht gemessen; die Ursachen unten sind aus den Bildern und aus Layout-Messungen belegt.
+
+### Ursache je Screen
+
+Nach der Review (Zyklus 1) neu untersucht: Ist- gegen Referenzbild nebeneinander, Textausdehnungen in Pixeln gemessen, bei iOS die Breitenvorschläge der Layout-Schicht protokolliert. Die Werte der 24 Snapshots haben sich dadurch nicht geändert (iOS AbnGewerke hell 0,9735, Android AbnSignatur hell 0,971134 % / dunkel 0,943217 %).
+
+| Screen | Ursache |
+|---|---|
+| AbnGewerke iOS | **Umbruch, nicht Raster.** Die Zeilen „9 Prüfschritte · abgenommen 14.04.“ und „8 Prüfschritte · abgenommen 27.11.“ brechen in SwiftUI vor „abgenommen“ (Referenz: davor „abgenommen“, dahinter das Datum). Gemessen: Der Textspalte werden 186,33 pt angeboten, die Zeile „8 Prüfschritte · abgenommen“ braucht rund 178 pt, SwiftUI bricht trotzdem früher (Text hat 124,7 pt Breite in 2 Zeilen). Die Spaltenbreite ist also richtig (Plakette und Pfeil sitzen wie in der Referenz); es ist die Umbruchentscheidung von SwiftUI `Text` selbst. Vermutlich vermeidet CoreText ein einzelnes kurzes Wort (das Datum) in der letzten Zeile, Chrome bricht gierig; das ist nicht isoliert belegt. `.layoutPriority(1)` an der Textspalte änderte nichts (gleicher Wert 0,9735) und wurde zurückgenommen. SwiftUI hat keinen Schalter für die Umbruchstrategie; ein eigener Zeilenumbruch oder ein anderer Text wären nötig und sind in M4 nicht vorgesehen. |
+| AbnSignatur Android | **Umbruch durch Textbreite, nicht durch die Umbruchstrategie.** Die Vorbehaltszeile bricht vor „Mängel“ statt danach. `LineBreak.Simple` an dieser Zeile änderte den Wert nicht (0,971134 % unverändert) und wurde zurückgenommen. Gemessen: Layoutlib setzt dieselben Texte rund 0,8 % breiter als Chrome (Titel „F2 · Flügel fällt zu“: 369 statt 366 px; die Referenzzeile „… der aufgeführten Mängel“ ist 1062 px breit, die Spalte 1074 px, mit 0,8 % Zuschlag passt sie nicht mehr). Das ist der Glyphen-Advance-Rest von R1, hier sichtbar als Umbruch. |
+| Übrige Android-Screens | Glyphen-Raster R1; AbnMangel zusätzlich R2 („✓ Mittel“ aus einer Ersatzschrift). Kleine Offsets: Mängel-Schaltflächen (Erinnern etwa 1 dp schmaler). |
+| Übrige iOS-Screens | Glyphen-Raster R1. Kleine Offsets: Schalter in AbnMangel, Umriss der aktuellen Karte in AbnPruefung, Segmentumrisse in AbnElemente. |
+
+Nicht ausschließlich Raster: die zwei Umbrüche oben. Alles andere ist aus den Bildern als Raster beziehungsweise Sub-Pixel-Versatz belegt, aber nicht pro Pixel aufgeschlüsselt.
 
 ### I9: M2/M3-Snapshots gegenüber Step 0
 

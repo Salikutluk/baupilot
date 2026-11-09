@@ -1,15 +1,30 @@
 import SwiftUI
 
-/// Title with a muted subtitle under a back bar: 28 pt on Vergleich, 22 pt on the document viewer.
+/// Title with a muted subtitle under a back bar: 30 pt on Abnahme Elemente, 28 pt on Vergleich, 22 pt on the document viewer.
 public struct DetailTitle: View {
     public enum Style {
+        case size30
         case size28
         case size22
 
-        fileprivate var titleSize: CGFloat { self == .size28 ? 28 : 22 }
-        fileprivate var tracking: CGFloat { self == .size28 ? -0.5 : -0.3 }
-        fileprivate var subtitleSize: CGFloat { self == .size28 ? 14 : 13 }
-        fileprivate var gap: CGFloat { self == .size28 ? 4 : 2 }
+        fileprivate var titleSize: CGFloat {
+            switch self {
+            case .size30: return 30
+            case .size28: return 28
+            case .size22: return 22
+            }
+        }
+
+        fileprivate var tracking: CGFloat {
+            switch self {
+            case .size30: return -0.6
+            case .size28: return -0.5
+            case .size22: return -0.3
+            }
+        }
+
+        fileprivate var subtitleSize: CGFloat { self == .size22 ? 13 : 14 }
+        fileprivate var gap: CGFloat { self == .size22 ? 2 : 4 }
     }
 
     private let title: String

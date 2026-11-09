@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
@@ -13,6 +14,11 @@ import de.baupilot.designsystem.components.CaptionedActionBar
 import de.baupilot.designsystem.components.CountTile
 import de.baupilot.designsystem.components.FilledButton
 import de.baupilot.designsystem.components.FilledContainer
+import de.baupilot.designsystem.components.BaupilotOutlinedTextArea
+import de.baupilot.designsystem.components.PhotoTile
+import de.baupilot.designsystem.components.PhotoTileKind
+import de.baupilot.designsystem.components.SegmentedButtons
+import de.baupilot.designsystem.components.SegmentedProgress
 import de.baupilot.designsystem.components.SignatureCard
 import de.baupilot.designsystem.components.SignatureCardStyle
 import de.baupilot.inspection.Extent
@@ -23,7 +29,6 @@ import de.baupilot.snapshot.NoopSnapshotHandler
 import de.baupilot.snapshot.baupilotPaparazzi
 import androidx.compose.runtime.saveable.SaverScope
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -65,7 +70,59 @@ class ComponentMetricsSignOffTest {
         assertEquals(78 * 3, sizes.getValue("signed").second)
         // padding 12 + button 48 + gap 6 + one 12 sp caption line + padding 24: the caption line is 12 to 16 dp
         val caption = sizes.getValue("bar").second - (12 + 48 + 6 + 24) * 3
-        assertTrue("caption line $caption px", caption in 12 * 3..16 * 3)
+        assertEquals(14 * 3, caption)
+    }
+
+    @Test
+    fun segmentedProgressIs6HighAndSegmentedButtonsAre42() {
+        paparazzi.snapshot {
+            Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                SegmentedProgress(
+                    segments = listOf(Tokens.primary, Tokens.primary, Tokens.outline),
+                    height = 6.dp,
+                    contentDescription = "Fortschritt",
+                    modifier = Modifier.record("progress"),
+                )
+                SegmentedButtons(
+                    items = listOf("Gering", "Mittel", "Kritisch"),
+                    selectedIndex = 1,
+                    selectedPrefix = "\u2713 ",
+                    identifiers = listOf("a", "b", "c"),
+                    onSelect = {},
+                    modifier = Modifier.record("segments"),
+                )
+                BaupilotOutlinedTextArea("Beschreibung", "", {}, Modifier.record("area"))
+            }
+        }
+
+        assertEquals(6 * 3, sizes.getValue("progress").second)
+        assertEquals(358 * 3, sizes.getValue("progress").first)
+        assertEquals(42 * 3, sizes.getValue("segments").second)
+        // 3 rows x 22 line height + 2 x 16 padding
+        assertEquals(98 * 3, sizes.getValue("area").second)
+    }
+
+    @Test
+    fun photoTilesAre80And76High() {
+        paparazzi.snapshot {
+            Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    PhotoTile(PhotoTileKind.Scene("Fenster", checked = true), 80.dp, Modifier.weight(1f).record("scene"))
+                    PhotoTile(PhotoTileKind.Add("Foto"), 80.dp, Modifier.weight(1f).record("add"))
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    PhotoTile(PhotoTileKind.Icon(BaupilotIcon.Image), 76.dp, Modifier.width(76.dp).record("icon"))
+                    PhotoTile(PhotoTileKind.Add(null), 76.dp, Modifier.width(76.dp).record("camera"))
+                }
+            }
+        }
+
+        assertEquals(80 * 3, sizes.getValue("scene").second)
+        assertEquals(80 * 3, sizes.getValue("add").second)
+        // two weighted cells share 358 - 8 = 350 dp
+        assertEquals(175 * 3, sizes.getValue("scene").first)
+        assertEquals(76 * 3 to 76 * 3, sizes.getValue("icon"))
+        assertEquals(76 * 3 to 76 * 3, sizes.getValue("camera"))
     }
 
     @Test

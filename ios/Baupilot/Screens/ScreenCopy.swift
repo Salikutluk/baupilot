@@ -133,4 +133,81 @@ enum ScreenCopy {
             }
         }
     }
+
+    enum AbnGewerke {
+        // IosAbnGewerke.dc.html:21
+        static let templatesLabel = "Vorlagen"
+        // IosAbnGewerke.dc.html:25 (first segment of the view tablist)
+        static let tradesView = "Gewerke"
+        // IosAbnGewerke.dc.html:26 (second segment; the count is the number of open defects)
+        static let defectsViewFormat = "Offene Mängel (%d)"
+        // IosAbnGewerke.dc.html:24 (aria-label of the view tablist)
+        static let viewsLabel = "Ansicht"
+    }
+
+    enum AbnMaengel {
+        // IosAbnMaengel.dc.html:21
+        static let templatesLabel = "Vorlagen"
+        // IosAbnMaengel.dc.html:24 (aria-label of the view tablist)
+        static let viewsLabel = "Ansicht"
+        // IosAbnMaengel.dc.html:40 (own entry: Vergleich.remindLabel cites the other prototype)
+        static let remindLabel = "Erinnern"
+        // IosAbnMaengel.dc.html:41
+        static let resolveLabel = "Behoben?"
+        // IosAbnMaengel.dc.html:50
+        static let resolvedLabel = "Behobene Mängel"
+        /// Buttons "Erinnern" and "Behoben?" only on a late card (IosAbnMaengel.dc.html:38-42, `late` flag of the template).
+        static func showsActions(_ urgency: DefectUrgency) -> Bool { urgency == .late }
+    }
+
+    enum AbnElemente {
+        // IosAbnElemente.dc.html:34
+        static let guideLinkLabel = "Anleitung"
+    }
+
+    enum AbnPruefung {
+        // IosAbnPruefung.dc.html:50
+        static let guideLabel = "So prüfen"
+    }
+
+    enum AbnMangel {
+        // IosAbnMangel.dc.html:21
+        static let title = "Mangel erfassen"
+        // IosAbnMangel.dc.html:22
+        static let saveLabel = "Sichern"
+        // IosAbnMangel.dc.html:20
+        static let cancelLabel = "Abbrechen"
+        // IosAbnMangel.dc.html:34
+        static let descriptionLabel = "Beschreibung"
+        // IosAbnMangel.dc.html:54
+        static let severityLabel = "Schwere"
+        // IosAbnMangel.dc.html:63
+        static let deadlineLabel = "Behebung bis"
+        // IosAbnMangel.dc.html:74
+        static let responsibleLabel = "Zuständig"
+        // IosAbnMangel.dc.html:47 (aria-label of the add-photo button)
+        static let addPhotoLabel = "Foto aufnehmen"
+        /// Days added to the base day by deadline chip position; the third chip ("Eigenes Datum") has no offset
+        /// (D9; the chips are drawn at IosAbnMangel.dc.html:63-72).
+        static let deadlineOffsets: [Int?] = [14, 28, nil]
+    }
+
+    enum AbnSignatur {
+        // IosAbnSignatur.dc.html:55
+        static let craftsmanLabel = "Handwerker"
+        // IosAbnSignatur.dc.html:63
+        static let ownerLabel = "Bauherr"
+        // IosAbnSignatur.dc.html:66
+        static let ownerPending = "Ausstehend"
+        // IosAbnSignatur.dc.html:64
+        static let signHereLabel = "Hier unterschreiben"
+        // IosAbnSignatur.dc.html:47 (prefix of the deadline, followed by a space and the fixture date)
+        static let duePrefix = "bis"
+        // IosAbnSignatur.dc.html:72
+        static let finishLabel = "Protokoll abschließen"
+        // IosAbnSignatur.dc.html:57 (aria-label of the craftsman's signature)
+        static let signatureLabel = "Unterschrift Handwerker"
+        /// Tone of the three stat tiles by position: surface, ok, error (renderVals of IosAbnSignatur.dc.html:81-83).
+        static let statTones: [CountTone] = [.surface, .ok, .error]
+    }
 }

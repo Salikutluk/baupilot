@@ -4,17 +4,21 @@ import SwiftUI
 public struct SectionHeader: View {
     public struct Link {
         public let title: String
+        public let size: CGFloat
         public let action: (() -> Void)?
 
-        public init(title: String, action: (() -> Void)?) {
+        public init(title: String, size: CGFloat = 15, action: (() -> Void)?) {
             self.title = title
+            self.size = size
             self.action = action
         }
     }
 
     public enum Style {
         case title(link: Link? = nil, note: String? = nil)
-        case caps(inset: CGFloat)
+        /// With a `link` the inset applies on both sides (`margin: 0 4px`, IosAbnElemente:42) and the link sits on the
+        /// row's centre line.
+        case caps(inset: CGFloat, link: Link? = nil)
 
         /// 13/600 uppercase with the Profil inset of 14.
         public static var caps: Style { .caps(inset: 14) }
@@ -32,6 +36,8 @@ public struct SectionHeader: View {
         static let linkHitHeight: CGFloat = 44
         /// `margin: -12px 0` on the link (IosHome:50) keeps it at the title's line height.
         static let linkMargin: CGFloat = -12
+        /// `margin: -14px 0` on the floor link (IosAbnElemente:42).
+        static let capsLinkMargin: CGFloat = -14
     }
 
     /// The link with its 44 pt hit area, before the header trims the margins. A nil `action` renders it and does nothing.
@@ -41,7 +47,7 @@ public struct SectionHeader: View {
         var body: some View {
             Button(action: link.action ?? {}) {
                 Text(link.title)
-                    .interText(15, .semibold)
+                    .interText(link.size, .semibold)
                     .foregroundStyle(Tokens.accent.color)
                     .frame(minHeight: Metrics.linkHitHeight)
                     .contentShape(Rectangle())
@@ -69,14 +75,22 @@ public struct SectionHeader: View {
                         .padding(.vertical, Metrics.linkMargin)
                 }
             }
-        case .caps(let inset):
-            Text(title)
-                .interText(13, .semibold, tracking: 0.4)
-                .textCase(.uppercase)
-                .foregroundStyle(Tokens.muted.color)
-                .padding(.leading, inset)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .accessibilityAddTraits(.isHeader)
+        case .caps(let inset, let link):
+            HStack(alignment: .center, spacing: 0) {
+                Text(title)
+                    .interText(13, .semibold, tracking: 0.4)
+                    .textCase(.uppercase)
+                    .foregroundStyle(Tokens.muted.color)
+                    .accessibilityAddTraits(.isHeader)
+                    .padding(.leading, inset)
+                if let link {
+                    Spacer(minLength: 0)
+                    LinkButton(link: link)
+                        .padding(.vertical, Metrics.capsLinkMargin)
+                        .padding(.trailing, inset)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }

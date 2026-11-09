@@ -696,7 +696,7 @@ data class AppData(
             }
             val deadline = side(check.deadlineLabel, "$path.deadlineLabel")
             val initialDeadline = options.indexOfFirst { option ->
-                DeadlineMath.label(now, option.offsetDays!!, DeadlineStyle.Android) == deadline
+                option.offsetDays?.let { DeadlineMath.label(now, it, DeadlineStyle.Android) } == deadline
             }
             if (initialDeadline < 0) throw RepositoryException.Decoding("$path.deadlineLabel")
             return DefectFormModel(

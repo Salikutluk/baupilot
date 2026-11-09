@@ -26,7 +26,8 @@ import org.robolectric.annotation.Config
 
 /**
  * Abnahme flow of M4 on the JVM under Robolectric, same display as [TradeFlowUiTest] (plan section 9 UI). Identifiers are
- * the section 5.4 test tags; the cases that need the real screens stay red until those screens exist.
+ * the section 5.4 test tags. Buttons in a pinned bottom bar or the FAB slot (`step.defect`, `sign.finish`,
+ * `inspection.next`) are tapped directly: they sit outside the scrolling column, so `performScrollTo` finds no scroll parent.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(qualifiers = "w411dp-h891dp")
@@ -85,7 +86,7 @@ class InspectionFlowUiTest {
 
     private fun openDefectFormFromStep() {
         openStep()
-        scrollAndTap("step.defect")
+        tap("step.defect")
         awaitScreen("screen.defect.new")
     }
 
@@ -110,7 +111,7 @@ class InspectionFlowUiTest {
         rule.onAllNodesWithText("Zum Unterschreiben tippen").assertCountEquals(1)
         drawOnOwnerTile()
         rule.onAllNodesWithText("Zum Unterschreiben tippen").assertCountEquals(0)
-        scrollAndTap("sign.finish")
+        tap("sign.finish")
         awaitScreen("screen.inspections")
         awaitScreen("inspections.view.defects")
         rule.onNodeWithTag("defect.defect-window-f2").assertExists()
@@ -188,7 +189,7 @@ class InspectionFlowUiTest {
     @Test
     fun elementsNextOpensStep() {
         openElements()
-        scrollAndTap("inspection.next")
+        tap("inspection.next")
         awaitScreen("screen.inspection.windows.F8.step.3")
     }
 

@@ -13,6 +13,29 @@ final class ComponentMetricsInspectionTests: XCTestCase {
         XCTAssertEqual(measured.width, 322)
     }
 
+    /// Opaque runs along the middle row, in points: each run is one segment, so its ends are the snapped edges.
+    func testSegmentedProgressSegmentsStartAndEndOnTheSnappedEdges() {
+        let scale: CGFloat = 2
+        let bar = SegmentedProgress(
+            segments: [Tokens.ok.core, Tokens.err.abnElemente, Tokens.track.abnElemente], height: 8,
+            accessibilityLabel: "3 Segmente")
+        let pixels = render(bar, size: CGSize(width: 322, height: 8), scale: scale)
+        let row = Int(4 * scale)
+        var runs: [ClosedRange<Int>] = []
+        var start: Int?
+        for x in 0..<pixels.width {
+            let opaque = pixels.pixel(x, row)[3] > 200
+            if opaque && start == nil { start = x }
+            if !opaque, let first = start { runs.append(first...(x - 1)); start = nil }
+        }
+        if let first = start { runs.append(first...(pixels.width - 1)) }
+
+        let edges = SegmentLayout.edges(count: 3, width: 322, gap: 3, scale: scale)
+        XCTAssertEqual(runs.count, 3)
+        XCTAssertEqual(runs.map { $0.lowerBound }, edges.map { Int($0.start * scale) })
+        XCTAssertEqual(runs.map { $0.upperBound + 1 }, edges.map { Int($0.end * scale) })
+    }
+
     func testProgressLegendIsOneLineBoxTall() {
         let legend = ProgressLegend(items: [
             .init(label: "6 in Ordnung", color: Tokens.ok.core),
@@ -50,6 +73,29 @@ final class ComponentMetricsInspectionTests: XCTestCase {
     func testPhotoTileBadgeIs20At6() {
         XCTAssertEqual(size(of: PhotoTile.Badge(), width: 20), CGSize(width: 20, height: 20))
         XCTAssertEqual(PhotoTile.Badge.inset, 6)
+    }
+
+    /// The badge is the only difference between a checked and an unchecked scene tile; its box sits 6 pt from the
+    /// top and the right edge and is 20 pt wide.
+    func testCheckedSceneTilePlacesTheBadgeAt6FromTheTopRight() {
+        func tile(checked: Bool) -> Pixels {
+            let tile = PhotoTile(
+                kind: .scene(AnyView(Color.gray), caption: nil, checked: checked), height: .h84)
+            return render(tile, size: CGSize(width: 100, height: 84), scale: 2)
+        }
+        let plain = tile(checked: false)
+        let checked = tile(checked: true)
+        var minX = Int.max, maxX = -1, minY = Int.max, maxY = -1
+        for y in 0..<plain.height {
+            for x in 0..<plain.width
+            where zip(plain.pixel(x, y), checked.pixel(x, y)).contains(where: { abs(Int($0) - Int($1)) > 24 }) {
+                minX = min(minX, x); maxX = max(maxX, x); minY = min(minY, y); maxY = max(maxY, y)
+            }
+        }
+        XCTAssertEqual(CGFloat(minX) / 2, 100 - 6 - 20, accuracy: 0.5)
+        XCTAssertEqual(CGFloat(maxX + 1) / 2, 100 - 6, accuracy: 0.5)
+        XCTAssertEqual(CGFloat(minY) / 2, 6, accuracy: 0.5)
+        XCTAssertEqual(CGFloat(maxY + 1) / 2, 6 + 20, accuracy: 0.5)
     }
 
     func testPhotoTileKindsKeepTheirHeight() {

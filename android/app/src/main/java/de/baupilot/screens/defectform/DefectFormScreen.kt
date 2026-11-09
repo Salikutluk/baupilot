@@ -18,6 +18,7 @@ import de.baupilot.app.DefectFormModel
 import de.baupilot.designsystem.BaupilotIcon
 import de.baupilot.designsystem.BaupilotText
 import de.baupilot.designsystem.Tokens
+import de.baupilot.screens.ScreenCopy
 import de.baupilot.designsystem.components.Action
 import de.baupilot.designsystem.components.AlertBanner
 import de.baupilot.designsystem.components.BarPadding
@@ -66,7 +67,7 @@ fun DefectFormScreen(
             BaupilotTopAppBar(
                 title = model.title,
                 padding = BarPadding.Modal,
-                navigation = Nav.Close(label = "Abbrechen", onClick = { onAction(DefectFormAction.Cancel) }),
+                navigation = Nav.Close(label = ScreenCopy.AbnMangel.CANCEL, onClick = { onAction(DefectFormAction.Cancel) }),
                 titleStyle = TitleStyle.Detail,
                 actions = listOf(
                     Action.Text(
@@ -122,6 +123,7 @@ fun DefectFormScreen(
                 look = FieldLook.Idle,
                 trailingIcon = BaupilotIcon.Calendar,
                 fieldModifier = Modifier.testTag("defect.deadline.value"),
+                readOnly = true,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 model.deadlineOptions.forEachIndexed { index, option ->

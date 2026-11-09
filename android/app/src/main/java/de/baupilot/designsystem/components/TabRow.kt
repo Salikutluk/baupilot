@@ -36,7 +36,7 @@ enum class TabLabelAlignment {
  * Equal tab columns, 48 high, with a 1 `divider` line below (AndGewerk:46). The selected tab is
  * `primary` with an [indicatorWidth] x 3 indicator (radius 3 3 0 0), the others are `muted` with the label
  * placed by [unselectedAlignment]. Tabs have no action unless [onSelect] is given; it receives the tapped index.
- * [tabModifier] is applied to every tab cell; [tabTags] (one per tab, optional) are test tags of the cells.
+ * [tabModifier] is applied to every tab cell and [indicatorModifier] to every indicator slot (a layout hook for tests); [tabTags] (one per tab, optional) are test tags of the cells.
  */
 @Composable
 fun BaupilotTabRow(
@@ -47,6 +47,7 @@ fun BaupilotTabRow(
     tabModifier: Modifier = Modifier,
     tabTags: List<String> = emptyList(),
     indicatorWidth: Dp = 56.dp,
+    indicatorModifier: Modifier = Modifier,
     unselectedAlignment: TabLabelAlignment = TabLabelAlignment.Bottom,
     onSelect: ((Int) -> Unit)? = null,
 ) {
@@ -74,7 +75,7 @@ fun BaupilotTabRow(
                         color = if (on) Tokens.primary else Tokens.muted,
                     )
                     if (!centred) {
-                        val indicator = Modifier.size(width = indicatorWidth, height = 3.dp)
+                        val indicator = indicatorModifier.size(width = indicatorWidth, height = 3.dp)
                         Box(
                             if (on) {
                                 indicator.background(

@@ -155,12 +155,13 @@ fun BaupilotTopAppBar(
     )
 }
 
-/** Same bar with a layout hook for the metric tests: [headerModifier] sits on the 64 high header. */
+/** Same bar with layout hooks for the metric tests: [headerModifier] sits on the 64 high header, [titleModifier] on the title column. */
 @Composable
 internal fun baupilotTopAppBarMeasured(
     title: String,
     padding: BarPadding,
     headerModifier: Modifier = Modifier,
+    titleModifier: Modifier = Modifier,
     navigation: Nav? = null,
     subtitle: String? = null,
     titleStyle: TitleStyle = TitleStyle.Large,
@@ -184,7 +185,7 @@ internal fun baupilotTopAppBarMeasured(
             horizontalArrangement = Arrangement.spacedBy(padding.gap),
         ) {
             if (navigation != null) NavButton(navigation, iconColor)
-            Column(Modifier.weight(1f).then(wholeDpCentered())) {
+            Column(Modifier.weight(1f).then(titleModifier).then(wholeDpCentered())) {
                 BaupilotText(
                     text = title,
                     size = titleStyle.size,

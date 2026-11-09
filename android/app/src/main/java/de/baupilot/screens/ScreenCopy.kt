@@ -215,9 +215,15 @@ object ScreenCopy {
 
         /** AndAbnPruefung.dc.html:29: the bar is hard-coded at 42 % in the prototype. */
         const val PROGRESS = 0.42f
+
+        /** AndAbnPruefung.dc.html:19, the aria label of the close link */
+        const val CLOSE = "Schließen"
     }
 
     object AbnMangel {
+        /** AndAbnMangel.dc.html:19, the aria label of the cancel link */
+        const val CANCEL = "Abbrechen"
+
         /** AndAbnMangel.dc.html:22 */
         const val TITLE = "Mangel erfassen"
 

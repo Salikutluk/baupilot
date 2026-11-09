@@ -49,6 +49,7 @@ fun BaupilotOutlinedTextField(
     notch: ColorToken = Tokens.bg,
     trailingIcon: BaupilotIcon? = null,
     fieldModifier: Modifier = Modifier,
+    readOnly: Boolean = false,
 ) {
     val focused = look == FieldLook.Focused
     val shape = RoundedCornerShape(4.dp)
@@ -69,6 +70,7 @@ fun BaupilotOutlinedTextField(
                 value = value,
                 onValueChange = onValueChange,
                 singleLine = true,
+                readOnly = readOnly,
                 textStyle = TextStyle(
                     color = Tokens.text.color(),
                     fontSize = 16.sp,

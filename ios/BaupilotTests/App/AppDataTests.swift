@@ -400,4 +400,485 @@ final class AppDataTests: XCTestCase {
             XCTAssertEqual(error as? RepositoryError, .fixtureMissing("screens.Vergleich.ios"))
         }
     }
+
+    // MARK: - M4 inspection models
+
+    private func editWindowsCheck(
+        _ object: inout [String: Any], _ key: String, _ edit: (inout [String: Any]) -> Void
+    ) {
+        var inspections = object["inspections"] as? [String: Any] ?? [:]
+        var byTrade = inspections["byTrade"] as? [String: Any] ?? [:]
+        var windows = byTrade["windows"] as? [String: Any] ?? [:]
+        var checks = windows["checks"] as? [String: Any] ?? [:]
+        var check = checks[key] as? [String: Any] ?? [:]
+        edit(&check)
+        checks[key] = check
+        windows["checks"] = checks
+        byTrade["windows"] = windows
+        inspections["byTrade"] = byTrade
+        object["inspections"] = inspections
+    }
+
+    private func editOverview(_ object: inout [String: Any], _ edit: (inout [String: Any]) -> Void) {
+        var inspections = object["inspections"] as? [String: Any] ?? [:]
+        var overview = inspections["overview"] as? [String: Any] ?? [:]
+        edit(&overview)
+        inspections["overview"] = overview
+        object["inspections"] = inspections
+    }
+
+    private let checksPath = "inspections.byTrade.windows.checks"
+    private let stepRoute = AppRoute.inspectionStep(tradeId: "windows", elementId: "F8", step: 3)
+
+    func testLoadsInspectionsOverview() async throws {
+        let model = try await loaded().inspections
+        XCTAssertEqual(model.title, "Abnahmen")
+        XCTAssertEqual(model.templatesLabel, "Vorlagen")
+        XCTAssertEqual(model.viewsLabel, "Ansicht")
+        XCTAssertEqual(model.views, ["Gewerke", "Offene Mängel (3)"])
+        XCTAssertEqual(model.rows.map(\.tradeId), [
+            "earthworks", "shell", "carpentry", "roofing", "windows", "electrical", "plumbing", "screed", "tiles",
+            "painting",
+        ])
+        XCTAssertEqual(model.rows.map(\.status), [
+            .accepted, .reserved, .accepted, .reserved, .today, .planned, .planned, .planned, .planned, .planned,
+        ])
+        XCTAssertEqual(model.rows[0].name, "Erdarbeiten")
+        XCTAssertEqual(model.rows[0].subtitle, "9 Prüfschritte · abgenommen 14.04.")
+        XCTAssertEqual(model.rows[1].subtitle, "9 Prüfschritte · 1 Mangel offen")
+        XCTAssertEqual(model.rows[1].statusLabel, "Mit Vorbehalt")
+        XCTAssertEqual(model.rows[4].subtitle, "6 Prüfschritte je Element · 7 von 12")
+        XCTAssertEqual(model.rows.map(\.statusLabel).filter { $0 == "Mit Vorbehalt" }.count, 2)
+        XCTAssertEqual(model.rows[4].target, .inspection(tradeId: "windows"))
+        XCTAssertEqual(model.rows[0].target, .inspection(tradeId: "earthworks"))
+        XCTAssertNil(model.rows[3].target)
+    }
+
+    func testLoadsDefectsBoard() async throws {
+        let board = try await loaded().defectsBoard
+        XCTAssertEqual(board.title, "Abnahmen")
+        XCTAssertEqual(board.views, ["Gewerke", "Offene Mängel (3)"])
+        XCTAssertEqual(board.viewsLabel, "Ansicht")
+        XCTAssertEqual(board.cards.map(\.id), ["defect-shell-crack", "defect-roof-verge", "defect-window-f2"])
+        XCTAssertEqual(board.cards.map(\.trade), ["Rohbau", "Dachdecker", "Fenster & Türen"])
+        XCTAssertEqual(board.cards.map(\.urgency), [.late, .soon, .later])
+        XCTAssertEqual(board.cards.map(\.showsActions), [true, false, false])
+        XCTAssertEqual(board.cards.map(\.dueLabel), ["3 Tage überfällig", "noch 21 Tage", "noch 28 Tage"])
+        XCTAssertEqual(board.cards[2].title, "F2 · Flügel fällt zu")
+        XCTAssertEqual(board.cards[2].meta, "Frist 15.01.2027 · 2 Fotos")
+        XCTAssertEqual(board.remindLabel, "Erinnern")
+        XCTAssertEqual(board.resolveLabel, "Behoben?")
+        XCTAssertEqual(board.resolvedLabel, "Behobene Mängel")
+        XCTAssertEqual(board.resolvedCount, "3")
+    }
+
+    func testLoadsElements() async throws {
+        let loadedData = try await loaded()
+        XCTAssertEqual(Set(loadedData.inspectionElements.keys), ["windows"])
+        let elements = try XCTUnwrap(loadedData.inspectionElements["windows"])
+        XCTAssertEqual(elements.tradeId, "windows")
+        XCTAssertEqual(elements.title, "Fenster & Türen")
+        XCTAssertEqual(elements.subtitle, "Fensterbau Weber GmbH · Fr, 18.12.2026")
+        XCTAssertEqual(elements.counter, "7 von 12 Elementen geprüft")
+        XCTAssertEqual(elements.guideLinkLabel, "Anleitung")
+        XCTAssertEqual(elements.progress.count, 12)
+        XCTAssertEqual(elements.progress.filter { $0 == .ok }.count, 6)
+        XCTAssertEqual(elements.progress.filter { $0 == .defect }.count, 1)
+        XCTAssertEqual(elements.progress.filter { $0 == .open }.count, 5)
+        XCTAssertEqual(elements.legend.map(\.status), [.ok, .defect, .open])
+        XCTAssertEqual(elements.legend.map(\.label), ["6 in Ordnung", "1 Mangel", "5 offen"])
+        XCTAssertEqual(elements.floors.map(\.title), ["Erdgeschoss", "Obergeschoss"])
+        XCTAssertEqual(elements.floors.map(\.moreLabel), ["Alle 6", "Alle 6"])
+        let items = elements.floors.flatMap(\.items)
+        XCTAssertEqual(items.map(\.id), ["F1", "F2", "F3", "F7", "F8", "F9"])
+        XCTAssertEqual(items.map(\.status), [.ok, .defect, .ok, .ok, .now, .open])
+        XCTAssertEqual(items[1].room, "Wohnen")
+        XCTAssertEqual(items[1].type, "Dreh-Kipp, 1-flügelig")
+        XCTAssertEqual(items[1].label, "1 Mangel")
+        XCTAssertEqual(items.map(\.target), [nil, .newDefect, nil, nil, stepRoute, nil])
+        XCTAssertEqual(elements.nextLabel, "Weiter prüfen: F8 · Schlafen")
+        XCTAssertEqual(elements.nextTarget, stepRoute)
+    }
+
+    func testLoadsStepModel() async throws {
+        let loadedData = try await loaded()
+        XCTAssertEqual(Set(loadedData.inspectionSteps.keys), [stepRoute])
+        let step = try XCTUnwrap(loadedData.inspectionSteps[stepRoute])
+        XCTAssertEqual(step.route, stepRoute)
+        XCTAssertEqual(step.counter, "Schritt 3 von 6")
+        XCTAssertEqual(step.title, "F8 · Schlafen")
+        XCTAssertEqual(step.subtitle, "Obergeschoss · Dreh-Kipp-Fenster, 1-flügelig")
+        XCTAssertEqual(step.done.map(\.label), ["Drehstellung: Flügel bleibt stehen", "Kippstellung: Flügel hält Position"])
+        XCTAssertEqual(step.done.map(\.meta), ["1 Foto", "1 Foto"])
+        XCTAssertEqual(step.current.n, 3)
+        XCTAssertEqual(step.current.title, "Sitzt das Fenster im Wasser?")
+        XCTAssertEqual(
+            step.current.text,
+            "Wasserwaage oben und seitlich an den Rahmen halten – die Blase muss jeweils mittig stehen.")
+        XCTAssertEqual(step.current.photoCaption, "Foto oben")
+        XCTAssertEqual(step.current.addPhotoLabel, "Foto seitlich")
+        XCTAssertEqual(step.guideLabel, "So prüfen")
+        XCTAssertEqual(step.defectLabel, "Mangel")
+        XCTAssertEqual(step.okLabel, "In Ordnung")
+        XCTAssertEqual(step.next.map(\.n), [4, 5, 6])
+        XCTAssertEqual(step.next.map(\.label), [
+            "Schließen & Verriegeln, Griff leichtgängig", "Glas, Rahmen & Beschläge unbeschädigt",
+            "Anschlussfugen & Fensterbank dicht",
+        ])
+        XCTAssertEqual(step.defectTarget, .newDefect)
+    }
+
+    func testLoadsDefectForm() async throws {
+        let form = try await loaded().defectForm
+        XCTAssertEqual(form.tradeId, "windows")
+        XCTAssertEqual(form.title, "Mangel erfassen")
+        XCTAssertEqual(form.saveLabel, "Sichern")
+        XCTAssertEqual(form.cancelLabel, "Abbrechen")
+        XCTAssertEqual(form.context, "F2 · Wohnen · Schritt 1")
+        XCTAssertEqual(form.finding, "Drehstellung: Flügel bleibt nicht stehen")
+        XCTAssertEqual(form.descriptionLabel, "Beschreibung")
+        XCTAssertEqual(form.description, "Flügel fällt ab ca. 45° Öffnung selbstständig wieder zu.")
+        XCTAssertEqual(form.photosLabel, "Fotos (2)")
+        XCTAssertEqual(form.photoLabels, ["Foto 1", "Foto 2"])
+        XCTAssertEqual(form.addPhotoLabel, "Foto aufnehmen")
+        XCTAssertEqual(form.severityLabel, "Schwere")
+        XCTAssertEqual(form.severities, ["Gering", "Mittel", "Erheblich"])
+        XCTAssertEqual(form.initialSeverity, 1)
+        XCTAssertEqual(form.deadlineLabel, "Behebung bis")
+        XCTAssertEqual(form.deadlineOptions.map(\.label), ["+ 14 Tage", "+ 4 Wochen", "Eigenes Datum"])
+        XCTAssertEqual(form.deadlineOptions.map(\.offsetDays), [14, 28, nil])
+        XCTAssertEqual(form.deadlineBase, CalendarDay(year: 2026, month: 12, day: 18))
+        XCTAssertEqual(form.initialDeadline, 1)
+        XCTAssertEqual(form.deadlineText(option: 0), "Fr, 01.01.2027")
+        XCTAssertEqual(form.deadlineText(option: 1), "Fr, 15.01.2027")
+        XCTAssertNil(form.deadlineText(option: 2))
+        XCTAssertNil(form.deadlineText(option: 3))
+        XCTAssertEqual(form.responsibleLabel, "Zuständig")
+        XCTAssertEqual(form.responsible, "Fensterbau Weber GmbH")
+        XCTAssertEqual(form.notifyLabel, "Handwerker per E-Mail informieren")
+        XCTAssertTrue(form.notifyInitial)
+    }
+
+    func testLoadsSignOff() async throws {
+        let loadedData = try await loaded()
+        XCTAssertEqual(Set(loadedData.signOffs.keys), ["windows"])
+        let sign = try XCTUnwrap(loadedData.signOffs["windows"])
+        XCTAssertEqual(sign.inspectionId, "windows")
+        XCTAssertEqual(sign.title, "Abnahme abschließen")
+        XCTAssertEqual(sign.subtitle, "Fr, 18.12.2026 · Musterweg 12")
+        XCTAssertEqual(sign.stats.map(\.value), ["12", "11", "1"])
+        XCTAssertEqual(sign.stats.map(\.label), ["geprüft", "in Ordnung", "Mangel"])
+        XCTAssertEqual(sign.stats.map(\.tone), [.surface, .ok, .error])
+        XCTAssertEqual(sign.defects.map(\.title), ["F2 · Flügel fällt zu"])
+        XCTAssertEqual(sign.defects.map(\.meta), ["Mittel · 2 Fotos"])
+        XCTAssertEqual(sign.defects.map(\.due), ["bis 15.01."])
+        XCTAssertEqual(sign.reservation, "Die Abnahme erfolgt unter Vorbehalt der aufgeführten Mängel und Fristen.")
+        XCTAssertEqual(sign.craftsmanLabel, "Handwerker")
+        XCTAssertEqual(sign.craftsmanName, "Fensterbau Weber")
+        XCTAssertEqual(sign.craftsmanStatus, "Unterschrieben 14:32")
+        XCTAssertEqual(sign.ownerLabel, "Bauherr")
+        XCTAssertEqual(sign.ownerName, "Max Mustermann")
+        XCTAssertEqual(sign.ownerPending, "Ausstehend")
+        XCTAssertEqual(sign.signHereLabel, "Hier unterschreiben")
+        XCTAssertEqual(sign.signatureLabel, "Unterschrift Handwerker")
+        XCTAssertEqual(sign.finishLabel, "Protokoll abschließen")
+        XCTAssertEqual(sign.note, "PDF mit Fotos geht an Sie und den Handwerker")
+        XCTAssertEqual(sign.finishTarget, .defects)
+    }
+
+    func testLoadsAllM4ScreenTexts() async throws {
+        let repo = try MockRepository.bundled()
+        let tabs = try await repo.screenText("AbnGewerke", as: TabsScreenText.self).tabs
+        XCTAssertEqual(tabs.map(\.route), ["home", "schedule", "inspections", "documents", "profile"])
+        XCTAssertEqual(tabs.map(\.label), ["Übersicht", "Zeitplan", "Abnahmen", "Dokumente", "Profil"])
+        let maengel = try await repo.screenText("AbnMaengel", as: TabsScreenText.self)
+        XCTAssertEqual(maengel.tabs, tabs)
+        for name in ["AbnElemente", "AbnPruefung", "AbnMangel", "AbnSignatur"] {
+            _ = try await repo.screenText(name, as: EmptyScreenText.self)
+        }
+        let missing = try repository { object in
+            var screens = object["screens"] as? [String: Any] ?? [:]
+            screens["AbnSignatur"] = nil
+            object["screens"] = screens
+        }
+        do {
+            _ = try await AppData.load(from: missing)
+            XCTFail("Expected RepositoryError.fixtureMissing")
+        } catch {
+            XCTAssertEqual(error as? RepositoryError, .fixtureMissing("screens.AbnSignatur.ios"))
+        }
+    }
+
+    func testLoadsAllM4Routes() async throws {
+        let repo = try MockRepository.bundled()
+        let overview = try await repo.inspections()
+        guard case let .object(root) = overview, case let .object(ov)? = root["overview"],
+            case let .array(rows)? = ov["rows"]
+        else { return XCTFail("overview rows missing") }
+        var parsed = 0
+        for case let .object(row) in rows {
+            guard case let .string(raw)? = row["route"] else { continue }
+            let route = try RouteParser.route(raw, field: "inspections.overview.rows.route")
+            XCTAssertNotNil(route, raw)
+            parsed += 1
+        }
+        XCTAssertEqual(parsed, 9)
+        let data = try await loaded()
+        XCTAssertEqual(data.inspections.rows.compactMap(\.target).count, 9)
+        let items = try XCTUnwrap(data.inspectionElements["windows"]).floors.flatMap(\.items)
+        XCTAssertEqual(items.compactMap(\.target), [.newDefect, stepRoute])
+    }
+
+    func testInspectionTitlesAndFallbacks() async throws {
+        let titles = try await loaded().routeTitles
+        XCTAssertEqual(titles.title(.inspection(tradeId: "windows")), "Fenster & Türen")
+        XCTAssertEqual(titles.title(.inspection(tradeId: "roofing")), "Dachdecker")
+        XCTAssertEqual(titles.title(stepRoute), "F8 · Schlafen")
+        XCTAssertEqual(titles.title(.inspectionStep(tradeId: "windows", elementId: "F9", step: 1)), "F9")
+        XCTAssertEqual(titles.title(.newDefect), "Mangel erfassen")
+        XCTAssertEqual(titles.title(.signOff(inspectionId: "windows")), "Abnahme abschließen")
+        XCTAssertEqual(titles.title(.signOff(inspectionId: "shell")), "shell")
+        XCTAssertEqual(titles.title(.inspection(tradeId: "unknown")), "unknown")
+    }
+
+    func testEveryRouteTitleIsNonEmpty() async throws {
+        let data = try await loaded()
+        let routes: [AppRoute] = [
+            .trade(id: "screed"), .compare(tradeId: "screed"), .document(id: "doc-offer-wagner"), .notifications,
+            .inspection(tradeId: "windows"), stepRoute, .newDefect, .signOff(inspectionId: "windows"),
+        ]
+        for route in routes {
+            XCTAssertFalse(data.routeTitles.title(route).isEmpty, "\(route)")
+        }
+        for tab in AppTab.allCases {
+            XCTAssertFalse(data.routeTitles.backLabel(path: [], index: 0, tab: tab).isEmpty, "\(tab)")
+        }
+        XCTAssertEqual(
+            data.routeTitles.backLabel(path: [.inspection(tradeId: "windows"), stepRoute], index: 1, tab: .inspections),
+            "Fenster & Türen")
+        XCTAssertEqual(
+            data.routeTitles.backLabel(path: [.inspection(tradeId: "windows")], index: 0, tab: .inspections), "Abnahmen")
+    }
+
+    // MARK: M4 consistency
+
+    func testWindowFiguresAreConsistent() async throws {
+        let data = try await loaded()
+        let elements = try XCTUnwrap(data.inspectionElements["windows"])
+        let sign = try XCTUnwrap(data.signOffs["windows"])
+        let form = data.defectForm
+        let progressDefects = elements.progress.filter { $0 == .defect }.count
+        let stats = try sign.stats.map { try XCTUnwrap(Int($0.value)) }
+        XCTAssertEqual(stats[0], elements.progress.count)
+        XCTAssertEqual(stats[2], progressDefects)
+        XCTAssertEqual(stats[1], stats[0] - stats[2])
+        let defectItems = elements.floors.flatMap(\.items).filter { $0.status == .defect }
+        XCTAssertEqual(defectItems.map(\.id), ["F2"])
+        XCTAssertTrue(form.context.hasPrefix("F2"))
+        let repoDefects = try await MockRepository.bundled().defects().filter { $0.tradeId == "windows" }
+        let windowsDefect = try XCTUnwrap(repoDefects.first)
+        XCTAssertEqual(repoDefects.count, 1)
+        let signDefect = try XCTUnwrap(sign.defects.first)
+        XCTAssertEqual(signDefect.title, windowsDefect.title)
+        let photos = try XCTUnwrap(windowsDefect.photos)
+        XCTAssertEqual(signDefect.meta, "\(try XCTUnwrap(windowsDefect.severity)) · \(photos) Fotos")
+        XCTAssertEqual(windowsDefect.deadline, "2027-01-15")
+        XCTAssertEqual(signDefect.due, "bis 15.01.")
+        XCTAssertEqual(form.deadlineText(option: form.initialDeadline), "Fr, 15.01.2027")
+        XCTAssertEqual(windowsDefect.deadlineLabel, "Frist 15.01.2027")
+        let board = data.defectsBoard
+        XCTAssertEqual(board.cards.count, 3)
+        XCTAssertEqual(board.views[1], "Offene Mängel (\(board.cards.count))")
+        XCTAssertEqual(data.inspections.views, board.views)
+    }
+
+    // MARK: M4 error paths
+
+    func testMissingIosCounterFailsLoad() async throws {
+        try await expectDecoding("\(checksPath).elements.counter") { object in
+            editWindowsCheck(&object, "elements") { $0["counter"] = ["ios": NSNull(), "android": "x"] }
+        }
+    }
+
+    func testMissingIosSummaryLabelFailsLoad() async throws {
+        try await expectDecoding("\(checksPath).elements.summary.label") { object in
+            editWindowsCheck(&object, "elements") { check in
+                var summary = check["summary"] as? [[String: Any]] ?? []
+                summary[1]["label"] = ["ios": NSNull(), "android": "x"]
+                check["summary"] = summary
+            }
+        }
+    }
+
+    func testMissingIosOverviewStatusLabelFailsLoad() async throws {
+        try await expectDecoding("inspections.overview.statusLabels") { object in
+            editOverview(&object) { overview in
+                var labels = overview["statusLabels"] as? [String: Any] ?? [:]
+                labels["reserved"] = ["ios": NSNull(), "android": "x"]
+                overview["statusLabels"] = labels
+            }
+        }
+    }
+
+    func testUnknownOverviewStatusFailsLoad() async throws {
+        try await expectDecoding("inspections.overview.rows.status") { object in
+            editOverview(&object) { overview in
+                var rows = overview["rows"] as? [[String: Any]] ?? []
+                rows[0]["status"] = "bogus"
+                overview["rows"] = rows
+            }
+        }
+    }
+
+    func testUnknownElementStatusFailsLoad() async throws {
+        try await expectDecoding("\(checksPath).elements.progress") { object in
+            editWindowsCheck(&object, "elements") { check in
+                var progress = check["progress"] as? [String] ?? []
+                progress[0] = "bogus"
+                check["progress"] = progress
+            }
+        }
+        try await expectDecoding("\(checksPath).elements.floors.items.status") { object in
+            editWindowsCheck(&object, "elements") { check in
+                var floors = check["floors"] as? [[String: Any]] ?? []
+                var items = floors[0]["items"] as? [[String: Any]] ?? []
+                items[0]["status"] = "bogus"
+                floors[0]["items"] = items
+                check["floors"] = floors
+            }
+        }
+    }
+
+    func testTwoNowElementsFailLoad() async throws {
+        try await expectDecoding("\(checksPath).elements.floors") { object in
+            editWindowsCheck(&object, "elements") { check in
+                var floors = check["floors"] as? [[String: Any]] ?? []
+                var items = floors[0]["items"] as? [[String: Any]] ?? []
+                items[0]["status"] = "now"
+                floors[0]["items"] = items
+                check["floors"] = floors
+            }
+        }
+    }
+
+    func testStepNumberMismatchFailsLoad() async throws {
+        try await expectDecoding("\(checksPath).stepF8") { object in
+            editWindowsCheck(&object, "stepF8") { check in
+                var current = check["current"] as? [String: Any] ?? [:]
+                current["n"] = "4"
+                check["current"] = current
+            }
+        }
+        try await expectDecoding("\(checksPath).stepF8") { object in
+            editWindowsCheck(&object, "stepF8") { check in
+                var current = check["current"] as? [String: Any] ?? [:]
+                current["n"] = "03"
+                check["current"] = current
+            }
+        }
+    }
+
+    func testStepPhotosCountFailsLoad() async throws {
+        try await expectDecoding("\(checksPath).stepF8.current.photos") { object in
+            editWindowsCheck(&object, "stepF8") { check in
+                var current = check["current"] as? [String: Any] ?? [:]
+                current["photos"] = ["Foto oben"]
+                check["current"] = current
+            }
+        }
+    }
+
+    func testSeverityNotInOptionsFailsLoad() async throws {
+        try await expectDecoding("\(checksPath).defectF2.severity") { object in
+            editWindowsCheck(&object, "defectF2") { check in
+                var severity = check["severity"] as? [String: Any] ?? [:]
+                severity["selected"] = "Kritisch"
+                check["severity"] = severity
+            }
+        }
+    }
+
+    func testDeadlineMismatchFailsLoad() async throws {
+        try await expectDecoding("\(checksPath).defectF2.deadlineLabel") { object in
+            editWindowsCheck(&object, "defectF2") { check in
+                check["deadlineLabel"] = ["ios": "Sa, 16.01.2027", "android": "16.01.2027"]
+            }
+        }
+    }
+
+    func testMalformedOverviewRouteFailsLoad() async throws {
+        try await expectDecoding("inspections.overview.rows.route") { object in
+            editOverview(&object) { overview in
+                var rows = overview["rows"] as? [[String: Any]] ?? []
+                rows[0]["route"] = "inspection/a/b"
+                overview["rows"] = rows
+            }
+        }
+    }
+
+    func testMalformedElementRouteFailsLoad() async throws {
+        try await expectDecoding("\(checksPath).elements.floors.items.route") { object in
+            editWindowsCheck(&object, "elements") { check in
+                var floors = check["floors"] as? [[String: Any]] ?? []
+                var items = floors[0]["items"] as? [[String: Any]] ?? []
+                items[0]["route"] = "defect/old"
+                floors[0]["items"] = items
+                check["floors"] = floors
+            }
+        }
+    }
+
+    func testStatsCountMismatchFailsLoad() async throws {
+        try await expectDecoding("\(checksPath).signature.stats") { object in
+            editWindowsCheck(&object, "signature") { check in
+                var stats = check["stats"] as? [[String: Any]] ?? []
+                stats.removeLast()
+                check["stats"] = stats
+            }
+        }
+    }
+
+    func testMissingIosOwnerFailsLoad() async throws {
+        try await expectDecoding("\(checksPath).signature.owner") { object in
+            editWindowsCheck(&object, "signature") { $0["owner"] = ["ios": NSNull(), "android": "x"] }
+        }
+    }
+
+    func testWrongTypeUnderElementsFailsWithSlicePath() async throws {
+        try await expectDecoding("\(checksPath).elements") { object in
+            editWindowsCheck(&object, "elements") { $0["title"] = 5 }
+        }
+        try await expectDecoding("\(checksPath).stepF8") { object in
+            editWindowsCheck(&object, "stepF8") { $0["done"] = "none" }
+        }
+        try await expectDecoding("inspections.overview") { object in
+            editOverview(&object) { $0["rows"] = 7 }
+        }
+    }
+
+    func testMissingSliceFailsAsFixtureMissing() async throws {
+        let repo = try repository { object in
+            editWindowsCheck(&object, "defectF2") { _ in }
+            var inspections = object["inspections"] as? [String: Any] ?? [:]
+            var byTrade = inspections["byTrade"] as? [String: Any] ?? [:]
+            var windows = byTrade["windows"] as? [String: Any] ?? [:]
+            var checks = windows["checks"] as? [String: Any] ?? [:]
+            checks["defectF2"] = nil
+            windows["checks"] = checks
+            byTrade["windows"] = windows
+            inspections["byTrade"] = byTrade
+            object["inspections"] = inspections
+        }
+        do {
+            _ = try await AppData.load(from: repo)
+            XCTFail("Expected RepositoryError.fixtureMissing")
+        } catch {
+            XCTAssertEqual(error as? RepositoryError, .fixtureMissing("\(checksPath).defectF2"))
+        }
+    }
+
+    func testResolvedDefectsComeFromRepository() async throws {
+        let resolved = try await MockRepository.bundled().resolvedDefects()
+        XCTAssertEqual(resolved.count, "3")
+    }
 }

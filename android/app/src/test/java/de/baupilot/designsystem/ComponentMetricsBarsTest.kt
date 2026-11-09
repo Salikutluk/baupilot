@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.dp
 import de.baupilot.designsystem.components.BarPadding
 import de.baupilot.designsystem.components.BaupilotTabRow
@@ -83,6 +84,49 @@ class ComponentMetricsBarsTest {
 
         assertEquals(48 * 3, sizes.getValue("tab").second)
         assertEquals(49 * 3, sizes.getValue("row").second)
+    }
+
+    @Test
+    fun tabIndicatorWidthFollowsTheParameter() {
+        paparazzi.snapshot {
+            Column {
+                BaupilotTabRow(
+                    tabs = listOf("Gewerke", "Offene Mängel (2)"),
+                    selectedIndex = 0,
+                    contentDescription = "Ansicht",
+                    indicatorWidth = 64.dp,
+                    indicatorModifier = Modifier.record("narrow"),
+                )
+                BaupilotTabRow(
+                    tabs = listOf("Gewerke", "Offene Mängel (2)"),
+                    selectedIndex = 1,
+                    contentDescription = "Ansicht",
+                    indicatorWidth = 96.dp,
+                    indicatorModifier = Modifier.record("wide"),
+                )
+            }
+        }
+
+        assertEquals(64 * 3 to 3 * 3, sizes.getValue("narrow"))
+        assertEquals(96 * 3 to 3 * 3, sizes.getValue("wide"))
+    }
+
+    @Test
+    fun modalBarPutsTheTitleAfterNavButtonAndGap() {
+        var titleX = 0f
+        paparazzi.snapshot {
+            Column {
+                baupilotTopAppBarMeasured(
+                    titleModifier = Modifier.onGloballyPositioned { titleX = it.positionInRoot().x },
+                    title = "Mangel erfassen",
+                    padding = BarPadding.Modal,
+                    navigation = Nav.Close(),
+                )
+            }
+        }
+
+        // start 4 + 48 nav button + gap 4
+        assertEquals(56 * 3f, titleX)
     }
 
     @Test

@@ -289,6 +289,15 @@ struct AppData: Sendable {
     let documents: DocumentsModel
     let viewers: [String: DocViewerModel]
     let notifications: NotificationsModel
+    let inspections: InspectionsModel
+    let defectsBoard: DefectsBoardModel
+    /// Elements screen by trade id (only `windows` has one).
+    let inspectionElements: [String: ElementsModel]
+    /// Step screen by its route (only the step of the `now` element).
+    let inspectionSteps: [AppRoute: StepModel]
+    let defectForm: DefectFormModel
+    /// Sign-off screen by trade id (only `windows` has one).
+    let signOffs: [String: SignOffModel]
 
     /// Fixed iOS content width of the schedule chart (not measured).
     private static let chartWidth: CGFloat = 350
@@ -317,10 +326,36 @@ struct AppData: Sendable {
         }
         let viewerIds = Set(documents.items.filter { $0.viewer != nil }.map(\.id))
 
+        let gewerkeText = try await repo.screenText("AbnGewerke", as: TabsScreenText.self)
+        let maengelText = try await repo.screenText("AbnMaengel", as: TabsScreenText.self)
+        for name in ["AbnElemente", "AbnPruefung", "AbnMangel", "AbnSignatur"] {
+            _ = try await repo.screenText(name, as: EmptyScreenText.self)
+        }
+        let overview = try await repo.inspectionSlice(InspectionOverview.self, at: ["overview"])
+        let elementsCheck = try await repo.windowsCheck("elements", as: ElementsCheck.self)
+        let stepCheck = try await repo.windowsCheck("stepF8", as: StepCheck.self)
+        let formCheck = try await repo.windowsCheck("defectF2", as: DefectFormCheck.self)
+        let signatureCheck = try await repo.windowsCheck("signature", as: SignatureCheck.self)
+        let defects = try await repo.defects()
+        let resolved = try await repo.resolvedDefects()
+        let now = try await repo.now()
+
         let tradeNames = Dictionary(trades.map { ($0.id, $0.name) }, uniquingKeysWith: { first, _ in first })
         guard let phaseTitle = tradeNames[project.phase.tradeId] else {
             throw RepositoryError.decoding("project.phase.tradeId")
         }
+
+        let views = [
+            ScreenCopy.AbnGewerke.tradesView,
+            String(format: ScreenCopy.AbnGewerke.defectsViewFormat, defects.count),
+        ]
+        let inspectionsModel = try inspectionsModel(overview, tabs: gewerkeText.tabs, views: views)
+        let defectsBoard = try defectsBoardModel(
+            defects, tabs: maengelText.tabs, views: views, resolvedCount: resolved.count)
+        let (elements, stepRoute) = try elementsModel(elementsCheck)
+        let step = try stepModel(stepCheck, route: stepRoute, statusLabels: overview.statusLabels)
+        let form = try defectFormModel(formCheck, now: now)
+        let signOff = try signOffModel(signatureCheck)
 
         let homeTabs = try tabItems(homeText.tabs, in: "Home")
         let routeTitles = RouteTitles(
@@ -329,7 +364,12 @@ struct AppData: Sendable {
             documentTitles: Dictionary(
                 documents.items.map { ($0.id, $0.title) }, uniquingKeysWith: { first, _ in first }),
             compareTitle: RouteTitles.compareTitle,
-            notificationsTitle: ScreenCopy.notificationsTitle)
+            notificationsTitle: ScreenCopy.notificationsTitle,
+            inspectionTitles: Dictionary(
+                overview.rows.map { ($0.tradeId, $0.name) }, uniquingKeysWith: { first, _ in first }),
+            stepTitles: [stepRoute: step.title],
+            newDefectTitle: ScreenCopy.AbnMangel.title,
+            signOffTitles: [signOff.inspectionId: signOff.title])
 
         return AppData(
             login: LoginModel(
@@ -393,7 +433,228 @@ struct AppData: Sendable {
                 documents, text: dokumenteText, viewerIds: viewerIds,
                 title: try tabItems(dokumenteText.tabs, in: "Dokumente").first { $0.tab == .documents }?.label),
             viewers: try viewerModels(documents.items, comparisonTradeIds: Set(comparisonsByTrade.keys)),
-            notifications: try notificationsModel(notificationGroups))
+            notifications: try notificationsModel(notificationGroups),
+            inspections: inspectionsModel,
+            defectsBoard: defectsBoard,
+            inspectionElements: [elements.tradeId: elements],
+            inspectionSteps: [stepRoute: step],
+            defectForm: form,
+            signOffs: [signOff.inspectionId: signOff])
+    }
+
+    // MARK: - M4 inspection models
+
+    private nonisolated static let windowsId = "windows"
+    private nonisolated static let checksPath = "inspections.byTrade.windows.checks"
+    private nonisolated static let statusLabelsPath = "inspections.overview.statusLabels"
+
+    /// The iOS side of a `PlatformText`; a null there is a decoding error at `path` (D16).
+    private nonisolated static func iosText(_ text: PlatformText, _ path: String) throws -> String {
+        guard let value = text.value else { throw RepositoryError.decoding(path) }
+        return value
+    }
+
+    private nonisolated static func inspectionsTitle(_ tabs: [TabText], screen: String) throws -> String {
+        guard let item = try tabItems(tabs, in: screen).first(where: { $0.tab == .inspections }) else {
+            throw RepositoryError.decoding("screens.\(screen).ios.tabs")
+        }
+        return item.label
+    }
+
+    private nonisolated static func statusLabel(_ key: String, in labels: [String: PlatformText]) throws -> String {
+        guard let text = labels[key] else { throw RepositoryError.decoding(statusLabelsPath) }
+        return try iosText(text, statusLabelsPath)
+    }
+
+    private nonisolated static func inspectionsModel(
+        _ overview: InspectionOverview, tabs: [TabText], views: [String]
+    ) throws -> InspectionsModel {
+        InspectionsModel(
+            title: try inspectionsTitle(tabs, screen: "AbnGewerke"),
+            templatesLabel: ScreenCopy.AbnGewerke.templatesLabel,
+            views: views,
+            viewsLabel: ScreenCopy.AbnGewerke.viewsLabel,
+            rows: try overview.rows.map { row in
+                guard let status = InspectionStatus(rawValue: row.status) else {
+                    throw RepositoryError.decoding("inspections.overview.rows.status")
+                }
+                return InspectionTradeRow(
+                    tradeId: row.tradeId, name: row.name,
+                    subtitle: try iosText(row.sub, "inspections.overview.rows.sub"),
+                    status: status,
+                    statusLabel: try statusLabel(row.status, in: overview.statusLabels),
+                    target: try RouteParser.route(row.route, field: "inspections.overview.rows.route"))
+            })
+    }
+
+    private nonisolated static func defectsBoardModel(
+        _ defects: [Defect], tabs: [TabText], views: [String], resolvedCount: String
+    ) throws -> DefectsBoardModel {
+        DefectsBoardModel(
+            title: try inspectionsTitle(tabs, screen: "AbnMaengel"),
+            templatesLabel: ScreenCopy.AbnMaengel.templatesLabel,
+            views: views,
+            viewsLabel: ScreenCopy.AbnMaengel.viewsLabel,
+            cards: try defects.map { defect in
+                guard let urgency = DefectUrgency(rawValue: defect.urgency) else {
+                    throw RepositoryError.decoding("defects.urgency")
+                }
+                return DefectCard(
+                    id: defect.id, trade: try iosText(defect.trade, "defects.trade"), title: defect.title,
+                    dueLabel: defect.dueLabel, meta: defect.meta, urgency: urgency,
+                    showsActions: ScreenCopy.AbnMaengel.showsActions(urgency))
+            },
+            remindLabel: ScreenCopy.AbnMaengel.remindLabel,
+            resolveLabel: ScreenCopy.AbnMaengel.resolveLabel,
+            resolvedLabel: ScreenCopy.AbnMaengel.resolvedLabel,
+            resolvedCount: resolvedCount)
+    }
+
+    /// The elements model and the route of its single `now` element (the step screen's key).
+    private nonisolated static func elementsModel(_ check: ElementsCheck) throws -> (ElementsModel, AppRoute) {
+        let path = "\(checksPath).elements"
+        let progress: [ElementStatus] = try check.progress.map { raw in
+            guard let status = ElementStatus(rawValue: raw), status != .now else {
+                throw RepositoryError.decoding("\(path).progress")
+            }
+            return status
+        }
+        let legend = try check.summary.map { entry -> ElementsModel.LegendEntry in
+            guard let status = ElementStatus(rawValue: entry.status), status != .now else {
+                throw RepositoryError.decoding("\(path).summary.status")
+            }
+            return ElementsModel.LegendEntry(status: status, label: try iosText(entry.label, "\(path).summary.label"))
+        }
+        let floors = try check.floors.map { floor in
+            ElementsModel.FloorSection(
+                title: floor.title, moreLabel: floor.more,
+                items: try floor.items.map { item in
+                    guard let status = ElementStatus(rawValue: item.status) else {
+                        throw RepositoryError.decoding("\(path).floors.items.status")
+                    }
+                    return ElementsModel.ElementRow(
+                        id: item.id, room: item.room, type: item.type, label: item.label, status: status,
+                        target: try RouteParser.route(item.route, field: "\(path).floors.items.route"))
+                })
+        }
+        let current = floors.flatMap(\.items).filter { $0.status == .now }
+        guard current.count == 1, let next = current[0].target, case .inspectionStep = next else {
+            throw RepositoryError.decoding("\(path).floors")
+        }
+        let model = ElementsModel(
+            tradeId: windowsId,
+            title: check.title,
+            subtitle: try iosText(check.subtitle, "\(path).subtitle"),
+            counter: try iosText(check.counter, "\(path).counter"),
+            guideLinkLabel: ScreenCopy.AbnElemente.guideLinkLabel,
+            progress: progress,
+            legend: legend,
+            floors: floors,
+            nextLabel: try iosText(check.nextLabel, "\(path).nextLabel"),
+            nextTarget: next)
+        return (model, next)
+    }
+
+    private nonisolated static func stepModel(
+        _ check: StepCheck, route: AppRoute, statusLabels: [String: PlatformText]
+    ) throws -> StepModel {
+        let path = "\(checksPath).stepF8"
+        guard case let .inspectionStep(_, elementId, stepNumber) = route,
+            let currentNumber = positiveNumber(check.current.n), currentNumber == stepNumber,
+            check.title.hasPrefix("\(elementId) · ")
+        else { throw RepositoryError.decoding(path) }
+        guard check.current.photos.count == 2 else { throw RepositoryError.decoding("\(path).current.photos") }
+        return StepModel(
+            route: route,
+            counter: try iosText(check.counter, "\(path).counter"),
+            title: check.title,
+            subtitle: try iosText(check.subtitle, "\(path).subtitle"),
+            done: try check.done.map {
+                StepModel.Done(label: $0.label, meta: try iosText($0.meta, "\(path).done.meta"))
+            },
+            current: StepModel.Current(
+                n: currentNumber, title: check.current.title, text: check.current.text,
+                photoCaption: check.current.photos[0], addPhotoLabel: check.current.photos[1]),
+            guideLabel: ScreenCopy.AbnPruefung.guideLabel,
+            defectLabel: try statusLabel("defect", in: statusLabels),
+            okLabel: try statusLabel("ok", in: statusLabels),
+            next: try check.next.map { entry in
+                guard let number = positiveNumber(entry.n) else { throw RepositoryError.decoding(path) }
+                return StepModel.Next(n: number, label: try iosText(entry.label, "\(path).next.label"))
+            },
+            defectTarget: .newDefect)
+    }
+
+    private nonisolated static func defectFormModel(_ check: DefectFormCheck, now: Date) throws -> DefectFormModel {
+        let path = "\(checksPath).defectF2"
+        guard let severity = check.severity.options.firstIndex(of: check.severity.selected) else {
+            throw RepositoryError.decoding("\(path).severity")
+        }
+        guard let berlin = TimeZone(identifier: "Europe/Berlin") else {
+            throw RepositoryError.fixtureMissing("Europe/Berlin")
+        }
+        let base = CalendarDay.from(now, timeZone: berlin)
+        let offsets = ScreenCopy.AbnMangel.deadlineOffsets
+        let options = try check.deadlineOptions.enumerated().map { index, text in
+            DefectFormModel.DeadlineOption(
+                label: try iosText(text, "\(path).deadlineOptions"),
+                offsetDays: index < offsets.count ? offsets[index] : nil)
+        }
+        let deadline = try iosText(check.deadlineLabel, "\(path).deadlineLabel")
+        guard let initial = options.firstIndex(where: {
+            $0.offsetDays.map { DeadlineMath.label(base: base, offsetDays: $0, style: .ios) } == deadline
+        }) else { throw RepositoryError.decoding("\(path).deadlineLabel") }
+        return DefectFormModel(
+            tradeId: windowsId,
+            title: ScreenCopy.AbnMangel.title,
+            saveLabel: ScreenCopy.AbnMangel.saveLabel,
+            cancelLabel: ScreenCopy.AbnMangel.cancelLabel,
+            context: check.context,
+            finding: check.title,
+            descriptionLabel: ScreenCopy.AbnMangel.descriptionLabel,
+            description: check.description,
+            photosLabel: check.photosLabel,
+            photoLabels: check.photos,
+            addPhotoLabel: ScreenCopy.AbnMangel.addPhotoLabel,
+            severityLabel: ScreenCopy.AbnMangel.severityLabel,
+            severities: check.severity.options,
+            initialSeverity: severity,
+            deadlineLabel: ScreenCopy.AbnMangel.deadlineLabel,
+            deadlineOptions: options,
+            deadlineBase: base,
+            initialDeadline: initial,
+            responsibleLabel: ScreenCopy.AbnMangel.responsibleLabel,
+            responsible: check.responsible,
+            notifyLabel: check.notify.label,
+            notifyInitial: check.notify.enabled)
+    }
+
+    private nonisolated static func signOffModel(_ check: SignatureCheck) throws -> SignOffModel {
+        let path = "\(checksPath).signature"
+        let tones = ScreenCopy.AbnSignatur.statTones
+        guard check.stats.count == tones.count, check.stats.allSatisfy({ positiveNumber($0.n) != nil }) else {
+            throw RepositoryError.decoding("\(path).stats")
+        }
+        return SignOffModel(
+            inspectionId: windowsId,
+            title: check.title,
+            subtitle: try iosText(check.subtitle, "\(path).subtitle"),
+            stats: zip(check.stats, tones).map { SignOffModel.Stat(value: $0.n, label: $0.label, tone: $1) },
+            defects: check.defects.map {
+                SignOffModel.ReservedDefect(
+                    title: $0.title, meta: $0.meta, due: ScreenCopy.AbnSignatur.duePrefix + " " + $0.due)
+            },
+            reservation: check.reservation,
+            craftsmanLabel: ScreenCopy.AbnSignatur.craftsmanLabel,
+            craftsmanName: check.craftsman.name,
+            craftsmanStatus: check.craftsman.signed,
+            ownerLabel: ScreenCopy.AbnSignatur.ownerLabel,
+            ownerName: try iosText(check.owner, "\(path).owner"),
+            ownerPending: ScreenCopy.AbnSignatur.ownerPending,
+            signHereLabel: ScreenCopy.AbnSignatur.signHereLabel,
+            signatureLabel: ScreenCopy.AbnSignatur.signatureLabel,
+            finishLabel: ScreenCopy.AbnSignatur.finishLabel,
+            note: check.note)
     }
 
     private nonisolated static func gewerkModels(

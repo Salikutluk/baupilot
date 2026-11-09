@@ -1,6 +1,7 @@
 package de.baupilot.inspection
 
 import java.time.LocalDate
+import java.util.Locale
 
 /** Label style of a deadline: iOS prints a German weekday first, Android only the date. */
 enum class DeadlineStyle { Ios, Android }
@@ -14,7 +15,7 @@ object DeadlineMath {
 
     fun label(base: LocalDate, offsetDays: Int, style: DeadlineStyle = DeadlineStyle.Android): String {
         val day = base.plusDays(offsetDays.toLong())
-        val date = "%02d.%02d.%04d".format(day.dayOfMonth, day.monthValue, day.year)
+        val date = String.format(Locale.ROOT, "%02d.%02d.%04d", day.dayOfMonth, day.monthValue, day.year)
         return when (style) {
             DeadlineStyle.Ios -> "${weekdays[day.dayOfWeek.value - 1]}, $date"
             DeadlineStyle.Android -> date

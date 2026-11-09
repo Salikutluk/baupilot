@@ -9,6 +9,7 @@ protocol BackendRepository: Sendable {
     func comparison(tradeId: String) async throws -> Comparison?
     func documents() async throws -> Documents
     func defects() async throws -> [Defect]
+    func resolvedDefects() async throws -> ResolvedDefects
     func notifications() async throws -> [NotificationGroup]
     func inspections() async throws -> JSONValue
     func measurements() async throws -> JSONValue

@@ -15,7 +15,8 @@ public struct BackBar: View {
         case back(label: String, action: (() -> Void)?, trailing: Trailing)
         case modal(
             cancel: String, title: String, confirm: String,
-            onCancel: (() -> Void)?, onConfirm: (() -> Void)?)
+            onCancel: (() -> Void)?, onConfirm: (() -> Void)?,
+            cancelIdentifier: String?, confirmIdentifier: String?)
     }
 
     private let mode: Mode
@@ -33,12 +34,15 @@ public struct BackBar: View {
         title: String,
         confirm: String,
         onCancel: (() -> Void)? = nil,
-        onConfirm: (() -> Void)? = nil
+        onConfirm: (() -> Void)? = nil,
+        cancelIdentifier: String? = nil,
+        confirmIdentifier: String? = nil
     ) -> BackBar {
         BackBar(
             mode: .modal(
                 cancel: cancel, title: title, confirm: confirm,
-                onCancel: onCancel, onConfirm: onConfirm))
+                onCancel: onCancel, onConfirm: onConfirm,
+                cancelIdentifier: cancelIdentifier, confirmIdentifier: confirmIdentifier))
     }
 
     public var body: some View {
@@ -61,7 +65,7 @@ public struct BackBar: View {
                 trailingView(trailing)
             }
             .frame(height: 44)
-        case let .modal(cancel, title, confirm, onCancel, onConfirm):
+        case let .modal(cancel, title, confirm, onCancel, onConfirm, cancelIdentifier, confirmIdentifier):
             HStack(spacing: 0) {
                 Button(action: { onCancel?() }) {
                     Text(cancel)
@@ -70,6 +74,7 @@ public struct BackBar: View {
                         .frame(minHeight: 44)
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier(cancelIdentifier ?? "")
                 .frame(maxWidth: .infinity, alignment: .leading)
                 Text(title)
                     .interText(17, .semibold)
@@ -84,6 +89,7 @@ public struct BackBar: View {
                         .frame(minHeight: 44)
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier(confirmIdentifier ?? "")
                 .frame(maxWidth: .infinity, alignment: .trailing)
             }
             .frame(height: 44)
