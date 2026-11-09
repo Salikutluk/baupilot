@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.baupilot.designsystem.BaupilotText
@@ -25,6 +26,9 @@ sealed interface SectionHeaderStyle {
 
     /** 14 / 500 `primary`, padding 12 16 4 (AndProfil:33). */
     object Settings : SectionHeaderStyle
+
+    /** 14 / 500 `primary` with an optional 48 high link, padding 0 12, hanging 12 over the end (AndDokumente:40-43). */
+    class Compact(val link: SectionLink? = null) : SectionHeaderStyle
 }
 
 /** Section heading in `primary`; [style] sets size, height, padding and the optional trailing link. */
@@ -47,11 +51,28 @@ fun SectionHeader(title: String, style: SectionHeaderStyle, modifier: Modifier =
                     label = style.link.label,
                     size = TextButtonSize.Compact40,
                     onClick = style.link.onClick,
-                    // margin-right -12: the link's own 12 padding hangs over the content edge (AndHome:45)
-                    modifier = Modifier.layout { measurable, constraints ->
-                        val placeable = measurable.measure(constraints)
-                        layout(placeable.width - 12.dp.roundToPx(), placeable.height) { placeable.placeRelative(0, 0) }
-                    },
+                    modifier = Modifier.hangOverEnd(12.dp),
+                )
+            }
+        }
+
+        is SectionHeaderStyle.Compact -> Row(
+            modifier = modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            BaupilotText(
+                text = title,
+                size = 14.sp,
+                weight = 500,
+                color = Tokens.primary,
+            )
+            if (style.link != null) {
+                TextButton(
+                    label = style.link.label,
+                    size = TextButtonSize.Default,
+                    onClick = style.link.onClick,
+                    modifier = Modifier.hangOverEnd(12.dp),
                 )
             }
         }
@@ -64,4 +85,10 @@ fun SectionHeader(title: String, style: SectionHeaderStyle, modifier: Modifier =
             modifier = modifier.padding(PaddingValues(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 4.dp)),
         )
     }
+}
+
+/** CSS negative end margin: the link's own padding hangs over the content edge (AndHome:45, AndDokumente:42). */
+private fun Modifier.hangOverEnd(overhang: Dp): Modifier = layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints)
+    layout(placeable.width - overhang.roundToPx(), placeable.height) { placeable.placeRelative(0, 0) }
 }

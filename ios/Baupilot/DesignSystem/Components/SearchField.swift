@@ -30,6 +30,8 @@ public struct SearchField: View {
             )
             .font(.inter(16, .regular))
             .foregroundStyle(Tokens.text.color)
+            // Chrome gives an `<input>` 2 px of side padding.
+            .padding(.leading, 2)
             .accessibilityLabel(accessibilityLabel)
         }
         .padding(.horizontal, 12)

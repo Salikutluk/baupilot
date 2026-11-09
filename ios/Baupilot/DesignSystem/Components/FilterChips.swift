@@ -6,6 +6,7 @@ public struct FilterChips: View {
     private let selection: Int
     private let accessibilityLabel: String
     private let inactive: ColorToken
+    private let identifiers: [String]?
     private let onSelect: (Int) -> Void
 
     public init(
@@ -13,9 +14,12 @@ public struct FilterChips: View {
         selection: Int,
         accessibilityLabel: String,
         inactive: ColorToken = Tokens.chip.core,
+        identifiers: [String]? = nil,
         onSelect: @escaping (Int) -> Void
     ) {
+        assert(identifiers == nil || identifiers?.count == items.count, "FilterChips: one identifier per item")
         self.inactive = inactive
+        self.identifiers = identifiers
         self.items = items
         self.selection = selection
         self.accessibilityLabel = accessibilityLabel
@@ -56,6 +60,7 @@ public struct FilterChips: View {
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(active ? [.isButton, .isSelected] : .isButton)
+        .accessibilityIdentifier(identifiers?[index] ?? "")
     }
 }
 

@@ -4,7 +4,15 @@ enum AppTab: String, CaseIterable, Sendable { case home, schedule, inspections, 
 
 enum AppRoute: Hashable, Sendable {
     case trade(id: String)
+    case compare(tradeId: String)
+    case document(id: String)
     case notifications
+}
+
+/// What a target string from the fixture opens: a pushed route or a whole tab.
+enum NavigationTarget: Equatable, Sendable {
+    case push(AppRoute)
+    case tab(AppTab)
 }
 
 struct AppNavigation: Equatable, Sendable {
@@ -30,6 +38,25 @@ struct AppNavigation: Equatable, Sendable {
     mutating func push(_ route: AppRoute) {
         guard isLoggedIn else { return }
         paths[selectedTab, default: []].append(route)
+    }
+
+    /// Pushes `route` on the selected tab. A route already on that stack is not added again: the stack is
+    /// truncated after it, so a path built here never holds a route twice.
+    mutating func open(_ route: AppRoute) {
+        guard isLoggedIn else { return }
+        let path = path(for: selectedTab)
+        if let index = path.firstIndex(of: route) {
+            paths[selectedTab] = Array(path[...index])
+        } else {
+            paths[selectedTab] = path + [route]
+        }
+    }
+
+    mutating func go(_ target: NavigationTarget) {
+        switch target {
+        case let .push(route): open(route)
+        case let .tab(tab): select(tab)
+        }
     }
 
     mutating func pop() {

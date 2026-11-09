@@ -62,6 +62,24 @@ final class ComponentMetricsTileTests: XCTestCase {
         XCTAssertEqual(size(of: avatar, width: 48), CGSize(width: 48, height: 48))
     }
 
+    /// The icon tile is 34 square; unread and read rows are equally tall (the clear dot keeps its space)
+    /// and the divider adds 1 pt on top.
+    func testNotificationRowTileIs34() {
+        func row(unread: Bool, divider: Bool = false, action: (() -> Void)? = nil) -> NotificationRow {
+            NotificationRow(
+                icon: .clockW22, iconBackground: Tokens.aSoft, iconForeground: Tokens.aFg,
+                title: "Frist", when: "9:41", text: "Kurz.", unread: unread,
+                showsDivider: divider, action: action)
+        }
+        let tile = NotificationRow.Tile(icon: .clockW22, background: Tokens.aSoft, foreground: Tokens.aFg)
+        XCTAssertEqual(size(of: tile, width: 34), CGSize(width: 34, height: 34))
+        let unread = size(of: row(unread: true), width: 350).height
+        XCTAssertGreaterThanOrEqual(unread, 34 + 24)
+        XCTAssertEqual(size(of: row(unread: false), width: 350).height, unread)
+        XCTAssertEqual(size(of: row(unread: true, action: {}), width: 350).height, unread)
+        XCTAssertEqual(size(of: row(unread: false, divider: true), width: 350).height, unread + 1)
+    }
+
     /// Min-height 46 for every trailing kind; the divider adds its 1 pt on top.
     func testSettingsRowMinHeight46() {
         func row(_ trailing: SettingsRow.Trailing, divider: Bool = false) -> SettingsRow {

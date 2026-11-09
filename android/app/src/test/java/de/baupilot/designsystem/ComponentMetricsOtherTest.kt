@@ -1,5 +1,13 @@
 package de.baupilot.designsystem
 
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.Modifier
@@ -20,7 +28,11 @@ import de.baupilot.schedule.ScheduleLayout
 import de.baupilot.schedule.ScheduleRowLayout
 import de.baupilot.schedule.ScheduleState
 import de.baupilot.designsystem.components.BaupilotSearchBar
+import de.baupilot.designsystem.components.DetailScreenScaffold
+import de.baupilot.designsystem.components.DocumentPreview
 import de.baupilot.designsystem.components.DocumentTile
+import de.baupilot.designsystem.components.HintCard
+import de.baupilot.designsystem.components.PreviewLine
 import de.baupilot.designsystem.components.SectionHeader
 import de.baupilot.designsystem.components.SectionHeaderStyle
 import de.baupilot.designsystem.components.SectionLink
@@ -111,6 +123,69 @@ class ComponentMetricsOtherTest {
         assertEquals(32 * 3, sizes.getValue("noLink").second)
         val settings = sizes.getValue("settings").second
         assertTrue("settings header $settings", settings > (12 + 4) * 3)
+    }
+
+    @Test
+    fun documentPreviewIs250x320() {
+        paparazzi.snapshot {
+            Column {
+                DocumentPreview(
+                    issuerName = "Estrichbau Wagner GmbH",
+                    issuerAddress = "Industriestraße 4 · 68519 Viernheim",
+                    number = "Angebot Nr. 2026-118",
+                    reference = "BV Einfamilienhaus Musterweg 12 · gültig bis 31.01.2027",
+                    lines = listOf(
+                        PreviewLine("1", "Randdämmstreifen 8 mm, liefern & setzen", "420,00"),
+                        PreviewLine("2", "PE-Folie als Trennlage", "310,00"),
+                        PreviewLine("3", "Zementestrich CT-C25-F4, 65 mm, 112 m²", "7.150,00"),
+                        PreviewLine("4", "Bewegungsfugen anlegen", "355,00"),
+                        PreviewLine("5", "Baustelleneinrichtung", "1.565,00"),
+                    ),
+                    totalLabel = "Gesamt brutto",
+                    total = "9.800,00 €",
+                    contentDescription = "Vorschau Seite 1 von 2",
+                    modifier = Modifier.record("page"),
+                )
+            }
+        }
+
+        assertEquals(250 * 3 to 320 * 3, sizes.getValue("page"))
+    }
+
+    @Test
+    fun hintCardPaddingAndIcon() {
+        paparazzi.snapshot {
+            Column {
+                HintCard(
+                    icon = BaupilotIcon.Clock,
+                    title = "Rechnung prüfen & zahlen",
+                    subtitle = "Fenster & Türen · fällig 22.12.",
+                    amount = "18.400 €",
+                    modifier = Modifier.record("card"),
+                )
+                Column(Modifier.record("texts"), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    BaupilotText("Rechnung prüfen & zahlen", size = 16.sp, weight = 500, color = Tokens.onPrimaryContainer)
+                    BaupilotText("Fenster & Türen · fällig 22.12.", size = 13.sp, color = Tokens.onPrimaryContainer)
+                }
+            }
+        }
+
+        // padding 12 + 12 around the text column (taller than the 24 icon); the card fills the 390 dp width.
+        assertEquals(sizes.getValue("texts").second + 24 * 3, sizes.getValue("card").second)
+        assertEquals(390 * 3, sizes.getValue("card").first)
+    }
+
+    @Test
+    fun compactSectionHeaderLinkHas48HitArea() {
+        paparazzi.snapshot {
+            Column {
+                SectionHeader("Zuletzt hinzugefügt", SectionHeaderStyle.Compact(SectionLink("Nach Gewerk")), Modifier.record("withLink"))
+                SectionHeader("Zuletzt hinzugefügt", SectionHeaderStyle.Compact(null), Modifier.record("noLink"))
+            }
+        }
+
+        assertEquals(48 * 3, sizes.getValue("withLink").second)
+        assertTrue("noLink header ${sizes.getValue("noLink").second}", sizes.getValue("noLink").second < 48 * 3)
     }
 
     @Test
@@ -265,5 +340,26 @@ class ComponentMetricsOtherTest {
             val deltaDp = Math.abs(baselines.getValue(size) / 3f - base)
             assertTrue("baseline $size sp: ${baselines.getValue(size) / 3f} dp, want $base", deltaDp <= 0.5f)
         }
+    }
+
+    @Test
+    fun detailScaffoldReservesTheBottomBar() {
+        val scroll = ScrollState(0)
+        paparazzi.snapshot {
+            Box(Modifier.size(390.dp, 400.dp)) {
+                DetailScreenScaffold(
+                    topBar = {},
+                    contentPadding = PaddingValues(0.dp),
+                    spacing = 0.dp,
+                    scrollState = scroll,
+                    bottomBar = { Spacer(Modifier.fillMaxWidth().height(90.dp).record("bar")) },
+                ) {
+                    Spacer(Modifier.fillMaxWidth().height(1000.dp))
+                }
+            }
+        }
+
+        assertEquals(90 * 3, sizes.getValue("bar").second)
+        assertEquals((1000 + 90 - 400) * 3, scroll.maxValue)
     }
 }

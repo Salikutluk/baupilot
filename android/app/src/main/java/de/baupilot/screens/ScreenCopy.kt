@@ -1,6 +1,9 @@
 package de.baupilot.screens
 
+import de.baupilot.app.NotificationKind
 import de.baupilot.designsystem.BaupilotIcon
+import de.baupilot.designsystem.ColorToken
+import de.baupilot.designsystem.Tokens
 import de.baupilot.designsystem.components.StatusChipColors
 
 /**
@@ -71,6 +74,83 @@ object ScreenCopy {
 
         /** AndZeitplan.dc.html:70 */
         const val TODAY = "Heute"
+    }
+
+    object Gewerk {
+        /** AndGewerk.dc.html:63 */
+        const val BEST = "Günstigstes"
+
+        /** AndGewerk.dc.html:75 */
+        const val COMPARE = "Angebote vergleichen"
+
+        /** AndGewerk.dc.html:72 (aria-label of the attach button) */
+        const val ADD = "Dokument hinzufügen"
+
+        /** AndGewerk.dc.html:23 (aria-label of the overflow button) */
+        const val MORE = "Weitere Optionen"
+
+        /** AndGewerk.dc.html:44 (aria-label of the tab list) */
+        const val TABS = "Bereiche"
+
+        /** Fact icons by position: calendar, clock, link (AndGewerk.dc.html:96-98). */
+        val FACT_ICONS = listOf(BaupilotIcon.Calendar, BaupilotIcon.Clock, BaupilotIcon.Link)
+    }
+
+    object Vergleich {
+        /** AndVergleich.dc.html:23 */
+        const val TITLE = "Angebote vergleichen"
+
+        /** AndVergleich.dc.html:29 */
+        const val TABLE = "Vergleich der Estrich-Angebote"
+
+        /** AndVergleich.dc.html:59 (placeholder link, no action) */
+        const val REMIND = "Erinnern"
+
+        /** AndVergleich.dc.html:64 (placeholder link, no action) */
+        const val ASK = "Rückfrage"
+
+        /** AndVergleich.dc.html:65 (placeholder link, no action) */
+        const val AWARD = "Wagner beauftragen"
+    }
+
+    object Dokumente {
+        /** AndDokumente.dc.html:25 */
+        const val FILTERS = "Dokumenttyp"
+
+        /** AndDokumente.dc.html:63 */
+        const val UPLOAD = "Hochladen"
+    }
+
+    object DokViewer {
+        /** AndDokViewer.dc.html:54 */
+        const val TOTAL = "Gesamt brutto"
+
+        /** AndDokViewer.dc.html:73 */
+        const val COMPARE = "Im Vergleich ansehen"
+
+        /** AndDokViewer.dc.html:26 (aria-label) */
+        const val SHARE = "Teilen"
+
+        /** AndDokViewer.dc.html:68 */
+        const val CHANGE = "Gewerk oder Typ ändern"
+    }
+
+    object Mitteilungen {
+        /** AndMitteilungen.dc.html:23 (placeholder action) */
+        const val MARK_ALL = "Alle gelesen"
+
+        /** Icon circle of a notification kind: icon, background and foreground token. */
+        class KindStyle(val icon: BaupilotIcon, val background: ColorToken, val foreground: ColorToken)
+
+        /**
+         * Icon circle by kind: frist AndMitteilungen.dc.html:55, geld :56, angebot :57, termin :58.
+         */
+        fun kindStyle(kind: NotificationKind): KindStyle = when (kind) {
+            NotificationKind.Frist -> KindStyle(BaupilotIcon.AlertTriangle, Tokens.errBg, Tokens.errFg)
+            NotificationKind.Geld -> KindStyle(BaupilotIcon.Receipt, Tokens.secondaryContainer, Tokens.onSecondaryContainer)
+            NotificationKind.Angebot -> KindStyle(BaupilotIcon.Document, Tokens.infoBg, Tokens.infoFg)
+            NotificationKind.Termin -> KindStyle(BaupilotIcon.Calendar, Tokens.okBg, Tokens.okFg)
+        }
     }
 
     object Profil {

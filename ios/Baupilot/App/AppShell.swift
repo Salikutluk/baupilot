@@ -5,11 +5,13 @@ struct AppShell: View {
     @Binding var navigation: AppNavigation
     let data: AppData
     @State private var profileToggles: [String: Bool]
+    @State private var documentsFilter: Int
 
     init(navigation: Binding<AppNavigation>, data: AppData) {
         _navigation = navigation
         self.data = data
         _profileToggles = State(initialValue: ProfileScreen.initialToggles(for: data.profile))
+        _documentsFilter = State(initialValue: data.documents.initialFilter)
     }
 
     var body: some View {
@@ -56,7 +58,9 @@ struct AppShell: View {
             ScheduleScreen(model: data.schedule, onAction: handle)
         case .profile:
             ProfileScreen(model: data.profile, toggles: $profileToggles)
-        case .inspections, .documents:
+        case .documents:
+            DocumentsScreen(model: data.documents, filter: $documentsFilter, onAction: handle)
+        case .inspections:
             PlaceholderScreen(title: label(of: tab), presentation: .tabRoot)
                 .accessibilityIdentifier("screen.\(tab.rawValue)")
         }
@@ -64,15 +68,41 @@ struct AppShell: View {
 
     @ViewBuilder
     private func destination(_ route: AppRoute, from tab: AppTab) -> some View {
-        let back = PlaceholderScreen.Presentation.pushed(backLabel: label(of: tab), onBack: { navigation.pop() })
+        let backLabel = backLabel(for: route, from: tab)
+        let onBack = { navigation.pop() }
+        let fallback = PlaceholderScreen.Presentation.pushed(backLabel: backLabel, onBack: onBack)
         switch route {
         case .notifications:
-            PlaceholderScreen(title: ScreenCopy.notificationsTitle, presentation: back)
-                .accessibilityIdentifier("screen.notifications")
+            NotificationsScreen(
+                model: data.notifications, backLabel: backLabel, onBack: onBack, onAction: handle)
         case let .trade(id):
-            PlaceholderScreen(title: data.tradeNames[id] ?? "", presentation: back)
-                .accessibilityIdentifier("screen.trade.\(id)")
+            if let model = data.trades[id] {
+                GewerkScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else {
+                PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
+                    .accessibilityIdentifier("screen.trade.\(id)")
+            }
+        case let .compare(tradeId):
+            if let model = data.comparisons[tradeId] {
+                CompareScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else {
+                PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
+                    .accessibilityIdentifier("screen.compare.\(tradeId)")
+            }
+        case let .document(id):
+            if let model = data.viewers[id] {
+                DocViewerScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else {
+                PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
+                    .accessibilityIdentifier("screen.document.\(id)")
+            }
         }
+    }
+
+    /// Title of the screen below `route` on its stack, or the tab label for the first entry.
+    private func backLabel(for route: AppRoute, from tab: AppTab) -> String {
+        let path = navigation.path(for: tab)
+        return data.routeTitles.backLabel(path: path, index: path.firstIndex(of: route) ?? 0, tab: tab)
     }
 
     /// Tab label from the screen models; every tab bar of the fixture lists the same five.
@@ -82,16 +112,47 @@ struct AppShell: View {
 
     private func handle(_ action: HomeAction) {
         switch action {
-        case .openNotifications: navigation.push(.notifications)
-        case .openScheduleTab: navigation.select(.schedule)
-        case let .openTrade(id): navigation.push(.trade(id: id))
-        case .openDocumentsTab: navigation.select(.documents)
+        case .openNotifications: navigation.open(.notifications)
+        case .openScheduleTab: navigation.go(.tab(.schedule))
+        case let .openTrade(id): navigation.open(.trade(id: id))
+        case .openDocumentsTab: navigation.go(.tab(.documents))
         }
     }
 
     private func handle(_ action: ScheduleAction) {
         switch action {
-        case let .openTrade(id): navigation.push(.trade(id: id))
+        case let .openTrade(id): navigation.open(.trade(id: id))
+        }
+    }
+
+    private func handle(_ action: GewerkAction) {
+        switch action {
+        case let .openDocument(id): navigation.open(.document(id: id))
+        case let .openCompare(tradeId): navigation.open(.compare(tradeId: tradeId))
+        }
+    }
+
+    private func handle(_ action: DocumentsAction) {
+        switch action {
+        case let .openDocument(id): navigation.open(.document(id: id))
+        }
+    }
+
+    private func handle(_ action: DocViewerAction) {
+        switch action {
+        case let .openCompare(tradeId): navigation.open(.compare(tradeId: tradeId))
+        }
+    }
+
+    private func handle(_ action: CompareAction) {
+        switch action {
+        case let .openDocument(id): navigation.open(.document(id: id))
+        }
+    }
+
+    private func handle(_ action: NotificationsAction) {
+        switch action {
+        case let .open(target): navigation.go(target)
         }
     }
 

@@ -112,4 +112,53 @@ final class AppNavigationTests: XCTestCase {
         out.setPath([.notifications], for: .home)
         XCTAssertEqual(out, before)
     }
+
+    func testOpenAppendsNewRoute() {
+        var nav = loggedIn()
+        nav.open(.trade(id: "screed"))
+        nav.open(.compare(tradeId: "screed"))
+        XCTAssertEqual(nav.path(for: .home), [.trade(id: "screed"), .compare(tradeId: "screed")])
+    }
+
+    func testOpenExistingRoutePopsBackToIt() {
+        var nav = loggedIn()
+        nav.open(.trade(id: "screed"))
+        nav.open(.compare(tradeId: "screed"))
+        nav.open(.document(id: "d1"))
+        nav.open(.trade(id: "screed"))
+        XCTAssertEqual(nav.path(for: .home), [.trade(id: "screed")])
+    }
+
+    func testOpenNeverDuplicates() {
+        var nav = loggedIn()
+        nav.open(.trade(id: "screed"))
+        nav.open(.compare(tradeId: "screed"))
+        nav.open(.document(id: "d1"))
+        nav.open(.compare(tradeId: "screed"))
+        XCTAssertEqual(nav.path(for: .home), [.trade(id: "screed"), .compare(tradeId: "screed")])
+    }
+
+    func testOpenWhileLoggedOutIsNoOp() {
+        var nav = AppNavigation()
+        let before = nav
+        nav.open(.notifications)
+        XCTAssertEqual(nav, before)
+    }
+
+    func testGoTabSelectsWithoutTouchingStacks() {
+        var nav = loggedIn()
+        nav.open(.notifications)
+        nav.go(.tab(.documents))
+        XCTAssertEqual(nav.selectedTab, .documents)
+        XCTAssertEqual(nav.path(for: .home), [.notifications])
+        XCTAssertEqual(nav.path(for: .documents), [])
+    }
+
+    func testGoPushOpensOnSelectedTab() {
+        var nav = loggedIn()
+        nav.select(.documents)
+        nav.go(.push(.document(id: "d1")))
+        XCTAssertEqual(nav.path(for: .documents), [.document(id: "d1")])
+        XCTAssertEqual(nav.path(for: .home), [])
+    }
 }

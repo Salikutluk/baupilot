@@ -68,6 +68,40 @@ struct ProfilScreenText: Decodable, Sendable, Equatable {
     let tabs: [TabText]
 }
 
+struct GewerkScreenText: Decodable, Sendable, Equatable {
+    struct Step: Decodable, Sendable, Equatable {
+        let label: String
+    }
+
+    let steps: [Step]
+}
+
+struct DokumenteScreenText: Decodable, Sendable, Equatable {
+    struct Filter: Decodable, Sendable, Equatable {
+        let text: String
+        let selected: Bool
+    }
+
+    struct Banner: Decodable, Sendable, Equatable {
+        let title: String
+        let sub: String
+        let amount: String
+        let documentId: String
+    }
+
+    let headerLabel: String
+    let filters: [Filter]
+    let searchLabel: String
+    let searchPlaceholder: String
+    let banner: Banner
+    let recentLabel: String
+    let byTradeLabel: String
+    let tabs: [TabText]
+}
+
+/// The `ios` side of DokViewer, Vergleich and Mitteilungen is `{}`: loading it proves the screen exists.
+struct EmptyScreenText: Decodable, Sendable, Equatable {}
+
 extension BackendRepository {
     /// Decodes the `ios` member of `screens.<name>`.
     func screenText<T: Decodable & Sendable>(_ name: String, as type: T.Type) async throws -> T {

@@ -1,6 +1,7 @@
 package de.baupilot.snapshot
 
 import de.baupilot.app.AppNavigationState
+import de.baupilot.app.AppRoute
 import de.baupilot.app.AppTab
 import de.baupilot.app.BaupilotAppContent
 import org.junit.Rule
@@ -102,6 +103,136 @@ class ProfilDarkSnapshotTest {
     fun profil() {
         val data = TestAppData.load()
         val state = AppNavigationState().logIn().select(AppTab.Profile)
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Gewerk-Detail Estrich, opened from Home, compared with `design/reference/android/Gewerk_light.png`. */
+class GewerkLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("Gewerk", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun gewerk() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().open(AppRoute.Trade("screed"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Gewerk-Detail Estrich, opened from Home, compared with `design/reference/android/Gewerk_dark.png`. */
+class GewerkDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("Gewerk", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun gewerk() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().open(AppRoute.Trade("screed"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Dokumente tab, logged in, compared with `design/reference/android/Dokumente_light.png`. */
+class DokumenteLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("Dokumente", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun dokumente() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Documents)
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Dokumente tab, logged in, compared with `design/reference/android/Dokumente_dark.png`. */
+class DokumenteDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("Dokumente", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun dokumente() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Documents)
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Dokument ansehen (Angebot Wagner), opened from Dokumente, compared with `design/reference/android/DokViewer_light.png`. */
+class DokViewerLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("DokViewer", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun dokViewer() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Documents).open(AppRoute.Document("doc-offer-wagner"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Dokument ansehen (Angebot Wagner), opened from Dokumente, compared with `design/reference/android/DokViewer_dark.png`. */
+class DokViewerDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("DokViewer", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun dokViewer() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Documents).open(AppRoute.Document("doc-offer-wagner"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Angebote vergleichen (Estrich), Home → Gewerk → Vergleich, compared with `design/reference/android/Vergleich_light.png`. */
+class VergleichLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("Vergleich", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun vergleich() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().open(AppRoute.Trade("screed")).open(AppRoute.Compare("screed"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Angebote vergleichen (Estrich), Home → Gewerk → Vergleich, compared with `design/reference/android/Vergleich_dark.png`. */
+class VergleichDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("Vergleich", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun vergleich() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().open(AppRoute.Trade("screed")).open(AppRoute.Compare("screed"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Mitteilungen, Home → Mitteilungen, compared with `design/reference/android/Mitteilungen_light.png`. */
+class MitteilungenLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("Mitteilungen", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun mitteilungen() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().open(AppRoute.Notifications)
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Mitteilungen, Home → Mitteilungen, compared with `design/reference/android/Mitteilungen_dark.png`. */
+class MitteilungenDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("Mitteilungen", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun mitteilungen() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().open(AppRoute.Notifications)
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }

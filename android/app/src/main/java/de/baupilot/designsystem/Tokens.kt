@@ -84,6 +84,14 @@ object Tokens {
         val abnMaengel = ColorToken(Color(0xFF6B4A00), Color(0xFFF5D27A))
     }
     val well = ColorToken(Color(0xFFEADFD8), Color(0xFF0E0B08))
+    val docBrand = ColorToken(Color(0xFF1D4E89), Color(0xFF1D4E89))
+    val docInk = ColorToken(Color(0xFF2A2A2A), Color(0xFF2A2A2A))
+    val docMeta = ColorToken(Color(0xFF777777), Color(0xFF777777))
+    val docPaper = ColorToken(Color(0xFFFFFFFF), Color(0xFFFFFFFF))
+    val docPos = ColorToken(Color(0xFF888888), Color(0xFF888888))
+    val docRule = ColorToken(Color(0xFFDDDDDD), Color(0xFFDDDDDD))
+    val docRuleLight = ColorToken(Color(0xFFEEEEEE), Color(0xFFEEEEEE))
+    val docShadow = ColorToken(Color(0x2E000000), Color(0x2E000000))
     val fabShadow = ColorToken(Color(0x2E000000), Color(0x2E000000))
     val placeholder = ColorToken(Color(0xFF757575), Color(0xFF757575))
 

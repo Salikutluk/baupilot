@@ -73,6 +73,35 @@ data class ProfilGroupText(val title: String, val rows: List<ProfilRowText>)
 @Serializable
 data class ProfilScreenText(val groups: List<ProfilGroupText>, val tabs: List<TabText>)
 
+@Serializable
+data class SelectableTabText(val label: String, val selected: Boolean)
+
+/** Mirror of `screens.Gewerk.android`. */
+@Serializable
+data class GewerkScreenText(val tabs: List<SelectableTabText>)
+
+@Serializable
+data class FilterChipText(val text: String, val selected: Boolean)
+
+@Serializable
+data class DocumentBannerText(val title: String, val sub: String, val amount: String, val documentId: String)
+
+/** Mirror of `screens.Dokumente.android`. */
+@Serializable
+data class DokumenteScreenText(
+    val filters: List<FilterChipText>,
+    val searchLabel: String,
+    val banner: DocumentBannerText,
+    val recentLabel: String,
+    val byTradeLabel: String,
+    val tabs: List<TabText>,
+    val countBadge: String,
+)
+
+/** Mirror of `screens.DokViewer.android`, `screens.Vergleich.android` and `screens.Mitteilungen.android`: no keys. */
+@Serializable
+class EmptyScreenText
+
 /**
  * Decodes `screens.<name>.android` with the strict [FixtureJson].
  * A missing screen or `android` member throws [RepositoryException.FixtureMissing], a shape error [RepositoryException.Decoding].

@@ -32,6 +32,7 @@ import de.baupilot.designsystem.BaupilotText
 import de.baupilot.designsystem.ColorToken
 import de.baupilot.designsystem.Icon
 import de.baupilot.designsystem.Tokens
+import de.baupilot.designsystem.wholeDpCentered
 
 /** Leading navigation button of the bar. A null [onClick] draws the button and does nothing. */
 sealed interface Nav {
@@ -180,7 +181,7 @@ internal fun baupilotTopAppBarMeasured(
             horizontalArrangement = Arrangement.spacedBy(padding.gap),
         ) {
             if (navigation != null) NavButton(navigation, iconColor)
-            Column(Modifier.weight(1f)) {
+            Column(Modifier.weight(1f).then(wholeDpCentered())) {
                 BaupilotText(
                     text = title,
                     size = titleStyle.size,
@@ -194,7 +195,10 @@ internal fun baupilotTopAppBarMeasured(
                 }
             }
             if (trailingText != null) {
-                BaupilotText(text = trailingText, size = 14.sp, weight = 500, color = mutedColor)
+                BaupilotText(
+                    text = trailingText, size = 14.sp, weight = 500, color = mutedColor,
+                    modifier = wholeDpCentered(),
+                )
             }
             actions.forEach { action ->
                 when (action) {

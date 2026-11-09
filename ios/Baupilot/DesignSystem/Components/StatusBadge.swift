@@ -40,13 +40,16 @@ public struct StatusBadge: View {
         case compact
         case roomy
         case mini
+        /// 11 pt, padding 6 x 2, radius 5 (IosVergleich:36).
+        case micro
 
-        var fontSize: CGFloat { self == .mini ? 11 : 12 }
+        var fontSize: CGFloat { self == .mini || self == .micro ? 11 : 12 }
         var horizontal: CGFloat {
             switch self {
             case .compact: return 8
             case .roomy: return 9
             case .mini: return 7
+            case .micro: return 6
             }
         }
         var vertical: CGFloat {
@@ -54,6 +57,7 @@ public struct StatusBadge: View {
             case .compact: return 4
             case .roomy: return 5
             case .mini: return 3
+            case .micro: return 2
             }
         }
         var radius: CGFloat {
@@ -61,6 +65,7 @@ public struct StatusBadge: View {
             case .compact: return 7
             case .roomy: return 8
             case .mini: return 6
+            case .micro: return 5
             }
         }
     }

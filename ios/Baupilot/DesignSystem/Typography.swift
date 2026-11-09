@@ -69,7 +69,10 @@ extension LineHeight {
 
 public enum TextLines {
     case single
+    /// Wrapping text laid out with `lineSpacing` only (the geometry `StepRow` and `BottomActionBar` are tuned to).
     case multi
+    /// Wrapping text as a CSS block: n line boxes tall, first baseline where Chrome puts it.
+    case block
 }
 
 public extension View {
@@ -91,6 +94,42 @@ public extension View {
                 .alignmentGuide(.firstTextBaseline) { _ in baseline }
         case .multi:
             styled.lineSpacing(max(0, box - InterMetrics.naturalHeight(size)))
+        case .block:
+            let natural = InterMetrics.naturalHeight(size)
+            let leading = max(0, box - natural)
+            // iOS puts `lineSpacing` between lines only and rounds a multi-line height up to the pixel grid; a CSS
+            // block of n lines is exactly n line boxes tall. The layout counts the lines and reports `n × box`.
+            BlockTextLayout(
+                box: box, natural: natural, leading: leading,
+                top: baseline - InterMetrics.ascender / InterMetrics.unitsPerEm * size
+            ) {
+                styled.lineSpacing(leading)
+            }
         }
+    }
+}
+
+/// Lays one wrapping `Text` out as a CSS block: n line boxes tall, the first baseline where Chrome puts it.
+struct BlockTextLayout: Layout {
+    /// Line box height.
+    let box: CGFloat
+    /// Unrounded height of one line of text.
+    let natural: CGFloat
+    /// Space SwiftUI adds between lines (`box − natural`).
+    let leading: CGFloat
+    /// Offset of the text's own top below the block's top (Chrome's baseline minus the text's ascent).
+    let top: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let text = subviews.first else { return .zero }
+        let fitted = text.sizeThatFits(ProposedViewSize(width: proposal.width, height: nil))
+        let lines = max(1, ((fitted.height + leading) / (natural + leading)).rounded())
+        return CGSize(width: fitted.width, height: lines * box)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(
+            at: CGPoint(x: bounds.minX, y: bounds.minY + top), anchor: .topLeading,
+            proposal: ProposedViewSize(width: bounds.width, height: nil))
     }
 }

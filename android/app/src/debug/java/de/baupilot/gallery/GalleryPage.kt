@@ -30,6 +30,10 @@ enum class GalleryPage(val goldenName: String) {
     Overview("GalleryOverview"),
     Schedule("GallerySchedule"),
     Settings("GallerySettings"),
+    Trade("GalleryTrade"),
+    Documents("GalleryDocuments"),
+    Compare("GalleryCompare"),
+    Notifications("GalleryNotifications"),
 }
 
 @Composable
@@ -52,6 +56,10 @@ fun GalleryPageContent(page: GalleryPage) {
                 GalleryPage.Overview -> OverviewPage()
                 GalleryPage.Schedule -> SchedulePage()
                 GalleryPage.Settings -> SettingsPage()
+                GalleryPage.Trade -> TradePage()
+                GalleryPage.Documents -> DocumentsPage()
+                GalleryPage.Compare -> ComparePage()
+                GalleryPage.Notifications -> NotificationsPage()
             }
         }
     }
