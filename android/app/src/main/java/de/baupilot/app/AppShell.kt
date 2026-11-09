@@ -47,13 +47,17 @@ private fun Tab.appTab(): AppTab = when (this) {
  * Saveable-state key per route (D9): a parent's state survives a push and pop, and Profil keeps `profile/0/root`.
  * Entries of popped routes are not removed, so re-opening a route at the same depth restores its state.
  */
-private fun providerKey(tab: AppTab, path: List<AppRoute>): String {
+private fun providerKey(tab: AppTab, path: List<AppRoute>, view: InspectionsView): String {
     val top = when (val route = path.lastOrNull()) {
-        null -> "root"
+        null -> if (tab == AppTab.Inspections) "root/${view.name.lowercase()}" else "root"
         is AppRoute.Trade -> "trade:${route.id}"
         is AppRoute.Compare -> "compare:${route.tradeId}"
         is AppRoute.Document -> "document:${route.id}"
         AppRoute.Notifications -> "notifications"
+        is AppRoute.Inspection -> "inspection:${route.tradeId}"
+        is AppRoute.InspectionStep -> "step:${route.tradeId}/${route.elementId}/${route.step}"
+        AppRoute.NewDefect -> "defect:new"
+        is AppRoute.SignOff -> "sign:${route.inspectionId}"
     }
     return "${tab.route}/${path.size}/$top"
 }
@@ -73,7 +77,7 @@ fun AppShell(
     val tab = state.selectedTab
     Box(Modifier.fillMaxSize().background(Tokens.bg.color())) {
         val path = state.path(tab)
-        holder.SaveableStateProvider(key = providerKey(tab, path)) {
+        holder.SaveableStateProvider(key = providerKey(tab, path, state.inspectionsView)) {
             TabContent(
                 tab = tab,
                 route = path.lastOrNull(),
@@ -154,6 +158,26 @@ private fun TabContent(
                 }
             }
 
+            is AppRoute.Inspection -> PushedPlaceholder(
+                data.tradeNames[route.tradeId] ?: route.tradeId,
+                "screen.inspection.${route.tradeId}",
+                onBack,
+            )
+
+            is AppRoute.InspectionStep -> PushedPlaceholder(
+                route.elementId,
+                "screen.inspection.${route.tradeId}.step.${route.elementId}.${route.step}",
+                onBack,
+            )
+
+            AppRoute.NewDefect -> PushedPlaceholder("Mangel erfassen", "screen.defect.new", onBack)
+
+            is AppRoute.SignOff -> PushedPlaceholder(
+                route.inspectionId,
+                "screen.inspection.${route.inspectionId}.sign",
+                onBack,
+            )
+
             AppRoute.Notifications -> NotificationsScreen(
                 model = data.notifications,
                 onBack = onBack,
@@ -189,6 +213,7 @@ private fun TabContent(
             },
         )
 
+        // Step 5 replaces this with the two views (state.inspectionsView) of the Abnahmen root.
         AppTab.Inspections -> PlaceholderScreen(
             title = Tab.Acceptance.label,
             presentation = PlaceholderPresentation.TabRoot,

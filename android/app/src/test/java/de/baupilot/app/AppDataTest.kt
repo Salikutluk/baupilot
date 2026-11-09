@@ -427,7 +427,7 @@ class AppDataTest {
         val items = AppData.load(repository).notifications.groups.flatMap { it.items }
         assertEquals(
             listOf(
-                NavigationTarget.Tab(AppTab.Inspections),
+                NavigationTarget.Defects,
                 NavigationTarget.Tab(AppTab.Documents),
                 NavigationTarget.Push(AppRoute.Compare("screed")),
                 NavigationTarget.Push(AppRoute.Trade("screed")),
