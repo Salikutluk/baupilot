@@ -42,6 +42,8 @@ struct ElUebersichtScreen: View {
             PhaseTile(
                 label: phase.title, value: progressLabel, state: .active(progress: fraction),
                 track: Tokens.track.elUebersicht, fillsHeight: true)
+        case .planned(let status):
+            PhaseTile(label: phase.title, value: status, state: .planned, fillsHeight: true)
         }
     }
 

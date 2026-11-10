@@ -316,4 +316,137 @@ enum ScreenCopy {
             }
         }
     }
+
+    // MARK: - M6 later trades
+
+    enum TradeOverview {
+        /// The trades of the M6 overviews, in loading order (design/screens.md rows 24, 28, 31, 33).
+        static let trades = ["plumbing", "screed", "tiles", "painting"]
+
+        // IosSanGefaelle.dc.html:22, IosSanDruck.dc.html:22, IosSanBad.dc.html:22 (back label of a plumbing check screen)
+        static let backLabels = ["plumbing": "Sanitär"]
+
+        /// Width of the active phase bar, hard-coded by the prototype (IosSanUebersicht.dc.html:34 50 %,
+        /// IosEsUebersicht.dc.html:34 75 %, IosFlUebersicht.dc.html:39 50 %).
+        static let activePhaseFraction: [String: Double] = ["plumbing": 0.50, "screed": 0.75, "tiles": 0.50]
+
+        /// Status label to tone (map `S`: IosSanUebersicht.dc.html:72, IosEsUebersicht.dc.html:74,
+        /// IosFlUebersicht.dc.html:70, IosMaUebersicht.dc.html:67); nil for a label the prototypes do not know.
+        /// A defect label is `^[1-9][0-9]* Mangel$`.
+        static func tone(statusLabel: String) -> OverviewTone? {
+            switch statusLabel {
+            case "In Ordnung": return .ok
+            case "Offen": return .open
+            case "Läuft": return .running
+            case "Heute": return .today
+            case "Geplant": return .planned
+            case "Pflicht": return .required
+            default:
+                let suffix = " Mangel"
+                guard statusLabel.hasSuffix(suffix), positiveNumber(String(statusLabel.dropLast(suffix.count))) != nil
+                else { return nil }
+                return .defect
+            }
+        }
+
+        /// Row icons of the plumbing overview by group and row (IosSanUebersicht.dc.html:74-92): pipe, drop, pipe /
+        /// heat, heat / home, home.
+        static let plumbingIcons: [[OverviewIcon]] = [[.pipe, .drop, .pipe], [.heat, .heat], [.home, .home]]
+    }
+
+    enum MaUebersicht {
+        /// First word of a row sub to its swatch (IosMaUebersicht.dc.html:68, map `C`; IosMaUebersicht.dc.html:79-86).
+        static func swatch(word: String) -> PaintColor? {
+            switch word {
+            case "Weiß": return .white
+            case "Sand": return .sand
+            case "Salbei": return .sage
+            default: return nil
+            }
+        }
+    }
+
+    enum SanGefaelle {
+        // IosSanGefaelle.dc.html:45
+        static let lengthLabel = "Länge"
+        // IosSanGefaelle.dc.html:53 (label of the drop stepper, aria-label "Höhenunterschied verringern" at :55)
+        static let dropLabel = "Höhenunterschied"
+        // IosSanGefaelle.dc.html:47 (stepper glyph, U+2212)
+        static let decrementGlyph = "−"
+        // IosSanGefaelle.dc.html:49
+        static let incrementGlyph = "+"
+        // IosSanGefaelle.dc.html:47 (aria-label of the decrement button)
+        static let decrementAriaFormat = "%@ verringern"
+        // IosSanGefaelle.dc.html:49 (aria-label of the increment button)
+        static let incrementAriaFormat = "%@ erhöhen"
+        // IosSanGefaelle.dc.html:63 (schema label of the level line)
+        static let schemaLevelLabel = "waagerecht"
+        // IosSanGefaelle.dc.html:63 (schema label of the drop, U+0394)
+        static let schemaDeltaLabel = "Δh"
+        // IosSanGefaelle.dc.html:71 (aria-label of the photo button)
+        static let photoLabel = "Foto aufnehmen"
+        // IosSanGefaelle.dc.html:75
+        static let saveLabel = "Speichern"
+        // IosSanGefaelle.dc.html:106 (label of the section that is checked now)
+        static let nowLabel = "jetzt"
+        // IosSanGefaelle.dc.html:107 (label of a section that is not checked yet)
+        static let openLabel = "offen"
+    }
+
+    enum SanDruck {
+        // IosSanDruck.dc.html:69
+        static let photoLabel = "Manometer fotografieren"
+        // IosSanDruck.dc.html:49 (conic gradient to 58 %)
+        static let ringFraction = 0.58
+    }
+
+    enum SanBad {
+        // IosSanBad.dc.html:31 (aria-label of the object tabs)
+        static let tabsLabel = "Objekte"
+    }
+
+    enum EsEbenheit {
+        // IosEsEbenheit.dc.html:28 (subtitle, with the limit text)
+        static let subtitleFormat = "Grenzwert laut Vertrag: %@ Spalt unter 2-m-Latte"
+        // IosEsEbenheit.dc.html:38
+        static let instruction = "Richtlatte in mehreren Richtungen auflegen. Größten Spalt darunter mit dem Messkeil ablesen und eintragen."
+        // IosEsEbenheit.dc.html:40 (stepper label, followed by the point number)
+        static let stepperLabelPrefix = "Spalt Messpunkt M"
+        // IosEsEbenheit.dc.html:42 (noun of the stepper aria-labels "Spalt verringern" / "Spalt erhöhen")
+        static let stepperAccessibilityNoun = "Spalt"
+        // IosEsEbenheit.dc.html:49 (aria-label of the photo button)
+        static let photoLabel = "Foto aufnehmen"
+        // IosEsEbenheit.dc.html:52
+        static let saveLabel = "Messpunkt speichern"
+        // IosEsEbenheit.dc.html:57 (heading of the measured list, with the count)
+        static let measuredFormat = "Gemessen (%d)"
+    }
+
+    enum EsBelegreife {
+        // IosEsBelegreife.dc.html:25 (h1 of the screen)
+        static let screenTitle = "Aufheizen & Belegreife"
+        // IosEsBelegreife.dc.html:82 (bar height `round(v / 45 × 72)`)
+        static let barScaleValue = 45
+        // IosEsBelegreife.dc.html:82
+        static let barScaleHeight = 72
+    }
+
+    enum FlBad {
+        // IosFlBad.dc.html:56
+        static let defectLabel = "Als Mangel"
+        // IosFlBad.dc.html:57
+        static let noneLabel = "Keine Hohlstellen"
+        // IosFlBad.dc.html:49 (grid-template-columns: repeat(8, …); three rows of tiles)
+        static let columns = 8
+        static let rows = 3
+    }
+
+    enum MaRaum {
+        // IosMaRaum.dc.html:50 (aria-label of the wall tabs)
+        static let wallsLabel = "Flächen"
+        // IosMaRaum.dc.html:36 (swatch of the done row)
+        static let doneSwatch = PaintColor.sand
+        // IosMaRaum.dc.html:56 (aria-label of the photo button)
+        static let photoLabel = "Foto aufnehmen"
+    }
 }

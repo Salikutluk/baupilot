@@ -26,6 +26,8 @@ struct PhaseModel: Sendable, Equatable {
     enum Kind: Sendable, Equatable {
         case done(status: String, date: String?)
         case active(progressLabel: String, fraction: Double)
+        /// A phase that has not started (M6 overviews only; electrical data never produces it).
+        case planned(status: String)
     }
 
     let title: String

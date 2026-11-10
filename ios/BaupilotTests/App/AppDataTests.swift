@@ -819,7 +819,7 @@ final class AppDataTests: XCTestCase {
         try await expectDecoding("inspections.overview.rows.route") { object in
             editOverview(&object) { overview in
                 var rows = overview["rows"] as? [[String: Any]] ?? []
-                rows[0]["route"] = "inspection/a/b/c"
+                rows[0]["route"] = "inspection/a/b/c/d"
                 overview["rows"] = rows
             }
         }
@@ -1294,6 +1294,568 @@ final class AppDataTests: XCTestCase {
             XCTFail("Expected RepositoryError.fixtureMissing")
         } catch {
             XCTAssertEqual(error as? RepositoryError, .fixtureMissing("measurements.shellOpening"))
+        }
+    }
+
+    // MARK: - M6 later trades
+
+    private let plumbingPath = "inspections.byTrade.plumbing"
+    private let screedPath = "inspections.byTrade.screed"
+    private let tilesPath = "inspections.byTrade.tiles"
+    private let paintingPath = "inspections.byTrade.painting"
+    private let slopeRoute = AppRoute.inspectionCheckItem(tradeId: "plumbing", check: "slope", item: "A3")
+    private let pressureRoute = AppRoute.inspectionCheck(tradeId: "plumbing", check: "pressure")
+    private let bathUpperRoute = AppRoute.inspectionRoom(tradeId: "plumbing", roomId: "bathUpper")
+    private let flatnessRoute = AppRoute.inspectionCheck(tradeId: "screed", check: "flatness")
+    private let readinessRoute = AppRoute.inspectionCheck(tradeId: "screed", check: "readiness")
+    private let bathRoute = AppRoute.inspectionRoom(tradeId: "tiles", roomId: "bath")
+    private let livingRoute = AppRoute.inspectionRoom(tradeId: "painting", roomId: "living")
+    private let laterScreens = [
+        "SanUebersicht", "SanGefaelle", "SanDruck", "SanBad", "EsUebersicht", "EsEbenheit", "EsBelegreife",
+        "FlUebersicht", "FlBad", "MaUebersicht", "MaRaum",
+    ]
+
+    private func editMeasurement(
+        _ object: inout [String: Any], _ key: String, _ edit: (inout [String: Any]) -> Void
+    ) {
+        var measurements = object["measurements"] as? [String: Any] ?? [:]
+        var measurement = measurements[key] as? [String: Any] ?? [:]
+        edit(&measurement)
+        measurements[key] = measurement
+        object["measurements"] = measurements
+    }
+
+    /// Edits `groups[group].rows[row]` of a trade.
+    private func setRow(
+        _ object: inout [String: Any], trade: String, group: Int, row: Int, _ key: String, _ value: Any
+    ) {
+        editTrade(&object, trade) { tradeObject in
+            var groups = tradeObject["groups"] as? [[String: Any]] ?? []
+            setListItem(&groups[group], "rows", row, key, value)
+            tradeObject["groups"] = groups
+        }
+    }
+
+    func testLoadsTradeOverviews() async throws {
+        let overviews = try await loaded().tradeOverviews
+        XCTAssertEqual(Set(overviews.keys), ["plumbing", "screed", "tiles", "painting"])
+
+        let plumbing = try XCTUnwrap(overviews["plumbing"])
+        XCTAssertEqual(plumbing.title, "Sanitär & Heizung")
+        XCTAssertEqual(plumbing.subtitle, "Haustechnik Becker GmbH · Do, 04.02.2027")
+        XCTAssertNil(plumbing.notice)
+        XCTAssertEqual(plumbing.header, .phases([
+            PhaseModel(title: "1 · Rohinstallation", kind: .active(progressLabel: "3 von 6 geprüft", fraction: 0.50)),
+            PhaseModel(title: "2 · Fertigmontage", kind: .planned(status: "Geplant KW 14")),
+        ]))
+        XCTAssertEqual(plumbing.groups.map(\.title), ["Leitungen – vor dem Verschließen", "Heizung", "Bäder & Küche"])
+        let plumbingRows = plumbing.groups.flatMap(\.rows)
+        XCTAssertEqual(plumbingRows.map(\.name), [
+            "Gefälle Abwasser", "Druckprobe Trinkwasser", "Dämmung Warmwasser", "Fußbodenheizung",
+            "Wärmepumpe & Verteiler", "Bad OG", "Gäste-WC & Küche",
+        ])
+        XCTAssertEqual(plumbingRows[0].sub, "4 Abschnitte · 2 geprüft, 1 Mangel")
+        XCTAssertEqual(plumbingRows[1].sub, "Mit Installateur · 10:00 Uhr")
+        XCTAssertEqual(plumbingRows.map(\.leading), [
+            .icon(.pipe), .icon(.drop), .icon(.pipe), .icon(.heat), .icon(.heat), .icon(.home), .icon(.home),
+        ])
+        XCTAssertEqual(plumbingRows.map(\.tone), [.defect, .today, .ok, .ok, .planned, .planned, .planned])
+        XCTAssertEqual(plumbingRows.map(\.statusLabel), [
+            "1 Mangel", "Heute", "In Ordnung", "In Ordnung", "Geplant", "Geplant", "Geplant",
+        ])
+        let plumbingTargets: [AppRoute?] = [slopeRoute, pressureRoute, nil, nil, nil, bathUpperRoute, nil]
+        XCTAssertEqual(plumbingRows.map(\.target), plumbingTargets)
+
+        let screed = try XCTUnwrap(overviews["screed"])
+        XCTAssertEqual(screed.subtitle, "Estrichbau Wagner · Mo, 22.02.2027")
+        XCTAssertEqual(screed.notice, "Ohne CM-Messung und Aufheizprotokoll keinen Boden verlegen lassen.")
+        XCTAssertEqual(screed.header, .phases([
+            PhaseModel(title: "1 · Nach dem Einbau", kind: .active(progressLabel: "3 von 4 geprüft", fraction: 0.75)),
+            PhaseModel(title: "2 · Belegreife", kind: .planned(status: "Aufheizen ab 01.03.")),
+        ]))
+        let screedRows = screed.groups.flatMap(\.rows)
+        XCTAssertEqual(screedRows.map(\.tone), [.ok, .ok, .defect, .open, .open, .required])
+        XCTAssertEqual(screedRows[5].sub, "Durch den Bodenleger · vor Verlegung")
+        XCTAssertTrue(screedRows.allSatisfy { $0.leading == .none })
+        let screedTargets: [AppRoute?] = [nil, nil, flatnessRoute, nil, readinessRoute, readinessRoute]
+        XCTAssertEqual(screedRows.map(\.target), screedTargets)
+
+        let tiles = try XCTUnwrap(overviews["tiles"])
+        XCTAssertEqual(tiles.header, .phases([
+            PhaseModel(title: "1 · Abdichtung", kind: .done(status: "Abgenommen", date: "am 15.03.2027")),
+            PhaseModel(title: "2 · Fliesen fertig", kind: .active(progressLabel: "2 von 4 Räumen", fraction: 0.50)),
+        ]))
+        let tileRows = tiles.groups.flatMap(\.rows)
+        XCTAssertEqual(tileRows.map(\.tone), [.ok, .ok, .running, .ok, .ok, .open, .open])
+        XCTAssertEqual(tileRows[0].sub, "Dichtband in Ecken & am Ablauf · 4 Fotos")
+        XCTAssertEqual(tileRows.compactMap(\.target), [bathRoute])
+
+        let painting = try XCTUnwrap(overviews["painting"])
+        XCTAssertEqual(painting.header, .facts([
+            FactModel(label: "Qualität", value: "Q3"),
+            FactModel(label: "Farbtöne", value: "3 bemustert"),
+            FactModel(label: "Räume", value: "3 von 9"),
+        ]))
+        let paintRows = painting.groups.flatMap(\.rows)
+        XCTAssertEqual(paintRows.map(\.leading), [
+            .swatch(.sand), .swatch(.white), .swatch(.white), .swatch(.sage), .swatch(.white), .swatch(.white),
+        ])
+        XCTAssertEqual(paintRows.map(\.tone), [.running, .ok, .defect, .ok, .open, .open])
+        XCTAssertEqual(paintRows[0].sub, "Sand · Decke Weiß · Schritt 2 von 5")
+        XCTAssertEqual(paintRows.compactMap(\.target), [livingRoute])
+    }
+
+    func testLoadsSlopeCheck() async throws {
+        let data = try await loaded()
+        XCTAssertEqual(Set(data.slopeChecks.keys), [slopeRoute])
+        let slope = try XCTUnwrap(data.slopeChecks[slopeRoute])
+        XCTAssertEqual(slope.route, slopeRoute)
+        XCTAssertEqual(slope.counter, "Abschnitt 3 von 4")
+        XCTAssertEqual(slope.title, "Gefälle Abwasser")
+        XCTAssertEqual(slope.subtitle, "A3 · Bad OG → Fallleitung · DN 50")
+        XCTAssertTrue(slope.hint.hasPrefix("Digitale Wasserwaage"))
+        XCTAssertTrue(slope.warning.hasPrefix("Jetzt prüfen:"))
+        XCTAssertEqual(slope.sections.map(\.id), ["A1", "A2", "A3", "A4"])
+        XCTAssertEqual(slope.sections.map(\.label), ["1,4 %", "0,4 %", "jetzt", "offen"])
+        XCTAssertEqual(slope.sections.map(\.status), [.ok, .defect, .now, .open])
+        XCTAssertEqual(slope.defectLabel, "Mangel")
+        XCTAssertEqual(slope.lengthLabel, "Länge")
+        XCTAssertEqual(slope.dropLabel, "Höhenunterschied")
+        XCTAssertEqual(slope.saveLabel, "Speichern")
+        XCTAssertEqual(slope.photoLabel, "Foto aufnehmen")
+        XCTAssertEqual(slope.schemaLevelLabel, "waagerecht")
+        XCTAssertEqual(slope.schemaDeltaLabel, "Δh")
+        XCTAssertEqual(slope.defectTarget, .newDefect)
+        let initial = slope.initial
+        XCTAssertEqual(initial.lengthText, "2,0 m")
+        XCTAssertEqual(initial.dropText, "2,5 cm")
+        XCTAssertEqual(initial.percentText, "1,25 %")
+        XCTAssertEqual(initial.verdictText, "Ausreichend · Soll ≥ 1,0 %")
+        XCTAssertEqual(initial.sollTenths, 10)
+        XCTAssertEqual(initial.lengthRange, SlopeViewModel.Range(min: 5, max: 100, step: 5))
+        XCTAssertEqual(initial.dropRange, SlopeViewModel.Range(min: 0, max: 300, step: 5))
+    }
+
+    func testLoadsPressureCheck() async throws {
+        let data = try await loaded()
+        XCTAssertEqual(Set(data.pressureChecks.keys), [pressureRoute])
+        let pressure = try XCTUnwrap(data.pressureChecks[pressureRoute])
+        XCTAssertEqual(pressure.route, pressureRoute)
+        XCTAssertEqual(pressure.counter, "Schritt 3 von 5")
+        XCTAssertEqual(pressure.title, "Druckprobe Trinkwasser")
+        XCTAssertEqual(pressure.subtitle, "Gemeinsam mit dem Installateur · vor dem Verschließen")
+        XCTAssertEqual(pressure.done.map(\.label), ["Leitungen sichtbar & beschriftet", "Manometer zu Beginn"])
+        XCTAssertEqual(pressure.done.map(\.meta), ["3 Fotos", "10,0 bar"])
+        XCTAssertEqual(pressure.current.n, 3)
+        XCTAssertEqual(pressure.current.title, "Manometer am Ende ablesen")
+        XCTAssertEqual(pressure.timer.fraction, 0.58, accuracy: 0.0001)
+        XCTAssertEqual(pressure.timer.remaining, "12:40")
+        XCTAssertEqual(pressure.timer.accessibilityLabel, "Prüfzeit zu 58 Prozent abgelaufen")
+        XCTAssertEqual(pressure.timer.remainingLabel, "Noch 12:40 Min. Prüfzeit")
+        XCTAssertEqual(pressure.timer.note, "Prüfdruck und Dauer legt der Installateur fest.")
+        XCTAssertEqual(pressure.timer.startLabel, "Start (10:02)")
+        XCTAssertEqual(pressure.timer.startValue, "10,0 bar")
+        XCTAssertEqual(pressure.timer.endLabel, "Ende")
+        XCTAssertEqual(pressure.timer.endPlaceholder, "– bar")
+        XCTAssertEqual(pressure.next.map(\.n), [4, 5])
+        XCTAssertEqual(pressure.next.map(\.tag), [nil, "Pflicht"])
+        XCTAssertEqual(pressure.photoLabel, "Manometer fotografieren")
+    }
+
+    func testLoadsObjectCheck() async throws {
+        let data = try await loaded()
+        XCTAssertEqual(Set(data.objectChecks.keys), [bathUpperRoute])
+        let objects = try XCTUnwrap(data.objectChecks[bathUpperRoute])
+        XCTAssertEqual(objects.route, bathUpperRoute)
+        XCTAssertEqual(objects.trailing, "Fertigmontage")
+        XCTAssertEqual(objects.counter, "5 Objekte · 1 von 5 geprüft")
+        XCTAssertEqual(objects.title, "Bad OG")
+        XCTAssertEqual(objects.objects.map(\.name), ["WC", "Waschtisch", "Dusche", "Heizkörper", "Lüfter"])
+        XCTAssertEqual(objects.objects.map(\.state), [.done, .now, .open, .open, .open])
+        XCTAssertEqual(objects.heading, "Waschtisch")
+        XCTAssertEqual(objects.checks.map(\.ok), [true, true, false, false, false])
+        XCTAssertEqual(objects.checks[2].hint, "Mit Papiertuch unten abwischen – muss trocken bleiben.")
+        XCTAssertEqual(objects.checks[0].label, "Warm links, kalt rechts")
+        XCTAssertTrue(objects.nextHint.hasPrefix("Als Nächstes Dusche:"))
+        XCTAssertEqual(objects.tabsLabel, "Objekte")
+    }
+
+    func testLoadsFlatnessCheck() async throws {
+        let data = try await loaded()
+        XCTAssertEqual(Set(data.flatnessChecks.keys), [flatnessRoute])
+        let flatness = try XCTUnwrap(data.flatnessChecks[flatnessRoute])
+        XCTAssertEqual(flatness.route, flatnessRoute)
+        XCTAssertEqual(flatness.counter, "Raum 5 von 7")
+        XCTAssertEqual(flatness.title, "Ebenheit · Wohnen")
+        XCTAssertEqual(
+            flatness.subtitle(limitText: flatness.initial.limitText),
+            "Grenzwert laut Vertrag: 4 mm Spalt unter 2-m-Latte")
+        XCTAssertEqual(
+            flatness.instruction,
+            "Richtlatte in mehreren Richtungen auflegen. Größten Spalt darunter mit dem Messkeil ablesen und eintragen.")
+        XCTAssertEqual(flatness.stepperLabelPrefix, "Spalt Messpunkt M")
+        XCTAssertEqual(flatness.stepperAccessibilityNoun, "Spalt")
+        XCTAssertEqual(flatness.saveLabel, "Messpunkt speichern")
+        XCTAssertEqual(flatness.photoLabel, "Foto aufnehmen")
+        XCTAssertEqual(String(format: flatness.measuredFormat, 3), "Gemessen (3)")
+        XCTAssertEqual(flatness.defectTarget, .newDefect)
+        let initial = flatness.initial
+        XCTAssertEqual(initial.limit, 4)
+        XCTAssertEqual(initial.gapText, "3 mm")
+        XCTAssertEqual(initial.pointText(2), "M3 · 6 mm")
+        XCTAssertEqual(initial.summaryText, "1 Messpunkt über Grenzwert → Mangel erfassen")
+    }
+
+    func testLoadsReadinessCheck() async throws {
+        let data = try await loaded()
+        XCTAssertEqual(Set(data.readinessChecks.keys), [readinessRoute])
+        let readiness = try XCTUnwrap(data.readinessChecks[readinessRoute])
+        XCTAssertEqual(readiness.route, readinessRoute)
+        XCTAssertEqual(readiness.screenTitle, "Aufheizen & Belegreife")
+        XCTAssertEqual(readiness.cardTitle, "Aufheizprotokoll")
+        XCTAssertEqual(readiness.counter, "Tag 6 von 21")
+        XCTAssertTrue(readiness.text.hasPrefix("Plan vom Heizungsbauer."))
+        let chart = readiness.chart
+        XCTAssertEqual(chart.bars.count, 21)
+        XCTAssertEqual(chart.bars.prefix(8).map(\.height), [40, 40, 40, 48, 56, 56, 64, 72])
+        XCTAssertEqual(chart.bars.last?.height, 40)
+        XCTAssertEqual(chart.bars.filter { $0.kind == .recorded }.count, 5)
+        XCTAssertEqual(chart.bars.filter { $0.kind == .today }.count, 1)
+        XCTAssertEqual(chart.bars.filter { $0.kind == .planned }.count, 15)
+        XCTAssertEqual(chart.bars[4].kind, .recorded)
+        XCTAssertEqual(chart.bars[5].kind, .today)
+        XCTAssertEqual(chart.bars[6].kind, .planned)
+        XCTAssertEqual(chart.accessibilityLabel, "Vorlauftemperatur je Tag, Tag 1 bis 5 erfasst, heute Tag 6")
+        XCTAssertEqual([chart.start, chart.max, chart.end], ["Tag 1", "Max. 45 °C", "Tag 21"])
+        XCTAssertEqual([chart.today, chart.plan, chart.action], ["Heute laut Plan", "35 °C Vorlauf", "Tag 6 eintragen"])
+        XCTAssertEqual(readiness.cm.title, "CM-Messung")
+        XCTAssertEqual(readiness.cm.tag, "Pflicht")
+        XCTAssertEqual(readiness.cm.note, "Bodenbelag erst nach Freigabe")
+        XCTAssertEqual(readiness.cm.rows.map(\.label), ["Messstellen markiert", "Messung durchgeführt", "Ergebnis unter Grenzwert"])
+        XCTAssertEqual(readiness.cm.rows.map(\.meta), ["wegen Fußbodenheizung", "geplant 19.03.", "– CM-%"])
+        XCTAssertEqual(readiness.cm.rows.map(\.done), [true, false, false])
+    }
+
+    func testLoadsTileCheck() async throws {
+        let data = try await loaded()
+        XCTAssertEqual(Set(data.tileChecks.keys), [bathRoute])
+        let tiles = try XCTUnwrap(data.tileChecks[bathRoute])
+        XCTAssertEqual(tiles.route, bathRoute)
+        XCTAssertEqual(tiles.counter, "Schritt 3 von 6")
+        XCTAssertEqual(tiles.subtitle, "Boden 9 m² · Wand 28 m² · Feinsteinzeug 60×60")
+        XCTAssertEqual(tiles.title, "Bad OG")
+        XCTAssertEqual(tiles.done, ["Fliese & Verlegemuster wie bemustert", "Fugenbild gleichmäßig, Fugen voll"])
+        XCTAssertEqual(tiles.current.n, 3)
+        XCTAssertEqual(tiles.current.title, "Hohlstellen abklopfen")
+        XCTAssertEqual(tiles.next.map(\.n), [4, 5, 6])
+        XCTAssertEqual(tiles.columns, 8)
+        XCTAssertEqual(tiles.tiles.count, 24)
+        XCTAssertEqual(tiles.tiles.filter(\.hollow).map(\.id), ["tile-3", "tile-4"])
+        XCTAssertEqual(tiles.tiles[2].label, "hohl")
+        XCTAssertNil(tiles.tiles[0].label)
+        XCTAssertEqual(tiles.tiles[2].accessibilityLabel, "Fliese 3: hohl")
+        XCTAssertEqual(tiles.wallLabel, "↑ Wand mit Dusche")
+        XCTAssertEqual(tiles.markHint, "klingt hohl")
+        XCTAssertEqual(tiles.gridAccessibilityLabel, "Fliesenraster Boden, oben die Wand mit Dusche, unten die Tür")
+        XCTAssertEqual(tiles.result, "2 Fliesen klingen hohl (vor der Dusche)")
+        XCTAssertEqual(tiles.defectLabel, "Als Mangel")
+        XCTAssertEqual(tiles.noneLabel, "Keine Hohlstellen")
+        XCTAssertEqual(tiles.defectTarget, .newDefect)
+    }
+
+    func testLoadsPaintCheck() async throws {
+        let data = try await loaded()
+        XCTAssertEqual(Set(data.paintChecks.keys), [livingRoute])
+        let paint = try XCTUnwrap(data.paintChecks[livingRoute])
+        XCTAssertEqual(paint.route, livingRoute)
+        XCTAssertEqual(paint.counter, "Schritt 2 von 5")
+        XCTAssertEqual(paint.subtitle, "Wände Sand · Decke Weiß · Qualitätsstufe Q3")
+        XCTAssertEqual(paint.title, "Wohnen / Essen")
+        XCTAssertEqual(paint.done, ["Farbton wie bemustert"])
+        XCTAssertEqual(paint.doneSwatch, .sand)
+        XCTAssertEqual(paint.current.n, 2)
+        XCTAssertEqual(paint.current.title, "Streiflicht-Test")
+        XCTAssertEqual(paint.walls.map(\.name), ["Nord ✓", "Ost ✓", "Süd", "West", "Decke"])
+        XCTAssertEqual(paint.walls.map(\.state), [.done, .done, .now, .open, .open])
+        XCTAssertEqual(paint.wallsLabel, "Flächen")
+        XCTAssertEqual(paint.next.map(\.n), [3, 4, 5])
+        XCTAssertEqual(paint.defectLabel, "Mangel")
+        XCTAssertEqual(paint.okLabel, "In Ordnung")
+        XCTAssertEqual(paint.photoLabel, "Foto aufnehmen")
+        XCTAssertEqual(paint.defectTarget, .newDefect)
+    }
+
+    func testLaterTradeTitlesFeedRouteTitles() async throws {
+        let titles = try await loaded().routeTitles
+        XCTAssertEqual(titles.title(slopeRoute), "Gefälle Abwasser")
+        XCTAssertEqual(titles.title(pressureRoute), "Druckprobe Trinkwasser")
+        XCTAssertEqual(titles.title(bathUpperRoute), "Bad OG")
+        XCTAssertEqual(titles.title(flatnessRoute), "Ebenheit · Wohnen")
+        XCTAssertEqual(titles.title(readinessRoute), "Aufheizen & Belegreife")
+        XCTAssertEqual(titles.title(bathRoute), "Bad OG")
+        XCTAssertEqual(titles.title(livingRoute), "Wohnen / Essen")
+        let plumbing = AppRoute.inspection(tradeId: "plumbing")
+        XCTAssertEqual(titles.title(plumbing), "Sanitär & Heizung")
+        XCTAssertEqual(titles.backLabel(path: [plumbing, pressureRoute], index: 1, tab: .inspections), "Sanitär")
+        XCTAssertEqual(titles.backLabel(path: [plumbing, slopeRoute], index: 1, tab: .inspections), "Sanitär")
+        XCTAssertEqual(
+            titles.backLabel(path: [.inspection(tradeId: "screed"), flatnessRoute], index: 1, tab: .inspections),
+            "Estrich")
+        XCTAssertEqual(
+            titles.backLabel(path: [.inspection(tradeId: "tiles"), bathRoute], index: 1, tab: .inspections), "Fliesen")
+        XCTAssertEqual(
+            titles.backLabel(path: [.inspection(tradeId: "painting"), livingRoute], index: 1, tab: .inspections),
+            "Maler")
+        XCTAssertEqual(titles.backLabel(path: [plumbing], index: 0, tab: .inspections), "Abnahmen")
+    }
+
+    func testLoadsAllM6ScreenTexts() async throws {
+        let repo = try MockRepository.bundled()
+        for name in laterScreens {
+            _ = try await repo.screenText(name, as: EmptyScreenText.self)
+        }
+        for name in laterScreens {
+            let missing = try repository { object in
+                var screens = object["screens"] as? [String: Any] ?? [:]
+                screens[name] = nil
+                object["screens"] = screens
+            }
+            do {
+                _ = try await AppData.load(from: missing)
+                XCTFail("Expected RepositoryError.fixtureMissing for \(name)")
+            } catch {
+                XCTAssertEqual(error as? RepositoryError, .fixtureMissing("screens.\(name).ios"))
+            }
+        }
+    }
+
+    func testLoadsAllM6Routes() async throws {
+        let repo = try MockRepository.bundled()
+        let root = try await repo.inspections()
+        guard case let .object(inspections) = root, case let .object(byTrade)? = inspections["byTrade"] else {
+            return XCTFail("byTrade missing")
+        }
+        var raws: [String] = []
+        for tradeId in ["plumbing", "screed", "tiles", "painting"] {
+            guard case let .object(trade)? = byTrade[tradeId], case let .array(groups)? = trade["groups"] else {
+                return XCTFail("groups missing \(tradeId)")
+            }
+            for case let .object(group) in groups {
+                guard case let .array(rows)? = group["rows"] else { return XCTFail("rows missing") }
+                for case let .object(row) in rows {
+                    if case let .string(raw)? = row["route"] { raws.append(raw) }
+                }
+            }
+        }
+        XCTAssertEqual(raws.sorted(), [
+            "inspection/painting/room/living", "inspection/plumbing/pressure", "inspection/plumbing/room/bathUpper",
+            "inspection/plumbing/slope/A3", "inspection/screed/flatness", "inspection/screed/readiness",
+            "inspection/screed/readiness", "inspection/tiles/room/bath",
+        ])
+        let data = try await AppData.load(from: repo)
+        let loadedRoutes = Set(data.slopeChecks.keys).union(data.pressureChecks.keys).union(data.flatnessChecks.keys)
+            .union(data.readinessChecks.keys).union(data.objectChecks.keys).union(data.tileChecks.keys)
+            .union(data.paintChecks.keys)
+        XCTAssertEqual(loadedRoutes.count, 7)
+        for raw in raws {
+            let route = try XCTUnwrap(try RouteParser.route(raw, field: raw), raw)
+            XCTAssertTrue(loadedRoutes.contains(route), raw)
+        }
+    }
+
+    // MARK: M6 error paths
+
+    func testUnknownOverviewStatusLabelFailsLoad() async throws {
+        try await expectDecoding("\(plumbingPath).groups.rows.statusLabel") { object in
+            setRow(&object, trade: "plumbing", group: 0, row: 2, "statusLabel", "Unbekannt")
+        }
+        try await expectDecoding("\(plumbingPath).groups.rows.statusLabel") { object in
+            setRow(&object, trade: "plumbing", group: 0, row: 0, "statusLabel", "0 Mangel")
+        }
+    }
+
+    func testOverviewWithPhasesAndFactsFailsLoad() async throws {
+        try await expectDecoding(plumbingPath) { object in
+            editTrade(&object, "plumbing") { $0["facts"] = [["label": "Qualität", "value": "Q3"]] }
+        }
+        try await expectDecoding(plumbingPath) { object in
+            editTrade(&object, "plumbing") { $0["phases"] = nil }
+        }
+    }
+
+    func testPhaseWithBothLabelsInTilesFailsLoad() async throws {
+        try await expectDecoding("\(tilesPath).phases") { object in
+            editTrade(&object, "tiles") { setListItem(&$0, "phases", 1, "statusLabel", "Geplant") }
+        }
+    }
+
+    func testPlumbingIconShapeMismatchFailsLoad() async throws {
+        try await expectDecoding("\(plumbingPath).groups") { object in
+            editTrade(&object, "plumbing") { trade in
+                var groups = trade["groups"] as? [[String: Any]] ?? []
+                var rows = groups[1]["rows"] as? [[String: Any]] ?? []
+                rows.removeLast()
+                groups[1]["rows"] = rows
+                trade["groups"] = groups
+            }
+        }
+    }
+
+    func testUnknownPaintWordFailsLoad() async throws {
+        try await expectDecoding("\(paintingPath).groups.rows.sub") { object in
+            setRow(&object, trade: "painting", group: 0, row: 0, "sub", ["ios": "Rot · Schritt 2 von 5", "android": "Rot"])
+        }
+    }
+
+    func testUnparseableSectionLabelFailsLoad() async throws {
+        try await expectDecoding("measurements.drainSlope.sections") { object in
+            editMeasurement(&object, "drainSlope") { setListItem(&$0, "sections", 0, "label", "viel") }
+        }
+    }
+
+    func testSlopeCurrentSectionMismatchFailsLoad() async throws {
+        try await expectDecoding("\(plumbingPath).checks.slope") { object in
+            editWindowsCheck(&object, "slope", trade: "plumbing") { $0["subtitle"] = "A2 · Bad OG → Fallleitung · DN 50" }
+        }
+        try await expectDecoding("\(plumbingPath).checks.slope") { object in
+            editWindowsCheck(&object, "slope", trade: "plumbing") {
+                $0["counter"] = ["ios": "Abschnitt 2 von 4", "android": "2 / 4"]
+            }
+        }
+    }
+
+    func testSlopeMeasurementKeyMismatchFailsLoad() async throws {
+        try await expectDecoding("\(plumbingPath).checks.slope.measurementKey") { object in
+            editWindowsCheck(&object, "slope", trade: "plumbing") { $0["measurementKey"] = "screedFlatness" }
+        }
+        try await expectDecoding("\(screedPath).checks.readiness.measurementKey") { object in
+            editWindowsCheck(&object, "readiness", trade: "screed") { $0["measurementKey"] = "drainSlope" }
+        }
+        try await expectDecoding("\(screedPath).checks.flatness.measurementKey") { object in
+            editWindowsCheck(&object, "flatness", trade: "screed") { $0["measurementKey"] = "drainSlope" }
+        }
+    }
+
+    func testUnknownCheckItemFailsLoad() async throws {
+        try await expectDecoding("\(plumbingPath).groups.rows.route") { object in
+            setRow(&object, trade: "plumbing", group: 0, row: 0, "route", "inspection/plumbing/slope/A9")
+        }
+        try await expectDecoding("\(screedPath).groups.rows.route") { object in
+            setRow(&object, trade: "screed", group: 0, row: 2, "route", "inspection/screed/missing")
+        }
+        try await expectDecoding("\(tilesPath).groups.rows.route") { object in
+            setRow(&object, trade: "tiles", group: 1, row: 0, "route", "inspection/tiles/room/attic")
+        }
+    }
+
+    func testTwoSelectedObjectsFailsLoad() async throws {
+        try await expectDecoding("\(plumbingPath).checks.bathUpper.objects") { object in
+            editWindowsCheck(&object, "bathUpper", trade: "plumbing") { setListItem(&$0, "objects", 0, "selected", true) }
+        }
+        try await expectDecoding("\(plumbingPath).checks.bathUpper.objects") { object in
+            editWindowsCheck(&object, "bathUpper", trade: "plumbing") { setListItem(&$0, "objects", 1, "done", true) }
+        }
+    }
+
+    func testSelectedWallWithTickFailsLoad() async throws {
+        try await expectDecoding("\(paintingPath).checks.living.walls") { object in
+            editWindowsCheck(&object, "living", trade: "painting") { setListItem(&$0, "walls", 2, "name", "Süd ✓") }
+        }
+        try await expectDecoding("\(paintingPath).checks.living.walls") { object in
+            editWindowsCheck(&object, "living", trade: "painting") { setListItem(&$0, "walls", 0, "selected", true) }
+        }
+    }
+
+    func testUnknownTileStatusFailsLoad() async throws {
+        try await expectDecoding("\(tilesPath).checks.bath.tiles") { object in
+            editWindowsCheck(&object, "bath", trade: "tiles") { setListItem(&$0, "tiles", 0, "status", "broken") }
+        }
+    }
+
+    func testWrongTileCountFailsLoad() async throws {
+        try await expectDecoding("\(tilesPath).checks.bath.tiles") { object in
+            editWindowsCheck(&object, "bath", trade: "tiles") { check in
+                var tiles = check["tiles"] as? [[String: Any]] ?? []
+                tiles.removeLast()
+                check["tiles"] = tiles
+            }
+        }
+    }
+
+    func testStepContinuityFailsLoad() async throws {
+        try await expectDecoding("\(plumbingPath).checks.pressure.next") { object in
+            editWindowsCheck(&object, "pressure", trade: "plumbing") { setListItem(&$0, "next", 0, "n", "5") }
+        }
+        try await expectDecoding("\(tilesPath).checks.bath.next") { object in
+            editWindowsCheck(&object, "bath", trade: "tiles") { setListItem(&$0, "next", 2, "n", "7") }
+        }
+        try await expectDecoding("\(paintingPath).checks.living.next") { object in
+            editWindowsCheck(&object, "living", trade: "painting") { check in
+                var current = check["current"] as? [String: Any] ?? [:]
+                current["n"] = "3"
+                check["current"] = current
+            }
+        }
+        try await expectDecoding("\(paintingPath).checks.living.current") { object in
+            editWindowsCheck(&object, "living", trade: "painting") { check in
+                var current = check["current"] as? [String: Any] ?? [:]
+                current["n"] = "02"
+                check["current"] = current
+            }
+        }
+    }
+
+    func testHeatingTodayOutOfRangeFailsLoad() async throws {
+        try await expectDecoding("measurements.screedHeating") { object in
+            editMeasurement(&object, "screedHeating") { $0["todayDay"] = 22 }
+        }
+        try await expectDecoding("measurements.screedHeating") { object in
+            editMeasurement(&object, "screedHeating") { $0["recordedDays"] = 6 }
+        }
+    }
+
+    func testUnknownM6ScreenFailsLoad() async throws {
+        try await expectDecoding("\(plumbingPath).checks.pressure.screen") { object in
+            editWindowsCheck(&object, "pressure", trade: "plumbing") { $0["screen"] = "Unbekannt" }
+        }
+        try await expectDecoding("\(plumbingPath).checks.pressure.screen") { object in
+            editWindowsCheck(&object, "pressure", trade: "plumbing") { $0["screen"] = "ElRaum" }
+        }
+    }
+
+    func testMissingIosTilesDateLabelFailsLoad() async throws {
+        try await expectDecoding("\(tilesPath).phases.dateLabel") { object in
+            editTrade(&object, "tiles") {
+                setListItem(&$0, "phases", 0, "dateLabel", ["ios": NSNull(), "android": NSNull()])
+            }
+        }
+    }
+
+    func testMissingIosBathSubtitleFailsLoad() async throws {
+        try await expectDecoding("\(plumbingPath).checks.bathUpper.subtitle") { object in
+            editWindowsCheck(&object, "bathUpper", trade: "plumbing") {
+                $0["subtitle"] = ["ios": NSNull(), "android": NSNull()]
+            }
+        }
+    }
+
+    func testWrongTypeInDrainSlopeFailsWithSlicePath() async throws {
+        try await expectDecoding("measurements.drainSlope") { object in
+            editMeasurement(&object, "drainSlope") { $0["lengthDm"] = "20" }
+        }
+    }
+
+    func testMissingDrainSlopeFailsAsFixtureMissing() async throws {
+        let repo = try repository { object in
+            var measurements = object["measurements"] as? [String: Any] ?? [:]
+            measurements["drainSlope"] = nil
+            object["measurements"] = measurements
+        }
+        do {
+            _ = try await AppData.load(from: repo)
+            XCTFail("Expected RepositoryError.fixtureMissing")
+        } catch {
+            XCTAssertEqual(error as? RepositoryError, .fixtureMissing("measurements.drainSlope"))
         }
     }
 
