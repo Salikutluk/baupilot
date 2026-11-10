@@ -443,4 +443,19 @@ final class ScreenSnapshotTests: XCTestCase {
     func testEsEbenheitDark() async throws {
         try await verify("EsEbenheit", mode: .dark, navigation: esEbenheit)
     }
+
+    /// D10: Estrich opened from Abnahmen, then Aufheizen & Belegreife (back label "Estrich").
+    private var esBelegreife: AppNavigation {
+        var navigation = esUebersicht
+        navigation.open(.inspectionCheck(tradeId: "screed", check: "readiness"))
+        return navigation
+    }
+
+    func testEsBelegreifeLight() async throws {
+        try await verify("EsBelegreife", mode: .light, navigation: esBelegreife)
+    }
+
+    func testEsBelegreifeDark() async throws {
+        try await verify("EsBelegreife", mode: .dark, navigation: esBelegreife)
+    }
 }

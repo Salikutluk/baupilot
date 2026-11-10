@@ -271,4 +271,88 @@ final class ComponentMetricsLaterTradesTests: XCTestCase {
         XCTAssertEqual(size(of: long, width: 250).height, 44)
         XCTAssertEqual(size(of: long, width: 110).height, 5 * InterMetrics.lineBox(15), accuracy: 0.01)
     }
+
+    // MARK: Belegreife (EsBelegreife)
+
+    private func bars(_ heights: [CGFloat]) -> [(height: CGFloat, color: ColorToken)] {
+        heights.map { (height: $0, color: Tokens.ok.core) }
+    }
+
+    /// IosEsBelegreife:33: an 80 tall bar box under 4 of padding is 84 tall and fills the width.
+    func testHeatingBarChartIs84TallAndFillsTheWidth() {
+        let measured = size(of: HeatingBarChart(bars: bars([72, 40]), accessibilityLabel: "Chart"), width: 314)
+        XCTAssertEqual(measured.width, 314)
+        XCTAssertEqual(measured.height, 84)
+    }
+
+    /// 21 bars of (314 - 3 x 20) / 21 = 12.095, bottom-aligned, gap 3, top corners rounded: bar 0 is 72 tall, so its
+    /// top-left pixel (row 12) is clear while the pixel below it is filled; the gap and the space above stay clear.
+    func testHeatingBarChartSharesTheWidthAndRoundsTheTopCorners() {
+        let heights = [CGFloat](repeating: 72, count: 1) + [CGFloat](repeating: 40, count: 20)
+        let pixels = render(
+            HeatingBarChart(bars: bars(heights), accessibilityLabel: "Chart"), size: CGSize(width: 314, height: 84),
+            scale: 1)
+        let clear: [UInt8] = [0, 0, 0, 0]
+        XCTAssertLessThan(pixels.pixel(0, 12)[3], 32)
+        XCTAssertEqual(pixels.pixel(6, 13), solid(Tokens.ok.core))
+        XCTAssertEqual(pixels.pixel(6, 83), solid(Tokens.ok.core))
+        XCTAssertEqual(pixels.pixel(6, 5), clear)
+        XCTAssertEqual(pixels.pixel(13, 60), clear)
+        XCTAssertEqual(pixels.pixel(14, 60), clear)
+        XCTAssertEqual(pixels.pixel(20, 50), solid(Tokens.ok.core))
+        XCTAssertEqual(pixels.pixel(20, 40), clear)
+        XCTAssertEqual(pixels.pixel(307, 50), solid(Tokens.ok.core))
+        XCTAssertEqual(pixels.pixel(313, 50), solid(Tokens.ok.core))
+    }
+
+    private func checkRow(done: Bool, title: String = "Messung durchgeführt") -> CheckMetaRow {
+        CheckMetaRow(
+            title: title, meta: "geplant 19.03.", done: done, ok: Tokens.ok.core, okInk: Tokens.okInk.core,
+            openRing: Tokens.track.esBelegreife)
+    }
+
+    /// IosEsBelegreife:55: `min-height: 40px`; a title that wraps grows the row.
+    func testCheckMetaRowIsAtLeast40AndGrowsWithAWrappedTitle() {
+        XCTAssertEqual(size(of: checkRow(done: false), width: 314).height, 40)
+        let long = checkRow(done: false, title: "Ergebnis unter Grenzwert und noch viel mehr Text, der umbricht")
+        XCTAssertGreaterThan(size(of: long, width: 200).height, 40)
+    }
+
+    /// The 22 ring (2 pt border) is `ok` all through when done and only an `openRing` outline when open.
+    func testCheckMetaRowRingIsFilledWhenDoneAndHollowWhenOpen() {
+        let done = render(checkRow(done: true), size: CGSize(width: 314, height: 40), scale: 1)
+        XCTAssertEqual(done.pixel(1, 20), solid(Tokens.ok.core))
+        XCTAssertEqual(done.pixel(4, 20), solid(Tokens.ok.core))
+        let open = render(checkRow(done: false), size: CGSize(width: 314, height: 40), scale: 1)
+        XCTAssertEqual(open.pixel(1, 20), solid(Tokens.track.esBelegreife))
+        XCTAssertEqual(open.pixel(11, 20), [0, 0, 0, 0])
+    }
+
+    /// IosEsBelegreife:51: 44 tall, padding 0 16, hugging the 15/600 label; the default button stays full width.
+    func testCompactPrimaryButtonIs44TallAndHugsItsLabel() {
+        let button = PrimaryButton("Tag 6 eintragen", size: .compact, action: nil)
+        let text = intrinsic(Text("Tag 6 eintragen").interText(15, .semibold))
+        let measured = intrinsic(button)
+        XCTAssertEqual(measured.height, 44)
+        XCTAssertEqual(measured.width, text.width + 32, accuracy: 0.01)
+        XCTAssertEqual(size(of: PrimaryButton("Tag 6 eintragen", size: .medium, action: nil), width: 200).height, 50)
+    }
+
+    private func hasInk(_ pixels: Pixels, x: Range<Int>, y: Range<Int>, background: [UInt8]) -> Bool {
+        y.contains { row in x.contains { column in pixels.pixel(column, row) != background } }
+    }
+
+    /// IosEsBelegreife:67: the lock note with leading text, `line-height: normal` and a centred row is 24 + 18 tall
+    /// and starts its text right after the icon (x 42); the default locked tone centres the text in the width.
+    func testInfoCalloutLockNoteCanLeadWithNormalLineHeight() {
+        let leading = InfoCallout(
+            text: "Kurz", icon: .lock, tone: .locked, textSize: 14, textAlignment: .leading, lineHeight: .normal,
+            alignment: .center)
+        let centred = InfoCallout(text: "Kurz", icon: .lock, tone: .locked, textSize: 14)
+        XCTAssertEqual(size(of: leading, width: 350).height, 24 + max(18, InterMetrics.lineBox(14)), accuracy: 0.34)
+        let chip = solid(Tokens.chip.core)
+        let frame = CGSize(width: 350, height: 44)
+        XCTAssertTrue(hasInk(render(leading, size: frame, scale: 1), x: 42..<60, y: 12..<32, background: chip))
+        XCTAssertFalse(hasInk(render(centred, size: frame, scale: 1), x: 42..<60, y: 12..<32, background: chip))
+    }
 }

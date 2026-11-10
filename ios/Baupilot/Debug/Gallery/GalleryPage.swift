@@ -208,7 +208,8 @@ struct GalleryPlumbingStepsPage: View {
 }
 
 /// Estrich parts: the straightedge sketch within and over the limit, the measurement chips in a wrapping row and the
-/// greedy text link (EsEbenheit).
+/// greedy text link (EsEbenheit), the heating bar chart, the check rows with a note, the compact button and the lock
+/// note (EsBelegreife).
 struct GalleryScreedPage: View {
     var body: some View {
         GalleryGroup("FlatnessSketch · 64, gap line 8 (within, oFg)") {
@@ -232,6 +233,38 @@ struct GalleryScreedPage: View {
         GalleryGroup("TextLink · min 44, greedy wrap, leading") {
             TextLink("1 Messpunkt über Grenzwert → Mangel erfassen", color: Tokens.err.core, action: nil)
         }
+        GalleryGroup("HeatingBarChart · 84, bars (314 − 3 × 20) / 21, recorded ok, today accent, planned track") {
+            HeatingBarChart(bars: Self.bars, accessibilityLabel: "Vorlauftemperatur je Tag")
+                .frame(width: 314)
+        }
+        GalleryGroup("CheckMetaRow · done (ok ring, tick) and open (track ring), min 40") {
+            VStack(spacing: 0) {
+                CheckMetaRow(
+                    title: "Messstellen markiert", meta: "wegen Fußbodenheizung", done: true, ok: Tokens.ok.core,
+                    okInk: Tokens.okInk.core, openRing: Tokens.track.esBelegreife)
+                CheckMetaRow(
+                    title: "Messung durchgeführt", meta: "geplant 19.03.", done: false, ok: Tokens.ok.core,
+                    okInk: Tokens.okInk.core, openRing: Tokens.track.esBelegreife)
+            }
+            .frame(width: 314)
+        }
+        GalleryGroup("PrimaryButton · compact, 44, hugs its label") {
+            PrimaryButton("Tag 6 eintragen", size: .compact, action: nil)
+        }
+        GalleryGroup("InfoCallout · locked, leading text, normal line height, centred row") {
+            InfoCallout(
+                text: "Bodenbelag erst nach Freigabe", icon: .lock, tone: .locked, textSize: 14,
+                textAlignment: .leading, lineHeight: .normal, alignment: .center)
+        }
     }
+
+    /// IosEsBelegreife:80-83: the plan of the protocol scaled `round(v / 45 × 72)`, days 1-5 recorded, day 6 today.
+    private static let bars: [(height: CGFloat, color: ColorToken)] = [25, 25, 25, 30, 35, 35, 40, 45, 45, 45, 45, 45, 45, 40, 35, 30, 25, 25, 25, 25, 25]
+        .enumerated().map { index, value in
+            (
+                height: CGFloat((Double(value) / 45 * 72).rounded()),
+                color: index < 5 ? Tokens.ok.core : index == 5 ? Tokens.accent : Tokens.track.esBelegreife
+            )
+        }
 }
 #endif

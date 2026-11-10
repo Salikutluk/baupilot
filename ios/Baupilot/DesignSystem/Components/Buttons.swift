@@ -3,12 +3,14 @@ import SwiftUI
 /// Label size of a text button; every size is weight 600.
 public enum ButtonSize {
     case large, medium, small
+    /// 44 tall, padding 0 16, radius 12, hugging its label (IosEsBelegreife:51); only `PrimaryButton` honours it.
+    case compact
 
     var fontSize: CGFloat {
         switch self {
         case .large: return 17
         case .medium: return 16
-        case .small: return 15
+        case .small, .compact: return 15
         }
     }
 }
@@ -95,7 +97,7 @@ public enum ButtonHeight {
     }
 }
 
-/// Filled accent button, 50 tall (52 with `.tall`), radius 14.
+/// Filled accent button, 50 tall (52 with `.tall`), radius 14; `size: .compact` is the 44 tall, width-hugging variant.
 public struct PrimaryButton: View {
     private let title: String
     private let size: ButtonSize
@@ -114,10 +116,22 @@ public struct PrimaryButton: View {
 
     public var body: some View {
         FlatButton(action: action) {
-            TextButtonFace(
-                title: title, size: size, icon: nil, iconSize: 0,
-                foreground: Tokens.onAccent, background: Tokens.accent, outline: nil,
-                height: height.points)
+            if size == .compact {
+                let shape = RoundedRectangle(cornerRadius: 12)
+                Text(title)
+                    .interText(size.fontSize, .semibold)
+                    .foregroundStyle(Tokens.onAccent.color)
+                    .padding(.horizontal, 16)
+                    .frame(height: 44)
+                    .background(shape.fill(Tokens.accent.color))
+                    .contentShape(shape)
+                    .fixedSize()
+            } else {
+                TextButtonFace(
+                    title: title, size: size, icon: nil, iconSize: 0,
+                    foreground: Tokens.onAccent, background: Tokens.accent, outline: nil,
+                    height: height.points)
+            }
         }
     }
 }
