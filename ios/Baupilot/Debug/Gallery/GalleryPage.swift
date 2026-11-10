@@ -43,7 +43,7 @@ struct GalleryGroup<Content: View>: View {
 
 /// One full-screen page of the component gallery. Each page is one golden pair.
 enum GalleryPage: String, CaseIterable {
-    case structure, containers, statusInput, buttons, bars, steps, tiles, icons, forms, overview, schedule, settings, trade, documents, compare, notifications, inspections, inspectionElements, inspectionStep, defectForm, signOff, `protocol`, measure, electrical, electricalSteps, electricalSteps2, plumbing
+    case structure, containers, statusInput, buttons, bars, steps, tiles, icons, forms, overview, schedule, settings, trade, documents, compare, notifications, inspections, inspectionElements, inspectionStep, defectForm, signOff, `protocol`, measure, electrical, electricalSteps, electricalSteps2, plumbing, plumbingSteps
 
     /// ASCII letters only, so the name is a valid file name on every platform.
     var goldenName: String { "Gallery" + rawValue.capitalizedFirst }
@@ -80,6 +80,7 @@ enum GalleryPage: String, CaseIterable {
             case .electricalSteps: GalleryElectricalStepsPage()
             case .electricalSteps2: GalleryElectricalSteps2Page()
             case .plumbing: GalleryPlumbingPage()
+            case .plumbingSteps: GalleryPlumbingStepsPage()
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -152,6 +153,27 @@ struct GalleryPlumbingPage: View {
         SocketTile(
             id: id, label: label, style: style, accessibilityLabel: "Abschnitt \(id): \(label)",
             identifier: "gallery.slope.\(id)", height: 52)
+    }
+}
+
+/// Sanitär step parts: the Druckprobe timer ring and the reading boxes (SanDruck).
+struct GalleryPlumbingStepsPage: View {
+    @State private var end = ""
+
+    var body: some View {
+        GalleryGroup("TimerRing · 72, hole 56, 58 %, accent over the track") {
+            TimerRing(
+                text: "12:40", fraction: 0.58, accessibilityLabel: "Prüfzeit zu 58 Prozent abgelaufen",
+                fill: Tokens.accent, track: Tokens.track.sanDruck, hole: Tokens.surface, holeDiameter: 56,
+                textWeight: .bold)
+        }
+        GalleryGroup("ReadingField · value (chip, inset 14) and input (accent border, placeholder)") {
+            HStack(alignment: .top, spacing: 10) {
+                ReadingField(label: "Start (10:02)", content: .value("10,0 bar"), identifier: nil)
+                ReadingField(label: "Ende", content: .input(text: $end, placeholder: "– bar"), identifier: nil)
+            }
+            .frame(width: 314)
+        }
     }
 }
 #endif

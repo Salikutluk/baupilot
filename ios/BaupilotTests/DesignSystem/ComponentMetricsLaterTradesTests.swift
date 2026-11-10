@@ -106,4 +106,51 @@ final class ComponentMetricsLaterTradesTests: XCTestCase {
         XCTAssertEqual(intrinsic(SlopeResult.Schema(y2: 15.1, levelLabel: "waagerecht", deltaLabel: "Δh", color: Tokens.oFg)),
                        CGSize(width: 92, height: 44))
     }
+
+    // MARK: Druckprobe (SanDruck)
+
+    private func ring(fraction: Double = 0.58) -> TimerRing {
+        TimerRing(
+            text: "12:40", fraction: fraction, accessibilityLabel: "Prüfzeit zu 58 Prozent abgelaufen",
+            fill: Tokens.accent, track: Tokens.track.sanDruck, hole: Tokens.surface, holeDiameter: 56,
+            textWeight: .bold)
+    }
+
+    /// IosSanDruck:48: a 72 x 72 disc, `flex-shrink: 0`.
+    func testTimerRingIs72By72() {
+        XCTAssertEqual(intrinsic(ring()), CGSize(width: 72, height: 72))
+    }
+
+    /// `conic-gradient(accent 0 58%, track 58% 100%)`: the fill starts at 12 o'clock and runs clockwise, so the
+    /// right half of the band (3 o'clock) is fill and the left half (9 o'clock) is track at 58 %.
+    func testTimerRingFillRunsClockwiseFromTwelve() {
+        let pixels = render(ring(), size: CGSize(width: 72, height: 72), scale: 1)
+        let twelve = pixels.pixel(37, 3)
+        let three = pixels.pixel(68, 36)
+        let nine = pixels.pixel(3, 36)
+        XCTAssertEqual(twelve, three)
+        XCTAssertNotEqual(twelve, nine)
+    }
+
+    /// At half a turn the fill ends at 6 o'clock: just right of it is fill, just left of it is track.
+    func testTimerRingHardStopAtFraction() {
+        let pixels = render(ring(fraction: 0.5), size: CGSize(width: 72, height: 72), scale: 1)
+        XCTAssertEqual(pixels.pixel(40, 68), pixels.pixel(37, 3))
+        XCTAssertNotEqual(pixels.pixel(32, 68), pixels.pixel(37, 3))
+    }
+
+    /// IosSanDruck:56-60: the 12 pt label over a 6 pt gap over the 48 pt box.
+    func testReadingFieldBoxIs48UnderItsLabel() {
+        let value = ReadingField(label: "Start (10:02)", content: .value("10,0 bar"), identifier: nil)
+        let measured = size(of: value, width: 152)
+        XCTAssertEqual(measured.width, 152)
+        XCTAssertEqual(measured.height, InterMetrics.lineBox(12) + 6 + 48, accuracy: 0.01)
+    }
+
+    func testReadingFieldInputHasTheSameHeightAsValue() {
+        let value = ReadingField(label: "Ende", content: .value("10,0 bar"), identifier: nil)
+        let input = ReadingField(label: "Ende", content: .input(text: .constant(""), placeholder: "– bar"), identifier: "pressure.end")
+        XCTAssertEqual(size(of: input, width: 152).height, size(of: value, width: 152).height, accuracy: 0.01)
+    }
 }
+

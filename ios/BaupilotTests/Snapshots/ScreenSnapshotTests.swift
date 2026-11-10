@@ -383,4 +383,19 @@ final class ScreenSnapshotTests: XCTestCase {
     func testSanGefaelleDark() async throws {
         try await verify("SanGefaelle", mode: .dark, navigation: sanGefaelle)
     }
+
+    /// D10: Sanitär & Heizung opened, then Druckprobe (back label "Sanitär"), the end field empty.
+    private var sanDruck: AppNavigation {
+        var navigation = sanUebersicht
+        navigation.open(.inspectionCheck(tradeId: "plumbing", check: "pressure"))
+        return navigation
+    }
+
+    func testSanDruckLight() async throws {
+        try await verify("SanDruck", mode: .light, navigation: sanDruck)
+    }
+
+    func testSanDruckDark() async throws {
+        try await verify("SanDruck", mode: .dark, navigation: sanDruck)
+    }
 }
