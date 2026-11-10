@@ -1,6 +1,7 @@
 package de.baupilot.designsystem
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,10 +14,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import de.baupilot.designsystem.components.BaupilotVerticalStepper
 import de.baupilot.designsystem.components.InfoCallout
 import de.baupilot.designsystem.components.PhaseCard
 import de.baupilot.designsystem.components.PhaseCardState
 import de.baupilot.designsystem.components.SlopeResult
+import de.baupilot.designsystem.components.Step
+import de.baupilot.designsystem.components.StepState
+import de.baupilot.designsystem.components.StepperVariant
+import de.baupilot.designsystem.components.TimerRing
 import de.baupilot.designsystem.components.ValueStepper
 import de.baupilot.snapshot.NoopSnapshotHandler
 import de.baupilot.snapshot.baupilotPaparazzi
@@ -121,5 +127,50 @@ class ComponentMetricsLaterTradesTest {
         }
         assertEquals((4 + 36 + 4) * 3, heights.getValue("note"))
         assertEquals((12 + 20 + 12) * 3, heights.getValue("default"))
+    }
+
+    /** AndSanDruck:50: the ring is 72 x 72 (the 58 hole is inside it). */
+    @Test
+    fun timerRingIs72Square() {
+        paparazzi.snapshot { TimerRing(0.58f, "12:40", "Prüfzeit zu 58 Prozent abgelaufen", Modifier.record("ring")) }
+        assertEquals(72 * 3, widths.getValue("ring"))
+        assertEquals(72 * 3, heights.getValue("ring"))
+    }
+
+    private fun currentStep(body: Modifier) = Step(
+        number = 3,
+        title = "Manometer",
+        state = StepState.Current,
+        body = { Box(body.width(100.dp).height(40.dp)) },
+    )
+
+    /** AndSanDruck:36: the rows of the current card are 14 apart; the default stays 12. */
+    @Test
+    fun compactCurrentCardUsesItsSpacing() {
+        paparazzi.snapshot {
+            Column {
+                BaupilotVerticalStepper(
+                    listOf(currentStep(Modifier)), StepperVariant.Compact, Modifier.record("spaced"), currentSpacing = 14.dp,
+                )
+                BaupilotVerticalStepper(listOf(currentStep(Modifier)), StepperVariant.Compact, Modifier.record("default"))
+            }
+        }
+        // padding 16 + header 24 + gap + body 40 + padding 16
+        assertEquals((16 + 24 + 14 + 40 + 16) * 3, heights.getValue("spaced"))
+        assertEquals((16 + 24 + 12 + 40 + 16) * 3, heights.getValue("default"))
+    }
+
+    /** FlBad / MaRaum open rows are 40 tall; the default stays 44 (AndSanDruck:90). */
+    @Test
+    fun compactOpenRowsUseTheirMinimumHeight() {
+        val open = List(2) { Step(number = 4 + it, title = "Offen", state = StepState.Open) }
+        paparazzi.snapshot {
+            Column {
+                BaupilotVerticalStepper(open, StepperVariant.Compact, Modifier.record("forty"), openMinHeight = 40.dp)
+                BaupilotVerticalStepper(open, StepperVariant.Compact, Modifier.record("default"))
+            }
+        }
+        assertEquals(2 * 40 * 3, heights.getValue("forty"))
+        assertEquals(2 * 44 * 3, heights.getValue("default"))
     }
 }

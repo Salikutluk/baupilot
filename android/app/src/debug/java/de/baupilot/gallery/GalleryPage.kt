@@ -19,11 +19,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.baupilot.designsystem.BaupilotText
 import de.baupilot.designsystem.Tokens
+import de.baupilot.designsystem.BaupilotIcon
+import de.baupilot.designsystem.components.BaupilotVerticalStepper
+import de.baupilot.designsystem.components.OutlinedButton
 import de.baupilot.designsystem.components.PhaseCard
 import de.baupilot.designsystem.components.PhaseCardState
 import de.baupilot.designsystem.components.SlopeResult
 import de.baupilot.designsystem.components.SocketTile
 import de.baupilot.designsystem.components.SocketTileStyle
+import de.baupilot.designsystem.components.Step
+import de.baupilot.designsystem.components.StepState
+import de.baupilot.designsystem.components.StepperVariant
+import de.baupilot.designsystem.components.TimerRing
 import de.baupilot.designsystem.components.ValueStepper
 
 /** One full-screen gallery page; [goldenName] is the snapshot name. */
@@ -55,6 +62,7 @@ enum class GalleryPage(val goldenName: String) {
     ElectricalSteps("GalleryElectricalSteps"),
     ElectricalSteps2("GalleryElectricalSteps2"),
     Plumbing("GalleryPlumbing"),
+    PlumbingSteps("GalleryPlumbingSteps"),
 }
 
 @Composable
@@ -92,6 +100,7 @@ fun GalleryPageContent(page: GalleryPage) {
                 GalleryPage.ElectricalSteps -> ElectricalStepsPage()
                 GalleryPage.ElectricalSteps2 -> ElectricalSteps2Page()
                 GalleryPage.Plumbing -> PlumbingPage()
+                GalleryPage.PlumbingSteps -> PlumbingStepsPage()
             }
         }
     }
@@ -165,4 +174,27 @@ internal fun PlumbingPage() {
         percent = "0,40 %", verdict = "Zu flach · Soll ≥ 1,0 %", sufficient = false, schemaY2 = 16.0,
         levelLabel = "waagerecht", deltaLabel = "Δh",
     )
+}
+
+/** Sanitär parts, second page: the timer ring, the Compact stepper with meta 500 / spacing 14 and the 20 icon button. */
+@Composable
+internal fun PlumbingStepsPage() {
+    Caption("TimerRing · 72, Loch 58, 58 % (AndSanDruck:50)")
+    TimerRing(0.58f, "12:40", "Prüfzeit zu 58 Prozent abgelaufen")
+    Caption("Stepper Compact · meta 500 text, currentSpacing 14, openMinHeight 40 (AndSanDruck:36)")
+    BaupilotVerticalStepper(
+        steps = listOf(
+            Step(1, "Leitungen sichtbar & beschriftet", StepState.Done, "3 Fotos", metaColor = Tokens.text, metaWeight = 500),
+            Step(
+                3, "Manometer am Ende ablesen", StepState.Current,
+                body = { BaupilotText("Aktueller Schritt", size = 15.sp, color = Tokens.muted) },
+            ),
+            Step(5, "Druckprüfprotokoll unterschrieben", StepState.Open, tag = "Pflicht"),
+        ),
+        variant = StepperVariant.Compact,
+        currentSpacing = 14.dp,
+        openMinHeight = 40.dp,
+    )
+    Caption("OutlinedButton · Icon 20 (AndSanDruck:71)")
+    OutlinedButton(label = "Manometer fotografieren", icon = BaupilotIcon.Camera, iconSize = 20.dp)
 }
