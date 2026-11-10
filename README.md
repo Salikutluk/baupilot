@@ -189,6 +189,52 @@ cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests '*Early
 cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests '*MeasureViewModelTest'
 ```
 
+### Screen snapshots and UI tests (M6)
+
+M6 adds the later trades with eleven screens: Sanitär & Heizung (four), Estrich (three), Fliesen (two) and Maler (two). 11 screens × 2 platforms × light/dark = 44 reference snapshot tests against `design/reference/<ios|android>/<Name>_<light|dark>.png`, in `ScreenSnapshotTests` (iOS) and the `*SnapshotTest` classes (Android). The tolerances never change. Measured results (3 of the 44 are green, the rest sit on glyph-raster and sub-point residue), decisions and known gaps: [`docs/m6-offene-punkte.md`](docs/m6-offene-punkte.md).
+
+| Nr. | Screen | Route | Reference name |
+|---|---|---|---|
+| 24 | Sanitär & Heizung – Übersicht | `inspection/plumbing` | `SanUebersicht` |
+| 25 | Gefälle Abwasser | `inspection/plumbing/slope/{sec}` (`A3`) | `SanGefaelle` |
+| 26 | Druckprobe Trinkwasser | `inspection/plumbing/pressure` | `SanDruck` |
+| 27 | Bad OG – Objekte | `inspection/plumbing/room/{id}` (`bathUpper`) | `SanBad` |
+| 28 | Estrich – Übersicht | `inspection/screed` | `EsUebersicht` |
+| 29 | Ebenheit messen | `inspection/screed/flatness` | `EsEbenheit` |
+| 30 | Aufheizen & Belegreife | `inspection/screed/readiness` | `EsBelegreife` |
+| 31 | Fliesen – Übersicht | `inspection/tiles` | `FlUebersicht` |
+| 32 | Raumprüfung Bad | `inspection/tiles/room/{id}` (`bath`) | `FlBad` |
+| 33 | Maler – Übersicht | `inspection/painting` | `MaUebersicht` |
+| 34 | Raumprüfung Wohnen | `inspection/painting/room/{id}` (`living`) | `MaRaum` |
+
+The four trade rows on "Abnahmen je Gewerk" (Sanitär, Estrich, Fliesen, Maler) now open these screens instead of the placeholder. `inspection/<trade>/<check>/<item>` is a new route form (a check item such as the slope section `A3`); it is resolved at load like every other route.
+
+**Calculators (decisions D3, D4):** the Gefälle-Rechner (`SlopeViewModel`) and the Ebenheit screen (`FlatnessViewModel`) are pure value types with integer arithmetic, so the percentage rounds half up like the prototype's `toFixed(2)` (for example "1,13 %"). Steppers change the length (±0,5 m) and the drop (±0,5 cm) and the verdict updates immediately; "Messpunkt speichern" appends a chip. The values live in local UI state and are never saved (M8).
+
+**Defect form from an M6 screen:** "Mangel" (Gefälle, Raumprüfung Wohnen), "Als Mangel" (Raumprüfung Bad) and the summary link on Ebenheit open the one fixture defect form (`defect/new`); "Sichern" returns to the opener. The Fliesenraster tiles (8 × 3) are accessible buttons without an action (confirmed decision), like the M5 socket tiles.
+
+```sh
+# iOS: screen snapshots (the eleven M6 screens are part of ScreenSnapshotTests), then the raw diff report
+cd ios && xcodebuild test -project Baupilot.xcodeproj -scheme Baupilot -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:BaupilotTests/ScreenSnapshotTests
+scripts/diff-report --platform ios   # from the repository root
+
+# iOS: later trades UI tests (M6 links, calculators, defect-form entry points)
+cd ios && xcodebuild test -project Baupilot.xcodeproj -scheme Baupilot -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:BaupilotUITests/LaterTradesUITests
+
+# iOS: ViewModel and consistency unit tests
+cd ios && xcodebuild test -project Baupilot.xcodeproj -scheme Baupilot -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:BaupilotTests/SlopeViewModelTests -only-testing:BaupilotTests/FlatnessViewModelTests -only-testing:BaupilotTests/M6ConsistencyTests
+
+# Android: screen snapshots, then the raw diff report
+cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests 'de.baupilot.snapshot.*SnapshotTest'
+scripts/diff-report --platform android   # from the repository root
+
+# Android: later trades UI test (Compose UI test on Robolectric)
+cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests 'de.baupilot.app.LaterTradesUiTest'
+
+# Android: ViewModel and consistency unit tests
+cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests 'de.baupilot.inspection.SlopeViewModelTest' --tests 'de.baupilot.inspection.FlatnessViewModelTest' --tests 'de.baupilot.app.M6ConsistencyTest'
+```
+
 ## Font provenance
 
 Fonts are embedded as TTF and also used in the test path.
