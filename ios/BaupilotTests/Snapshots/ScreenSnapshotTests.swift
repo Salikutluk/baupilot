@@ -429,6 +429,21 @@ final class ScreenSnapshotTests: XCTestCase {
         try await verify("EsUebersicht", mode: .dark, navigation: esUebersicht)
     }
 
+    /// D10: logged in, Abnahmen tab, Fliesen opened (back label "Abnahmen").
+    private var flUebersicht: AppNavigation {
+        var navigation = abnGewerke
+        navigation.open(.inspection(tradeId: "tiles"))
+        return navigation
+    }
+
+    func testFlUebersichtLight() async throws {
+        try await verify("FlUebersicht", mode: .light, navigation: flUebersicht)
+    }
+
+    func testFlUebersichtDark() async throws {
+        try await verify("FlUebersicht", mode: .dark, navigation: flUebersicht)
+    }
+
     /// D10: Estrich opened from Abnahmen, then Ebenheit (back label "Estrich").
     private var esEbenheit: AppNavigation {
         var navigation = esUebersicht
