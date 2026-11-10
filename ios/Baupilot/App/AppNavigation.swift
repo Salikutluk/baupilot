@@ -13,6 +13,7 @@ enum AppRoute: Hashable, Sendable {
     case signOff(inspectionId: String)
     case inspectionCheck(tradeId: String, check: String)
     case inspectionRoom(tradeId: String, roomId: String)
+    case inspectionCheckItem(tradeId: String, check: String, item: String)
 }
 
 /// The two views of the Abnahmen tab root (the "Ansicht" tablist of IosAbnGewerke / IosAbnMaengel).

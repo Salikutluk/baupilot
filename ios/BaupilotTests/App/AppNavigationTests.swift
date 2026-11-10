@@ -314,6 +314,22 @@ final class AppNavigationTests: XCTestCase {
         XCTAssertEqual(alone.path(for: .inspections), [])
     }
 
+    func testSaveDefectFromSlopePops() {
+        let plumbing = AppRoute.inspection(tradeId: "plumbing")
+        let slope = AppRoute.inspectionCheckItem(tradeId: "plumbing", check: "slope", item: "A3")
+        var nav = inspectionsNav([plumbing, slope, .newDefect])
+        nav.saveDefect(formTradeId: "plumbing", hasSignOff: false)
+        XCTAssertEqual(nav.path(for: .inspections), [plumbing, slope])
+    }
+
+    func testSaveDefectFromTileRoomPops() {
+        let tiles = AppRoute.inspection(tradeId: "tiles")
+        let bath = AppRoute.inspectionRoom(tradeId: "tiles", roomId: "bath")
+        var nav = inspectionsNav([tiles, bath, .newDefect])
+        nav.saveDefect(formTradeId: "tiles", hasSignOff: true)
+        XCTAssertEqual(nav.path(for: .inspections), [tiles, bath])
+    }
+
     func testSaveDefectIsNoOpWhenLoggedOutOrNotOnTop() {
         var out = AppNavigation()
         let before = out

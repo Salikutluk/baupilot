@@ -91,4 +91,30 @@ final class RouteTitlesTests: XCTestCase {
         XCTAssertEqual(
             full.backLabel(path: [.inspection(tradeId: "earthworks")], index: 0, tab: .inspections), "Abnahmen")
     }
+
+    func testCheckItemTitleAndFallback() {
+        let item = AppRoute.inspectionCheckItem(tradeId: "plumbing", check: "slope", item: "A3")
+        var full = titles
+        full.checkTitles = [item: "Gefälle Abwasser"]
+        XCTAssertEqual(full.title(item), "Gefälle Abwasser")
+        XCTAssertEqual(titles.title(item), "slope")
+    }
+
+    func testBackLabelsOnM6Paths() {
+        var full = RouteTitles(
+            tabLabels: [.inspections: "Abnahmen"], tradeNames: [:], documentTitles: [:],
+            compareTitle: "Angebote vergleichen", notificationsTitle: "Mitteilungen")
+        full.inspectionTitles = ["plumbing": "Sanitär & Heizung", "screed": "Estrich", "tiles": "Fliesen"]
+        let plumbing = AppRoute.inspection(tradeId: "plumbing")
+        full.inspectionBackLabels = [plumbing: "Sanitär"]
+        let slope = AppRoute.inspectionCheckItem(tradeId: "plumbing", check: "slope", item: "A3")
+        let screed = AppRoute.inspection(tradeId: "screed")
+        let flatness = AppRoute.inspectionCheck(tradeId: "screed", check: "flatness")
+        let tiles = AppRoute.inspection(tradeId: "tiles")
+        let bath = AppRoute.inspectionRoom(tradeId: "tiles", roomId: "bath")
+        XCTAssertEqual(full.backLabel(path: [plumbing, slope], index: 1, tab: .inspections), "Sanitär")
+        XCTAssertEqual(full.backLabel(path: [screed, flatness], index: 1, tab: .inspections), "Estrich")
+        XCTAssertEqual(full.backLabel(path: [tiles, bath], index: 1, tab: .inspections), "Fliesen")
+        XCTAssertEqual(full.backLabel(path: [plumbing, slope], index: 0, tab: .inspections), "Abnahmen")
+    }
 }

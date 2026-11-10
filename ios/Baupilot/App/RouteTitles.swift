@@ -19,6 +19,8 @@ struct RouteTitles: Sendable, Equatable {
     var signOffTitles: [String: String] = [:]
     /// Titles of the check and room screens by their route; a missing one falls back to the check key or room id.
     var checkTitles: [AppRoute: String] = [:]
+    /// Back-button labels of a screen pushed on the key route, where they differ from its title ("Sanitär").
+    var inspectionBackLabels: [AppRoute: String] = [:]
 
     /// A missing name falls back to the id, so a title is never empty.
     func title(_ route: AppRoute) -> String {
@@ -33,12 +35,14 @@ struct RouteTitles: Sendable, Equatable {
         case let .signOff(inspectionId): return signOffTitles[inspectionId] ?? inspectionId
         case let .inspectionCheck(_, check): return checkTitles[route] ?? check
         case let .inspectionRoom(_, roomId): return checkTitles[route] ?? roomId
+        case let .inspectionCheckItem(_, check, _): return checkTitles[route] ?? check
         }
     }
 
     /// The first entry of a stack goes back to its tab; every other one to the title of the screen below it.
     func backLabel(path: [AppRoute], index: Int, tab: AppTab) -> String {
         guard index > 0, index < path.count else { return tabLabels[tab] ?? "" }
-        return title(path[index - 1])
+        let parent = path[index - 1]
+        return inspectionBackLabels[parent] ?? title(parent)
     }
 }

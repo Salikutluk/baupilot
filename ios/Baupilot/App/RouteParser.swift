@@ -24,11 +24,15 @@ enum RouteParser {
         case "inspection" where parts.count == 3 && isIdentifier(parts[1]) && parts[2] == "sign":
             return .push(.signOff(inspectionId: parts[1]))
         case "inspection" where parts.count == 3 && isIdentifier(parts[1]) && isIdentifier(parts[2])
-            && !["sign", "step", "room"].contains(parts[2]):
+            && !reservedCheckWords.contains(parts[2]):
             return .push(.inspectionCheck(tradeId: parts[1], check: parts[2]))
         case "inspection" where parts.count == 4 && isIdentifier(parts[1]) && parts[2] == "room"
             && isIdentifier(parts[3]):
             return .push(.inspectionRoom(tradeId: parts[1], roomId: parts[3]))
+        case "inspection" where parts.count == 4 && isIdentifier(parts[1]) && isIdentifier(parts[2])
+            && isIdentifier(parts[3]) && !reservedCheckWords.contains(parts[2])
+            && !reservedCheckWords.contains(parts[3]):
+            return .push(.inspectionCheckItem(tradeId: parts[1], check: parts[2], item: parts[3]))
         case "inspection" where parts.count == 5 && isIdentifier(parts[1]) && isIdentifier(parts[2])
             && parts[3] == "step":
             guard let step = stepNumber(parts[4]) else { throw RepositoryError.decoding(field) }
@@ -37,6 +41,8 @@ enum RouteParser {
             throw RepositoryError.decoding(field)
         }
     }
+
+    private nonisolated static let reservedCheckWords: Set<String> = ["sign", "step", "room"]
 
     /// A target that must open a pushed screen; a tab or the defects view is rejected.
     nonisolated static func route(_ raw: String?, field: String) throws -> AppRoute? {

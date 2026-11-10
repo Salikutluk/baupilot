@@ -154,6 +154,9 @@ struct AppShell: View {
                 PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
                     .accessibilityIdentifier("screen.inspection.\(tradeId).room.\(roomId)")
             }
+        case let .inspectionCheckItem(tradeId, check, item):
+            PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
+                .accessibilityIdentifier("screen.inspection.\(tradeId).\(check).\(item)")
         }
     }
 
