@@ -220,4 +220,55 @@ final class ComponentMetricsLaterTradesTests: XCTestCase {
         XCTAssertEqual(measured, InterMetrics.lineBox(15) + 2 + 2 * 13 * 1.35, accuracy: 0.34)
         XCTAssertGreaterThan(measured, 56)
     }
+
+    // MARK: Ebenheit (EsEbenheit)
+
+    private func sketch(lineHeight: CGFloat = 8) -> FlatnessSketch {
+        FlatnessSketch(
+            lineHeight: lineHeight, line: Tokens.oFg, lath: Tokens.accent, floor: Tokens.track.esEbenheit,
+            background: Tokens.surface)
+    }
+
+    /// IosEsEbenheit:32: a 64 tall, full-width box.
+    func testFlatnessSketchIs64TallAndFillsTheWidth() {
+        let measured = size(of: sketch(), width: 350)
+        XCTAssertEqual(measured.width, 350)
+        XCTAssertEqual(measured.height, 64)
+    }
+
+    private func solid(_ token: ColorToken) -> [UInt8] {
+        render(Rectangle().fill(token.color), size: CGSize(width: 2, height: 2), scale: 1).pixel(0, 0)
+    }
+
+    /// The lath (inset 24, y 18-26) is `lath`, the floor (inset 16, y 40-50) has a flat top and a rounded bottom
+    /// (the corner stays `background`, the middle is `floor`), the line (x 175, y 26 on) is `line`.
+    func testFlatnessSketchDrawsLathFloorAndLine() {
+        let pixels = render(sketch(lineHeight: 10), size: CGSize(width: 350, height: 64), scale: 1)
+        XCTAssertEqual(pixels.pixel(100, 22), solid(Tokens.accent))
+        XCTAssertEqual(pixels.pixel(100, 38), solid(Tokens.surface))
+        XCTAssertEqual(pixels.pixel(100, 42), solid(Tokens.track.esEbenheit))
+        XCTAssertEqual(pixels.pixel(175, 45), solid(Tokens.track.esEbenheit))
+        XCTAssertEqual(pixels.pixel(17, 49), solid(Tokens.surface))
+        XCTAssertEqual(pixels.pixel(175, 30), solid(Tokens.oFg))
+        XCTAssertEqual(pixels.pixel(177, 30), solid(Tokens.surface))
+        XCTAssertEqual(pixels.pixel(175, 40), solid(Tokens.track.esEbenheit))
+    }
+
+    /// IosEsEbenheit:58: 36 tall, padding 0 12, hugging the 14/600 text.
+    func testMeasureChipIs36TallAndHugsItsText() {
+        let chip = MeasureChip("M3 · 6 mm", background: Tokens.eSoft.core, foreground: Tokens.eFg)
+        let text = intrinsic(Text("M3 · 6 mm").interText(14, .semibold))
+        let measured = intrinsic(chip)
+        XCTAssertEqual(measured.height, 36)
+        XCTAssertEqual(measured.width, text.width + 24, accuracy: 0.01)
+    }
+
+    /// IosEsEbenheit:62: a link of at least 44 that wraps greedily instead of staying on one line.
+    func testTextLinkIsAtLeast44AndWrapsGreedily() {
+        let short = TextLink("Kurz", color: Tokens.err.core, action: nil)
+        XCTAssertEqual(size(of: short, width: 350).height, 44)
+        let long = TextLink("1 Messpunkt über Grenzwert → Mangel erfassen", color: Tokens.err.core, action: nil)
+        XCTAssertEqual(size(of: long, width: 250).height, 44)
+        XCTAssertEqual(size(of: long, width: 110).height, 5 * InterMetrics.lineBox(15), accuracy: 0.01)
+    }
 }

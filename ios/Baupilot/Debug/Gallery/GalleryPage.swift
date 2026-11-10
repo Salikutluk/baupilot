@@ -43,7 +43,7 @@ struct GalleryGroup<Content: View>: View {
 
 /// One full-screen page of the component gallery. Each page is one golden pair.
 enum GalleryPage: String, CaseIterable {
-    case structure, containers, statusInput, buttons, bars, steps, tiles, icons, forms, overview, schedule, settings, trade, documents, compare, notifications, inspections, inspectionElements, inspectionStep, defectForm, signOff, `protocol`, measure, electrical, electricalSteps, electricalSteps2, plumbing, plumbingSteps
+    case structure, containers, statusInput, buttons, bars, steps, tiles, icons, forms, overview, schedule, settings, trade, documents, compare, notifications, inspections, inspectionElements, inspectionStep, defectForm, signOff, `protocol`, measure, electrical, electricalSteps, electricalSteps2, plumbing, plumbingSteps, screed
 
     /// ASCII letters only, so the name is a valid file name on every platform.
     var goldenName: String { "Gallery" + rawValue.capitalizedFirst }
@@ -81,6 +81,7 @@ enum GalleryPage: String, CaseIterable {
             case .electricalSteps2: GalleryElectricalSteps2Page()
             case .plumbing: GalleryPlumbingPage()
             case .plumbingSteps: GalleryPlumbingStepsPage()
+            case .screed: GalleryScreedPage()
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -202,6 +203,34 @@ struct GalleryPlumbingStepsPage: View {
                         defectAccessibilityLabel: "Siphon & Anschlüsse trocken: Mangel", identifiers: nil)
                 }
             }
+        }
+    }
+}
+
+/// Estrich parts: the straightedge sketch within and over the limit, the measurement chips in a wrapping row and the
+/// greedy text link (EsEbenheit).
+struct GalleryScreedPage: View {
+    var body: some View {
+        GalleryGroup("FlatnessSketch · 64, gap line 8 (within, oFg)") {
+            FlatnessSketch(
+                lineHeight: 8, line: Tokens.oFg, lath: Tokens.accent, floor: Tokens.track.esEbenheit,
+                background: Tokens.surface)
+        }
+        GalleryGroup("FlatnessSketch · gap line 26 (over, eFg)") {
+            FlatnessSketch(
+                lineHeight: 26, line: Tokens.eFg, lath: Tokens.accent, floor: Tokens.track.esEbenheit,
+                background: Tokens.surface)
+        }
+        GalleryGroup("MeasureChip · 36, within and over, gap 8") {
+            FlowLayout(spacing: 8, lineSpacing: 8) {
+                MeasureChip("M1 · 2 mm", background: Tokens.oSoft, foreground: Tokens.oFg)
+                MeasureChip("M2 · 3 mm", background: Tokens.oSoft, foreground: Tokens.oFg)
+                MeasureChip("M3 · 6 mm", background: Tokens.eSoft.core, foreground: Tokens.eFg)
+            }
+            .frame(width: 350, alignment: .leading)
+        }
+        GalleryGroup("TextLink · min 44, greedy wrap, leading") {
+            TextLink("1 Messpunkt über Grenzwert → Mangel erfassen", color: Tokens.err.core, action: nil)
         }
     }
 }

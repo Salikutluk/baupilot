@@ -428,4 +428,19 @@ final class ScreenSnapshotTests: XCTestCase {
     func testEsUebersichtDark() async throws {
         try await verify("EsUebersicht", mode: .dark, navigation: esUebersicht)
     }
+
+    /// D10: Estrich opened from Abnahmen, then Ebenheit (back label "Estrich").
+    private var esEbenheit: AppNavigation {
+        var navigation = esUebersicht
+        navigation.open(.inspectionCheck(tradeId: "screed", check: "flatness"))
+        return navigation
+    }
+
+    func testEsEbenheitLight() async throws {
+        try await verify("EsEbenheit", mode: .light, navigation: esEbenheit)
+    }
+
+    func testEsEbenheitDark() async throws {
+        try await verify("EsEbenheit", mode: .dark, navigation: esEbenheit)
+    }
 }
