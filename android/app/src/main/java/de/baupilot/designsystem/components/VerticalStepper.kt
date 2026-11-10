@@ -32,7 +32,10 @@ enum class StepState { Done, Current, Open }
 
 enum class StepperVariant { Rail, Compact }
 
-/** One stepper entry. [body] is only drawn for the current step; [trailing] ends a compact done or open row (the MaRaum colour swatch). */
+/**
+ * One stepper entry. [body] is only drawn for the current step; [trailing] ends a compact done or open row (the MaRaum colour swatch).
+ * [body] stays the LAST parameter so a trailing lambda `Step(…) { … }` keeps binding to it.
+ */
 data class Step(
     val number: Int,
     val title: String,
@@ -41,8 +44,8 @@ data class Step(
     val tag: String? = null,
     val metaColor: ColorToken = Tokens.muted,
     val metaWeight: Int = 400,
-    val body: (@Composable () -> Unit)? = null,
     val trailing: (@Composable () -> Unit)? = null,
+    val body: (@Composable () -> Unit)? = null,
 )
 
 /**

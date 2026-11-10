@@ -281,6 +281,246 @@ data class SmokeCheckDto(
     val battery: String,
 )
 
+// --- M6: Sanitär, Estrich, Fliesen, Maler. Same strict decoding: every fixture key is declared, optional keys carry `= null`.
+
+@Serializable
+data class OverviewBannerDto(val text: String)
+
+@Serializable
+data class OverviewPhaseDto(
+    val title: String,
+    val statusLabel: PlatformText? = null,
+    val dateLabel: PlatformText? = null,
+    val progressLabel: String? = null,
+)
+
+@Serializable
+data class OverviewFactDto(val label: String, val value: String)
+
+@Serializable
+data class OverviewRowDto(val name: String, val sub: PlatformText, val route: String? = null, val statusLabel: String)
+
+@Serializable
+data class OverviewGroupDto(val title: String, val rows: List<OverviewRowDto>)
+
+/** Mirror of `inspections.byTrade.<plumbing|screed|tiles|painting>`; `checks` is decoded per check. */
+@Serializable
+data class TradeOverviewDto(
+    val title: String,
+    val subtitle: PlatformText,
+    val banner: OverviewBannerDto? = null,
+    val phases: List<OverviewPhaseDto>? = null,
+    val facts: List<OverviewFactDto>? = null,
+    val groups: List<OverviewGroupDto>,
+    val checks: JsonObject? = null,
+)
+
+/** Mirror of `inspections.byTrade.plumbing.checks.slope`. */
+@Serializable
+data class SlopeCheckDto(
+    val screen: String,
+    val kind: String,
+    val measurementKey: String,
+    val counter: PlatformText,
+    val title: String,
+    val subtitle: String,
+    val hint: String,
+    val warning: String,
+)
+
+@Serializable
+data class SlopeParameterDto(val key: String, val default: Double, val min: Double, val max: Double, val unit: String, val step: Double)
+
+@Serializable
+data class IntRangeDto(val min: Int, val max: Int, val step: Int)
+
+@Serializable
+data class SlopeSectionDto(val id: String, val label: String)
+
+@Serializable
+data class SlopeLabelsDto(val sufficient: String, val tooFlat: String, val sollPrefix: String)
+
+/** Mirror of `measurements.drainSlope`. */
+@Serializable
+data class DrainSlopeDto(
+    val parameter: SlopeParameterDto,
+    val lengthDm: Int,
+    val dropMm: Int,
+    val lengthRange: IntRangeDto,
+    val dropRange: IntRangeDto,
+    val sections: List<SlopeSectionDto>,
+    val labels: SlopeLabelsDto,
+)
+
+@Serializable
+data class PressureCurrentDto(val n: String, val title: String)
+
+@Serializable
+data class PressureEndpointDto(val label: String, val value: String)
+
+@Serializable
+data class PressureTimerDto(
+    val progressLabel: String,
+    val remaining: String,
+    val remainingLabel: String,
+    val note: String,
+    val start: PressureEndpointDto,
+    val end: PressureEndpointDto,
+)
+
+@Serializable
+data class PressureNextDto(val n: String, val label: String, val tag: String? = null)
+
+/** Mirror of `inspections.byTrade.plumbing.checks.pressure`. */
+@Serializable
+data class PressureCheckDto(
+    val screen: String,
+    val kind: String,
+    val counter: PlatformText,
+    val title: String,
+    val subtitle: PlatformText,
+    val done: List<StepDone>,
+    val current: PressureCurrentDto,
+    val timer: PressureTimerDto,
+    val next: List<PressureNextDto>,
+)
+
+@Serializable
+data class BathObjectDto(val name: String, val done: Boolean, val selected: Boolean)
+
+@Serializable
+data class BathCheckItemDto(val label: String, val hint: PlatformText, val ok: Boolean)
+
+/** Mirror of `inspections.byTrade.plumbing.checks.bathUpper`. */
+@Serializable
+data class ObjectCheckDto(
+    val screen: String,
+    val kind: String,
+    val counter: PlatformText,
+    val title: String,
+    val subtitle: PlatformText,
+    val objects: List<BathObjectDto>,
+    val checks: List<BathCheckItemDto>,
+    val nextHint: String,
+)
+
+/** Mirror of `inspections.byTrade.screed.checks.flatness`. */
+@Serializable
+data class FlatnessCheckDto(
+    val screen: String,
+    val kind: String,
+    val measurementKey: String,
+    val counter: PlatformText,
+    val title: String,
+)
+
+@Serializable
+data class FlatnessParameterDto(val key: String, val default: Int, val min: Int, val max: Int, val unit: String)
+
+@Serializable
+data class FlatnessLabelsDto(
+    val within: String,
+    val outside: String,
+    val none: String,
+    val point: String,
+    val pluralSuffix: String,
+    val overLimit: String,
+)
+
+/** Mirror of `measurements.screedFlatness`. */
+@Serializable
+data class ScreedFlatnessDto(
+    val parameter: FlatnessParameterDto,
+    val gap: Int,
+    val points: List<Int>,
+    val gapMin: Int,
+    val gapMax: Int,
+    val gapStep: Int,
+    val labels: FlatnessLabelsDto,
+)
+
+@Serializable
+data class HeatingChartDto(
+    val label: String,
+    val start: String,
+    val max: String,
+    val end: String,
+    val today: String,
+    val plan: String,
+    val action: String,
+)
+
+@Serializable
+data class CmRowDto(val label: String, val meta: String, val done: Boolean)
+
+/** Mirror of `inspections.byTrade.screed.checks.readiness`. */
+@Serializable
+data class ReadinessCheckDto(
+    val screen: String,
+    val kind: String,
+    val counter: String,
+    val title: String,
+    val subtitle: String,
+    val measurementKey: String,
+    val chart: HeatingChartDto,
+    val cmTitle: String,
+    val cmTag: String,
+    val cmText: String,
+    val cmNote: String,
+    val cm: List<CmRowDto>,
+)
+
+/** Mirror of `measurements.screedHeating`. */
+@Serializable
+data class ScreedHeatingDto(val planCelsius: List<Int>, val recordedDays: Int, val todayDay: Int)
+
+@Serializable
+data class StepLabelDto(val label: String)
+
+@Serializable
+data class TileCurrentDto(val n: String, val title: String, val text: String)
+
+@Serializable
+data class TileNextDto(val n: String, val label: String)
+
+@Serializable
+data class TileDto(val id: String, val status: String, val label: String? = null, val aria: String)
+
+/** Mirror of `inspections.byTrade.tiles.checks.bath`. */
+@Serializable
+data class TileCheckDto(
+    val screen: String,
+    val kind: String,
+    val counter: PlatformText,
+    val title: String,
+    val subtitle: PlatformText,
+    val done: List<StepLabelDto>,
+    val current: TileCurrentDto,
+    val next: List<TileNextDto>,
+    val tiles: List<TileDto>,
+    val wallLabel: String,
+    val markHint: String,
+    val gridAria: String,
+    val result: String,
+)
+
+@Serializable
+data class PaintWallDto(val name: String, val selected: Boolean)
+
+/** Mirror of `inspections.byTrade.painting.checks.living`. */
+@Serializable
+data class PaintCheckDto(
+    val screen: String,
+    val kind: String,
+    val counter: PlatformText,
+    val title: String,
+    val subtitle: PlatformText,
+    val done: List<StepLabelDto>,
+    val current: TileCurrentDto,
+    val next: List<TileNextDto>,
+    val walls: List<PaintWallDto>,
+)
+
 /**
  * Decodes the slice at [path] (member names below `inspections`) with the strict [FixtureJson] (D17).
  * A missing member or any shape error is a [RepositoryException.Decoding] carrying exactly the slice path,

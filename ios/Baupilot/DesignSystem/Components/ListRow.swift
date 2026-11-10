@@ -161,7 +161,7 @@ public struct ListRow: View {
                 Rectangle().fill(dividerColor.color).frame(height: 1)
             }
             if let action {
-                Button(action: action) { row }.buttonStyle(.plain)
+                Button(action: action) { row.contentShape(Rectangle()) }.buttonStyle(.plain)
             } else {
                 row
             }

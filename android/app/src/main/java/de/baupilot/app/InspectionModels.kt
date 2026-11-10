@@ -233,6 +233,9 @@ sealed interface PhaseKind {
     data class Done(val status: String, val date: String?) : PhaseKind
 
     data class Active(val progressLabel: String, val fraction: Float) : PhaseKind
+
+    /** A phase that has not started; only the later trades produce it (M6 D7). */
+    data class Planned(val status: String) : PhaseKind
 }
 
 data class PhaseModel(val title: String, val kind: PhaseKind)

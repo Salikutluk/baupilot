@@ -143,6 +143,12 @@ struct AppShell: View {
                 ElVerteilerScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
             } else if let model = data.smokeChecks[route] {
                 ElRauchmelderScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else if let model = data.pressureChecks[route] {
+                SanDruckScreen(model: model, backLabel: backLabel, onBack: onBack)
+            } else if let model = data.flatnessChecks[route] {
+                EsEbenheitScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else if let model = data.readinessChecks[route] {
+                EsBelegreifeScreen(model: model, backLabel: backLabel, onBack: onBack)
             } else {
                 PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
                     .accessibilityIdentifier("screen.inspection.\(tradeId).\(check)")
@@ -150,17 +156,28 @@ struct AppShell: View {
         case let .inspectionRoom(tradeId, roomId):
             if let model = data.roomChecks[route] {
                 ElRaumScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else if let model = data.objectChecks[route] {
+                SanBadScreen(model: model, backLabel: backLabel, onBack: onBack)
+            } else if let model = data.tileChecks[route] {
+                FlBadScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else if let model = data.paintChecks[route] {
+                MaRaumScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
             } else {
                 PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
                     .accessibilityIdentifier("screen.inspection.\(tradeId).room.\(roomId)")
             }
         case let .inspectionCheckItem(tradeId, check, item):
-            PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
-                .accessibilityIdentifier("screen.inspection.\(tradeId).\(check).\(item)")
+            if let model = data.slopeChecks[route] {
+                SanGefaelleScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else {
+                PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
+                    .accessibilityIdentifier("screen.inspection.\(tradeId).\(check).\(item)")
+            }
         }
     }
 
-    /// The lookup chain of an inspection trade (D2): element list, protocol, electrical overview, placeholder.
+    /// The lookup chain of an inspection trade (D2): element list, protocol, electrical overview, M6 overview,
+    /// placeholder.
     @ViewBuilder
     private func inspectionDestination(
         _ tradeId: String, route: AppRoute, backLabel: String, onBack: @escaping () -> Void,
@@ -173,9 +190,30 @@ struct AppShell: View {
             screen
         } else if let model = data.electricalOverviews[tradeId] {
             ElUebersichtScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+        } else if let model = data.tradeOverviews[tradeId], let screen = overviewScreen(
+            model, backLabel: backLabel, onBack: onBack) {
+            screen
         } else {
             PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
                 .accessibilityIdentifier("screen.inspection.\(tradeId)")
+        }
+    }
+
+    /// Plumbing, screed, tiles and painting each have their own overview screen.
+    private func overviewScreen(
+        _ model: TradeOverviewModel, backLabel: String, onBack: @escaping () -> Void
+    ) -> AnyView? {
+        switch model.tradeId {
+        case "plumbing":
+            return AnyView(SanUebersichtScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle))
+        case "screed":
+            return AnyView(EsUebersichtScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle))
+        case "tiles":
+            return AnyView(FlUebersichtScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle))
+        case "painting":
+            return AnyView(MaUebersichtScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle))
+        default:
+            return nil
         }
     }
 
@@ -300,6 +338,24 @@ struct AppShell: View {
     }
 
     private func handle(_ action: CheckStepAction) {
+        switch action {
+        case let .open(route): navigation.open(route)
+        }
+    }
+
+    private func handle(_ action: OverviewAction) {
+        switch action {
+        case let .open(route): navigation.open(route)
+        }
+    }
+
+    private func handle(_ action: SlopeAction) {
+        switch action {
+        case let .open(route): navigation.open(route)
+        }
+    }
+
+    private func handle(_ action: FlatnessAction) {
         switch action {
         case let .open(route): navigation.open(route)
         }

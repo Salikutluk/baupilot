@@ -269,8 +269,8 @@ struct GalleryScreedPage: View {
         }
 }
 
-/// Fliesen parts: the tile raster with its legend row, the filled error button and the neutral outlined button
-/// (FlBad).
+/// Fliesen and Maler parts: the tile raster with its legend row, the filled error button and the neutral outlined
+/// button (FlBad), the raking-light sketch and the square swatch of a done step row (MaRaum).
 struct GalleryFinishingPage: View {
     var body: some View {
         GalleryGroup("LegendRow · 12/600, swatch 12 r2, space-between") {
@@ -302,6 +302,17 @@ struct GalleryFinishingPage: View {
                 NeutralOutlineButton("Keine Hohlstellen", action: nil)
             }
             .frame(width: 314)
+        }
+        GalleryGroup("RakingLightSketch · 88, r12, torch, glow, shadow 62 %") {
+            RakingLightSketch(
+                lit: Tokens.lit, wall: Tokens.wall, lamp: Tokens.text, glow: Tokens.lampGlow, shadow: Tokens.shadow)
+                .frame(width: 314)
+        }
+        GalleryGroup("StepRow swatchSquare · 18 + 1 border, r5") {
+            StepRow(
+                number: 1, title: "Farbton wie bemustert", state: .done,
+                meta: .swatchSquare(Tokens.paintSand, side: 18, radius: 5, border: Tokens.border.maRaum))
+                .frame(width: 350)
         }
     }
 

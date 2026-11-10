@@ -18,6 +18,8 @@ public struct StepRow: View {
         case ok(String)
         /// Colour swatch dot.
         case swatch(ColorToken)
+        /// Rounded paint swatch: `side` fill plus a 1 pt border outside it (CSS content-box), so 20 outer for 18.
+        case swatchSquare(ColorToken, side: CGFloat, radius: CGFloat, border: ColorToken)
     }
 
     /// Filled ok ring with a tick.
@@ -141,6 +143,11 @@ public struct StepRow: View {
             Text(value).interText(14, .semibold).foregroundStyle(Tokens.oFg.color)
         case .swatch(let color):
             Circle().fill(color.color).frame(width: 14, height: 14)
+        case .swatchSquare(let fill, let side, let radius, let border):
+            RoundedRectangle(cornerRadius: radius)
+                .fill(fill.color)
+                .overlay { RoundedRectangle(cornerRadius: radius).strokeBorder(border.color, lineWidth: 1) }
+                .frame(width: side + 2, height: side + 2)
         }
     }
 }

@@ -503,4 +503,19 @@ final class ScreenSnapshotTests: XCTestCase {
     func testMaUebersichtDark() async throws {
         try await verify("MaUebersicht", mode: .dark, navigation: maUebersicht)
     }
+
+    /// D10: Maler opened from Abnahmen, then Wohnen / Essen (back label "Maler").
+    private var maRaum: AppNavigation {
+        var navigation = maUebersicht
+        navigation.open(.inspectionRoom(tradeId: "painting", roomId: "living"))
+        return navigation
+    }
+
+    func testMaRaumLight() async throws {
+        try await verify("MaRaum", mode: .light, navigation: maRaum)
+    }
+
+    func testMaRaumDark() async throws {
+        try await verify("MaRaum", mode: .dark, navigation: maRaum)
+    }
 }

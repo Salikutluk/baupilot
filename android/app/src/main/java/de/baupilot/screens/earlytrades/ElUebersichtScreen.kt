@@ -87,6 +87,7 @@ fun ElUebersichtScreen(
                 val cardModifier = Modifier.weight(1f).fillMaxHeight().testTag("electrical.phase.$index")
                 when (val kind = phase.kind) {
                     is PhaseKind.Done -> PhaseCard(phase.title, kind.status, PhaseCardState.Done, cardModifier)
+                    is PhaseKind.Planned -> PhaseCard(phase.title, kind.status, PhaseCardState.Planned, cardModifier)
                     is PhaseKind.Active -> PhaseCard(
                         phase.title,
                         kind.progressLabel,

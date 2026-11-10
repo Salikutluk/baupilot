@@ -434,4 +434,57 @@ final class ComponentMetricsLaterTradesTests: XCTestCase {
         XCTAssertEqual(pixels.pixel(14, 26), solid(Tokens.border.maUebersicht))
         XCTAssertEqual(pixels.pixel(14 + 16 + 1, 26), [0, 0, 0, 0])
     }
+
+    // MARK: Maler (MaRaum)
+
+    private func raking() -> RakingLightSketch {
+        RakingLightSketch(
+            lit: Tokens.lit, wall: Tokens.wall, lamp: Tokens.text, glow: Tokens.lampGlow, shadow: Tokens.shadow)
+    }
+
+    /// IosMaRaum:44: an 88 tall, full-width box.
+    func testRakingLightSketchIs88TallAndFillsTheWidth() {
+        let measured = size(of: raking(), width: 318)
+        XCTAssertEqual(measured.width, 318)
+        XCTAssertEqual(measured.height, 88)
+    }
+
+    /// IosMaRaum:45-47: lamp (14, 34, 34 x 18), glow (48, 39, 8 x 8) and the shadow (62 % x, y 22-66, 2 wide) are the
+    /// only pixels that change when their colour does; the gradient around them is not solid, so the sketch is
+    /// compared against a twin that differs in one colour.
+    func testRakingLightSketchDrawsLampGlowAndShadow() {
+        func pixels(lamp: ColorToken = Tokens.text, glow: ColorToken = Tokens.lampGlow, shadow: ColorToken = Tokens.shadow)
+            -> Pixels
+        {
+            render(
+                RakingLightSketch(lit: Tokens.lit, wall: Tokens.wall, lamp: lamp, glow: glow, shadow: shadow),
+                size: CGSize(width: 318, height: 88), scale: 1)
+        }
+        let base = pixels()
+        XCTAssertEqual(base.pixel(30, 43), solid(Tokens.text))
+        XCTAssertEqual(base.pixel(52, 43), solid(Tokens.lampGlow))
+        let otherLamp = pixels(lamp: Tokens.accent)
+        XCTAssertNotEqual(base.pixel(20, 40), otherLamp.pixel(20, 40))
+        XCTAssertEqual(base.pixel(12, 40), otherLamp.pixel(12, 40))
+        XCTAssertEqual(base.pixel(30, 33), otherLamp.pixel(30, 33))
+        XCTAssertEqual(base.pixel(30, 53), otherLamp.pixel(30, 53))
+        let otherShadow = pixels(shadow: Tokens.accent)
+        let shadowX = Int((318 * 0.62).rounded())
+        XCTAssertNotEqual(base.pixel(shadowX, 40), otherShadow.pixel(shadowX, 40))
+        XCTAssertEqual(base.pixel(shadowX, 20), otherShadow.pixel(shadowX, 20))
+        XCTAssertEqual(base.pixel(shadowX, 68), otherShadow.pixel(shadowX, 68))
+        XCTAssertEqual(base.pixel(shadowX - 3, 40), otherShadow.pixel(shadowX - 3, 40))
+        XCTAssertEqual(base.pixel(shadowX + 4, 40), otherShadow.pixel(shadowX + 4, 40))
+    }
+
+    /// IosMaRaum:36: the done row's square swatch is 18 with a 1 pt border (20 outer), r5; the row stays min 44.
+    func testStepRowSwatchSquareIs20OuterInsideA44Row() {
+        let row = StepRow(
+            number: 1, title: "Farbton wie bemustert", state: .done,
+            meta: .swatchSquare(Tokens.paintSand, side: 18, radius: 5, border: Tokens.border.maRaum))
+        XCTAssertEqual(size(of: row, width: 350).height, 44)
+        let pixels = render(row, size: CGSize(width: 350, height: 44), scale: 1)
+        XCTAssertEqual(pixels.pixel(350 - 14 - 10, 22), solid(Tokens.paintSand))
+        XCTAssertEqual(pixels.pixel(350 - 14 - 20, 22), solid(Tokens.border.maRaum))
+    }
 }

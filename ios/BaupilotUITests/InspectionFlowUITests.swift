@@ -115,6 +115,7 @@ final class InspectionFlowUITests: XCTestCase {
         if !app.frame.contains(plumbing.frame) { app.swipeUp() }
         plumbing.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.2)).tap()
         expectScreen("screen.inspection.plumbing")
+        expectScreen("overview.phase.0")
         XCTAssertFalse(element("protocol.banner").exists)
         back(to: "screen.inspections")
         tap("inspections.trade.roofing")
