@@ -473,4 +473,34 @@ final class ScreenSnapshotTests: XCTestCase {
     func testEsBelegreifeDark() async throws {
         try await verify("EsBelegreife", mode: .dark, navigation: esBelegreife)
     }
+
+    /// D10: Fliesen opened from Abnahmen, then Bad OG (back label "Fliesen").
+    private var flBad: AppNavigation {
+        var navigation = flUebersicht
+        navigation.open(.inspectionRoom(tradeId: "tiles", roomId: "bath"))
+        return navigation
+    }
+
+    func testFlBadLight() async throws {
+        try await verify("FlBad", mode: .light, navigation: flBad)
+    }
+
+    func testFlBadDark() async throws {
+        try await verify("FlBad", mode: .dark, navigation: flBad)
+    }
+
+    /// D10: logged in, Abnahmen tab, Maler opened (back label "Abnahmen").
+    private var maUebersicht: AppNavigation {
+        var navigation = abnGewerke
+        navigation.open(.inspection(tradeId: "painting"))
+        return navigation
+    }
+
+    func testMaUebersichtLight() async throws {
+        try await verify("MaUebersicht", mode: .light, navigation: maUebersicht)
+    }
+
+    func testMaUebersichtDark() async throws {
+        try await verify("MaUebersicht", mode: .dark, navigation: maUebersicht)
+    }
 }

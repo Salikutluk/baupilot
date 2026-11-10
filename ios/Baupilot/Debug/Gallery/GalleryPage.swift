@@ -43,7 +43,7 @@ struct GalleryGroup<Content: View>: View {
 
 /// One full-screen page of the component gallery. Each page is one golden pair.
 enum GalleryPage: String, CaseIterable {
-    case structure, containers, statusInput, buttons, bars, steps, tiles, icons, forms, overview, schedule, settings, trade, documents, compare, notifications, inspections, inspectionElements, inspectionStep, defectForm, signOff, `protocol`, measure, electrical, electricalSteps, electricalSteps2, plumbing, plumbingSteps, screed
+    case structure, containers, statusInput, buttons, bars, steps, tiles, icons, forms, overview, schedule, settings, trade, documents, compare, notifications, inspections, inspectionElements, inspectionStep, defectForm, signOff, `protocol`, measure, electrical, electricalSteps, electricalSteps2, plumbing, plumbingSteps, screed, finishing
 
     /// ASCII letters only, so the name is a valid file name on every platform.
     var goldenName: String { "Gallery" + rawValue.capitalizedFirst }
@@ -82,6 +82,7 @@ enum GalleryPage: String, CaseIterable {
             case .plumbing: GalleryPlumbingPage()
             case .plumbingSteps: GalleryPlumbingStepsPage()
             case .screed: GalleryScreedPage()
+            case .finishing: GalleryFinishingPage()
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -266,5 +267,64 @@ struct GalleryScreedPage: View {
                 color: index < 5 ? Tokens.ok.core : index == 5 ? Tokens.accent : Tokens.track.esBelegreife
             )
         }
+}
+
+/// Fliesen parts: the tile raster with its legend row, the filled error button and the neutral outlined button
+/// (FlBad).
+struct GalleryFinishingPage: View {
+    var body: some View {
+        GalleryGroup("LegendRow · 12/600, swatch 12 r2, space-between") {
+            LegendRow(
+                leading: "↑ Wand mit Dusche", swatchLabel: "klingt hohl", swatchFill: Tokens.eSoft.flBad,
+                swatchBorder: Tokens.err.flBad, color: Tokens.muted)
+                .frame(width: 314)
+        }
+        GalleryGroup("TileGrid · 8 × 3, tile 33,75 × 44, hollow 3 and 4") {
+            TileGrid(
+                tiles: Self.tiles, columns: 8, radius: 10, tileRadius: 3, background: Tokens.grout,
+                accessibilityLabel: "Fliesenraster Boden, oben die Wand mit Dusche, unten die Tür")
+                .frame(width: 314)
+        }
+        GalleryGroup("ListRow swatch · 14 + 1 border, min 52, divider border.maUebersicht") {
+            Card(style: .row, padding: EdgeInsets()) {
+                VStack(spacing: 0) {
+                    swatchRow("Wohnen / Essen", "Sand · Decke Weiß · Schritt 2 von 5", Tokens.paintSand, "Läuft", .accent, false)
+                    swatchRow("Küche", "Weiß, Latex abwaschbar", Tokens.paintWhite, "In Ordnung", .ok, true)
+                    swatchRow("Schlafen", "Salbei, Akzentwand", Tokens.paintSage, "Offen", .neutral(), true)
+                }
+            }
+            .frame(width: 350)
+        }
+        GalleryGroup("DefectButton filled + NeutralOutlineButton · 50") {
+            HStack(spacing: 10) {
+                DefectButton(
+                    "Als Mangel", style: .filled(fill: Tokens.err.flBad, ink: Tokens.onDangerFill), action: nil)
+                NeutralOutlineButton("Keine Hohlstellen", action: nil)
+            }
+            .frame(width: 314)
+        }
+    }
+
+    private func swatchRow(
+        _ title: String, _ subtitle: String, _ paint: ColorToken, _ status: String, _ tone: StatusBadge.Tone,
+        _ divider: Bool
+    ) -> some View {
+        ListRow(
+            title: title, subtitle: subtitle,
+            leading: .swatch(paint, side: 14, radius: 4, border: Tokens.border.maUebersicht),
+            trailing: .badge(StatusBadge(status, tone: tone)), density: .minHeight(52), showsDivider: divider,
+            dividerColor: Tokens.border.maUebersicht, textGap: 1, action: nil)
+    }
+
+    private static let tiles: [TileGrid.Tile] = (1...24).map { number in
+        let hollow = number == 3 || number == 4
+        return TileGrid.Tile(
+            id: "tile-\(number)",
+            style: hollow
+                ? TileGrid.Tile.Style(fill: Tokens.eSoft.flBad, border: Tokens.err.flBad, labelColor: Tokens.eFg)
+                : TileGrid.Tile.Style(fill: Tokens.tile, border: nil, labelColor: Tokens.eFg),
+            label: hollow ? "hohl" : nil, accessibilityLabel: "Fliese \(number)\(hollow ? ": hohl" : "")",
+            identifier: "gallery.tile.\(number)")
+    }
 }
 #endif

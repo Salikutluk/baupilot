@@ -58,6 +58,8 @@ public struct ListRow: View {
             BaupilotIcon, size: TileSize = .s38, bg: ColorToken = Tokens.chip.core,
             fg: ColorToken = Tokens.muted)
         case textTile(String, TextTileSize, chip: ColorToken = Tokens.chip.core)
+        /// A paint swatch: `side` fill plus a 1 pt border outside it (CSS content-box), so 16 outer for 14.
+        case swatch(ColorToken, side: CGFloat, radius: CGFloat, border: ColorToken)
     }
 
     public enum ChevronSize {
@@ -100,6 +102,11 @@ public struct ListRow: View {
                     .background(
                         chip.color,
                         in: RoundedRectangle(cornerRadius: size.radius))
+            case .swatch(let fill, let side, let radius, let border):
+                RoundedRectangle(cornerRadius: radius)
+                    .fill(fill.color)
+                    .overlay { RoundedRectangle(cornerRadius: radius).strokeBorder(border.color, lineWidth: 1) }
+                    .frame(width: side + 2, height: side + 2)
             }
         }
     }

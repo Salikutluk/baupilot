@@ -355,4 +355,83 @@ final class ComponentMetricsLaterTradesTests: XCTestCase {
         XCTAssertTrue(hasInk(render(leading, size: frame, scale: 1), x: 42..<60, y: 12..<32, background: chip))
         XCTAssertFalse(hasInk(render(centred, size: frame, scale: 1), x: 42..<60, y: 12..<32, background: chip))
     }
+
+    // MARK: Bad (FlBad)
+
+    private func tileGrid(tiles: Int = 24) -> TileGrid {
+        let normal = TileGrid.Tile.Style(fill: Tokens.tile, border: nil, labelColor: Tokens.eFg)
+        let hollow = TileGrid.Tile.Style(fill: Tokens.eSoft.flBad, border: Tokens.err.flBad, labelColor: Tokens.eFg)
+        return TileGrid(
+            tiles: (1...tiles).map { index in
+                TileGrid.Tile(
+                    id: "tile-\(index)", style: index == 3 ? hollow : normal, label: index == 3 ? "hohl" : nil,
+                    accessibilityLabel: "Fliese \(index)", identifier: "tiles.tile.tile-\(index)")
+            },
+            columns: 8, radius: 10, tileRadius: 3, background: Tokens.grout, accessibilityLabel: "Fliesenraster")
+    }
+
+    /// IosFlBad:49: padding 8, three rows of 44 with gap 4 is 156 tall; a short last row keeps the 8 columns.
+    func testTileGridIs156TallForThreeRows() {
+        XCTAssertEqual(size(of: tileGrid(), width: 314).height, 156)
+        XCTAssertEqual(size(of: tileGrid(tiles: 9), width: 314).height, 108)
+    }
+
+    /// The tile width is (314 - 16 - 7 x 4) / 8 = 33.75: tile 1 starts at x 8, tile 2 at 8 + 33.75 + 4.
+    func testTileGridTilesAre33_75WideAndFollowTheirStyle() {
+        let pixels = render(tileGrid(), size: CGSize(width: 314, height: 156), scale: 1)
+        XCTAssertEqual(pixels.pixel(20, 30), solid(Tokens.tile))
+        XCTAssertEqual(pixels.pixel(44, 30), solid(Tokens.grout))
+        XCTAssertEqual(pixels.pixel(100, 9), solid(Tokens.err.flBad))
+        XCTAssertEqual(pixels.pixel(100, 14), solid(Tokens.eSoft.flBad))
+    }
+
+    /// IosFlBad:48: 12/600 text, a 12 swatch with 2 pt inside border, space-between across the width.
+    func testLegendRowSpreadsTheTextAndTheSwatchAcrossTheWidth() {
+        let row = LegendRow(
+            leading: "↑ Wand mit Dusche", swatchLabel: "klingt hohl", swatchFill: Tokens.eSoft.flBad,
+            swatchBorder: Tokens.err.flBad, color: Tokens.muted)
+        let measured = size(of: row, width: 282)
+        XCTAssertEqual(measured.width, 282)
+        XCTAssertEqual(measured.height, InterMetrics.lineBox(12), accuracy: 1)
+        let pixels = render(row, size: CGSize(width: 282, height: measured.height), scale: 4)
+        let swatchY = Int(measured.height / 2 * 4)
+        let found = (0..<pixels.width).contains { pixels.pixel($0, swatchY) == solid(Tokens.err.flBad) }
+        XCTAssertTrue(found)
+    }
+
+    /// IosFlBad:55: the filled error button is 50 tall without the outer border of the outlined one (52).
+    func testFilledDefectButtonIs50AndOutlinedStays52() {
+        let filled = DefectButton("Als Mangel", style: .filled(fill: Tokens.err.flBad, ink: Tokens.onDangerFill), action: nil)
+        XCTAssertEqual(size(of: filled, width: 152).height, 50)
+        XCTAssertEqual(size(of: DefectButton("Mangel", action: nil), width: 152).height, 52)
+        let pixels = render(filled, size: CGSize(width: 152, height: 50), scale: 1)
+        XCTAssertEqual(pixels.pixel(10, 25), solid(Tokens.err.flBad))
+    }
+
+    /// IosFlBad:56: 50 tall with the 1 pt border inside the box (border-box), transparent inside.
+    func testNeutralOutlineButtonIs50TallWithTheBorderInside() {
+        let button = NeutralOutlineButton("Keine Hohlstellen", action: nil)
+        XCTAssertEqual(size(of: button, width: 152).height, 50)
+        let pixels = render(button, size: CGSize(width: 152, height: 50), scale: 1)
+        XCTAssertEqual(pixels.pixel(76, 0), solid(Tokens.muted))
+        XCTAssertEqual(pixels.pixel(0, 25), solid(Tokens.muted))
+        XCTAssertEqual(pixels.pixel(10, 25), [0, 0, 0, 0])
+    }
+
+    /// IosMaUebersicht:55: a 14 swatch with a 1 pt border is 16 outer; the row is min 52 (53 with the divider).
+    func testListRowSwatchLeadingIs16OuterInsideA52Row() {
+        func row(divider: Bool) -> ListRow {
+            ListRow(
+                title: "Küche", subtitle: "Weiß, Latex abwaschbar",
+                leading: .swatch(Tokens.paintSand, side: 14, radius: 4, border: Tokens.border.maUebersicht),
+                trailing: .badge(StatusBadge("In Ordnung", tone: .ok)), density: .minHeight(52), showsDivider: divider,
+                dividerColor: Tokens.border.maUebersicht, action: nil)
+        }
+        XCTAssertEqual(size(of: row(divider: false), width: 350).height, 52)
+        XCTAssertEqual(size(of: row(divider: true), width: 350).height, 53)
+        let pixels = render(row(divider: false), size: CGSize(width: 350, height: 52), scale: 1)
+        XCTAssertEqual(pixels.pixel(14 + 8, 26), solid(Tokens.paintSand))
+        XCTAssertEqual(pixels.pixel(14, 26), solid(Tokens.border.maUebersicht))
+        XCTAssertEqual(pixels.pixel(14 + 16 + 1, 26), [0, 0, 0, 0])
+    }
 }
