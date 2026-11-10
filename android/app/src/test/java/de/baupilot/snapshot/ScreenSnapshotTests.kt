@@ -842,3 +842,85 @@ class FlUebersichtDarkSnapshotTest {
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
+
+/** Raumprüfung Bad, Fliesen (D10: `logIn`, `select(Inspections)`, `open(Inspection("tiles"))`, `open(InspectionRoom("tiles", "bath"))`), compared with `design/reference/android/FlBad_light.png`. */
+class FlBadLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("FlBad", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun flBad() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("tiles"))
+            .open(AppRoute.InspectionRoom("tiles", "bath"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Raumprüfung Bad, Fliesen (D10, see the light test), compared with `design/reference/android/FlBad_dark.png`. */
+class FlBadDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("FlBad", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun flBad() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("tiles"))
+            .open(AppRoute.InspectionRoom("tiles", "bath"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Abnahmen, Maler – Übersicht (D10: `logIn`, `select(Inspections)`, `open(Inspection("painting"))`), compared with `design/reference/android/MaUebersicht_light.png`. */
+class MaUebersichtLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("MaUebersicht", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun maUebersicht() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("painting"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Abnahmen, Maler – Übersicht (D10, see the light test), compared with `design/reference/android/MaUebersicht_dark.png`. */
+class MaUebersichtDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("MaUebersicht", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun maUebersicht() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("painting"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Raumprüfung Wohnen, Maler (D10: `logIn`, `select(Inspections)`, `open(Inspection("painting"))`, `open(InspectionRoom("painting", "living"))`), compared with `design/reference/android/MaRaum_light.png`. */
+class MaRaumLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("MaRaum", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun maRaum() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("painting"))
+            .open(AppRoute.InspectionRoom("painting", "living"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Raumprüfung Wohnen, Maler (D10, see the light test), compared with `design/reference/android/MaRaum_dark.png`. */
+class MaRaumDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("MaRaum", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun maRaum() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("painting"))
+            .open(AppRoute.InspectionRoom("painting", "living"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}

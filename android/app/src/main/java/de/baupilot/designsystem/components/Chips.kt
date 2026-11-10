@@ -168,7 +168,8 @@ enum class ObjectChipState { Done, Now, Open }
 
 /**
  * Object chip: `Done` is green with a check, `Now` is `secondaryContainer`, `Open` is outlined. It is a tab for
- * accessibility (`Role.Tab`, [selected] is the selected state, `Now` by default) and has no action.
+ * accessibility (`Role.Tab`, [selected] is the selected state, `Now` by default) and has no action. [showDoneIcon]
+ * is false where the label carries its own tick (MaRaum walls, "Nord ✓").
  */
 @Composable
 fun ObjectChip(
@@ -182,6 +183,7 @@ fun ObjectChip(
     nowForeground: ColorToken = Tokens.onSecondaryContainer,
     openForeground: ColorToken = Tokens.muted,
     borderColor: ColorToken = Tokens.outline,
+    showDoneIcon: Boolean = true,
 ) {
     val foreground = when (state) {
         ObjectChipState.Done -> doneForeground
@@ -201,7 +203,7 @@ fun ObjectChip(
         border = if (state == ObjectChipState.Open) borderColor else null,
         padding = PaddingValues(horizontal = 12.dp),
     ) {
-        if (state == ObjectChipState.Done) Icon(BaupilotIcon.CheckW30, 16.dp, foreground.color())
+        if (state == ObjectChipState.Done && showDoneIcon) Icon(BaupilotIcon.CheckW30, 16.dp, foreground.color())
         BaupilotText(text = label, size = 14.sp, weight = 500, color = foreground)
     }
 }

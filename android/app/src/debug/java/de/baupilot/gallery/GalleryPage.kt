@@ -1,6 +1,7 @@
 package de.baupilot.gallery
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
@@ -27,6 +31,9 @@ import de.baupilot.app.HeatingBarKind
 import de.baupilot.designsystem.components.BaupilotVerticalStepper
 import de.baupilot.designsystem.components.ButtonSize
 import de.baupilot.designsystem.components.CheckMetaRow
+import de.baupilot.designsystem.components.BaupilotListItem
+import de.baupilot.designsystem.components.FactGrid
+import de.baupilot.designsystem.components.FactItem
 import de.baupilot.designsystem.components.FilledButton
 import de.baupilot.designsystem.components.FilledContainer
 import de.baupilot.designsystem.components.HeatingBarChart
@@ -37,6 +44,7 @@ import de.baupilot.designsystem.components.ObjectChipState
 import de.baupilot.designsystem.components.OutlinedButton
 import de.baupilot.designsystem.components.PhaseCard
 import de.baupilot.designsystem.components.PhaseCardState
+import de.baupilot.designsystem.components.RakingLightSketch
 import de.baupilot.designsystem.components.SlopeResult
 import de.baupilot.designsystem.components.SocketTile
 import de.baupilot.designsystem.components.SocketTileStyle
@@ -44,6 +52,11 @@ import de.baupilot.designsystem.components.Step
 import de.baupilot.designsystem.components.StepState
 import de.baupilot.designsystem.components.StepperVariant
 import de.baupilot.designsystem.components.TextLink
+import de.baupilot.designsystem.components.LegendRow
+import de.baupilot.designsystem.components.Leading
+import de.baupilot.designsystem.components.Trailing
+import de.baupilot.designsystem.components.TileGrid
+import de.baupilot.designsystem.components.TileItem
 import de.baupilot.designsystem.components.TimerRing
 import de.baupilot.designsystem.components.ValueStepper
 
@@ -78,6 +91,7 @@ enum class GalleryPage(val goldenName: String) {
     Plumbing("GalleryPlumbing"),
     PlumbingSteps("GalleryPlumbingSteps"),
     Screed("GalleryScreed"),
+    Finishing("GalleryFinishing"),
 }
 
 @Composable
@@ -117,6 +131,7 @@ fun GalleryPageContent(page: GalleryPage) {
                 GalleryPage.Plumbing -> PlumbingPage()
                 GalleryPage.PlumbingSteps -> PlumbingStepsPage()
                 GalleryPage.Screed -> ScreedPage()
+                GalleryPage.Finishing -> FinishingPage()
             }
         }
     }
@@ -262,5 +277,51 @@ internal fun ScreedPage() {
         container = Tokens.surfaceContainer,
         content = Tokens.muted,
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+    )
+}
+
+/** Fliesen parts, page: the tile grid with its legend (AndFlBad:50-53) and the error button pair (AndFlBad:58-59). */
+@Composable
+internal fun FinishingPage() {
+    Caption("LegendRow · 12 / 600 muted, Swatch 12 errBg + 2 err, Abstand nach unten −6 (AndFlBad:50)")
+    LegendRow("↑ Wand mit Dusche", "klingt hohl")
+    Caption("TileGrid · 8 Spalten, r8, Innenabstand 8, Lücke 4, Fliese 44 r2, hohl errBg + 2 err (AndFlBad:51)")
+    TileGrid(
+        tiles = List(24) { index ->
+            val hollow = index == 2 || index == 3
+            TileItem("tile-${index + 1}", hollow, if (hollow) "hohl" else null, "Fliese ${index + 1}")
+        },
+        columns = 8,
+        accessibilityLabel = "Fliesenraster Boden, oben die Wand mit Dusche, unten die Tür",
+    )
+    Caption("FilledButton Error + OutlinedButton primary · 152 / 166 (AndFlBad:58)")
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FilledButton("Als Mangel", ButtonSize.Regular, FilledContainer.Error, Modifier.weight(152f))
+        OutlinedButton("Keine Hohlstellen", Modifier.weight(166f))
+    }
+    Caption("ListItem Swatch · 40 rund, 1 outlineVariant, Status 13 / 500 (AndMaUebersicht:41-49)")
+    BaupilotListItem(
+        title = "Wohnen / Essen",
+        subtitle = "Sand · Schritt 2 von 5",
+        leading = Leading.Swatch(Tokens.paintSand),
+        trailing = Trailing.Text("Läuft", 13.sp, Tokens.primary, 500),
+    )
+    Caption("FactGrid · surfaceContainer r12, Innenabstand 14 16, 3 Spalten, Lücke 8 (AndMaUebersicht:25)")
+    FactGrid(listOf(FactItem("Qualität", "Q3"), FactItem("Farbtöne", "3 bemustert"), FactItem("Räume", "3 von 9")))
+    Caption("RakingLightSketch · 326 × 88, r12, Verlauf 100° lit → wall 70 %, Lampe 34 × 18, Schatten bei 62 % (AndMaRaum:34-38)")
+    RakingLightSketch(Modifier.width(326.dp))
+    Caption("Step.trailing · Done-Zeile mit Farbfeld 22 außen, Compact (AndMaRaum:21-31)")
+    BaupilotVerticalStepper(
+        steps = listOf(
+            Step(
+                number = 1,
+                title = "Farbton wie bemustert",
+                state = StepState.Done,
+                trailing = {
+                    Box(Modifier.size(22.dp).background(Tokens.paintSand.color(), CircleShape).border(1.dp, Tokens.outlineVariant.color(), CircleShape))
+                },
+            ),
+        ),
+        variant = StepperVariant.Compact,
     )
 }

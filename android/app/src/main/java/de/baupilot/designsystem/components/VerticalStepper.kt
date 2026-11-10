@@ -32,7 +32,7 @@ enum class StepState { Done, Current, Open }
 
 enum class StepperVariant { Rail, Compact }
 
-/** One stepper entry. [body] is only drawn for the current step. */
+/** One stepper entry. [body] is only drawn for the current step; [trailing] ends a compact done or open row (the MaRaum colour swatch). */
 data class Step(
     val number: Int,
     val title: String,
@@ -42,6 +42,7 @@ data class Step(
     val metaColor: ColorToken = Tokens.muted,
     val metaWeight: Int = 400,
     val body: (@Composable () -> Unit)? = null,
+    val trailing: (@Composable () -> Unit)? = null,
 )
 
 /**
@@ -198,5 +199,6 @@ private fun CompactStep(
         )
         step.meta?.let { BaupilotText(text = it, size = 13.sp, weight = step.metaWeight, color = step.metaColor) }
         step.tag?.let { BaupilotText(text = it, size = 12.sp, weight = 500, color = tagColor) }
+        step.trailing?.invoke()
     }
 }
