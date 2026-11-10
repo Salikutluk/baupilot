@@ -76,17 +76,29 @@ public struct SelectionChip: View {
     private let state: State
     private let openBorder: ColorToken
     private let showsTick: Bool
+    private let borderBox: Bool
+    private let accessibilityLabel: String?
+    private let isButton: Bool
 
+    /// `borderBox` makes the open chip's 1 pt border part of its 36 pt box, as a CSS button is: the padding is 13, so
+    /// the outer width is the text plus 26 (IosSanBad:35). `accessibilityLabel` replaces the combined label and
+    /// `isButton` adds the button trait for a chip that is shown as a tab without an action.
     public init(
         _ text: String,
         state: State,
         openBorder: ColorToken = Tokens.border.core,
-        showsTick: Bool = false
+        showsTick: Bool = false,
+        borderBox: Bool = false,
+        accessibilityLabel: String? = nil,
+        isButton: Bool = false
     ) {
         self.text = text
         self.state = state
         self.openBorder = openBorder
         self.showsTick = showsTick
+        self.borderBox = borderBox
+        self.accessibilityLabel = accessibilityLabel
+        self.isButton = isButton
     }
 
     private var foreground: ColorToken {
@@ -116,7 +128,7 @@ public struct SelectionChip: View {
                 .lineLimit(1)
         }
         .fixedSize()
-        .padding(.horizontal, 12)
+        .padding(.horizontal, borderBox && state == .open ? 13 : 12)
         .frame(height: 36)
         .background(fill, in: RoundedRectangle(cornerRadius: 18))
         .overlay {
@@ -126,6 +138,13 @@ public struct SelectionChip: View {
         }
         .contentShape(Rectangle().inset(by: -4))
         .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(state == .active ? .isSelected : [])
+        .accessibilityLabel(accessibilityLabel ?? text)
+        .accessibilityAddTraits(traits)
+    }
+
+    private var traits: AccessibilityTraits {
+        var result: AccessibilityTraits = isButton ? .isButton : []
+        if state == .active { result.formUnion(.isSelected) }
+        return result
     }
 }

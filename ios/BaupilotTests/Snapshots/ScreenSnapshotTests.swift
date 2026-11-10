@@ -398,4 +398,19 @@ final class ScreenSnapshotTests: XCTestCase {
     func testSanDruckDark() async throws {
         try await verify("SanDruck", mode: .dark, navigation: sanDruck)
     }
+
+    /// D10: Sanitär & Heizung opened, then Bad OG (back label "Sanitär").
+    private var sanBad: AppNavigation {
+        var navigation = sanUebersicht
+        navigation.open(.inspectionRoom(tradeId: "plumbing", roomId: "bathUpper"))
+        return navigation
+    }
+
+    func testSanBadLight() async throws {
+        try await verify("SanBad", mode: .light, navigation: sanBad)
+    }
+
+    func testSanBadDark() async throws {
+        try await verify("SanBad", mode: .dark, navigation: sanBad)
+    }
 }

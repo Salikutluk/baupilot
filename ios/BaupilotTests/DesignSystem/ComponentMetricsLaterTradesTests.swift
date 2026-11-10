@@ -152,5 +152,72 @@ final class ComponentMetricsLaterTradesTests: XCTestCase {
         let input = ReadingField(label: "Ende", content: .input(text: .constant(""), placeholder: "– bar"), identifier: "pressure.end")
         XCTAssertEqual(size(of: input, width: 152).height, size(of: value, width: 152).height, accuracy: 0.01)
     }
-}
 
+    // MARK: Bad OG (SanBad)
+
+    private func chip(_ text: String, _ state: SelectionChip.State, borderBox: Bool = true) -> SelectionChip {
+        SelectionChip(text, state: state, openBorder: Tokens.outline, showsTick: true, borderBox: borderBox)
+    }
+
+    /// IosSanBad:35-44: the open chip is a border-box button (36 tall, 1 pt border inside, padding 12), so its outer
+    /// width is the text plus 26; a done or active chip has no border and is the text plus 24. Without `borderBox`
+    /// the open chip keeps the earlier gallery width (text + 24).
+    func testSelectionChipBorderBoxAddsTheBorderToThePadding() {
+        let plain = intrinsic(chip("Dusche", .open, borderBox: false))
+        let boxed = intrinsic(chip("Dusche", .open))
+        XCTAssertEqual(boxed.width, plain.width + 2, accuracy: 0.01)
+        XCTAssertEqual(boxed.height, 36)
+        let active = intrinsic(chip("Dusche", .active))
+        XCTAssertEqual(boxed.width, active.width + 2, accuracy: 0.01)
+    }
+
+    private func flow(_ names: [String]) -> some View {
+        FlowLayout(spacing: 8, lineSpacing: 8) {
+            ForEach(names, id: \.self) { name in
+                SelectionChip(name, state: .open, openBorder: Tokens.outline, showsTick: true, borderBox: true)
+            }
+        }
+    }
+
+    /// The reference wraps SanBad's five chips 3 + 2 at 314 pt: [WC, Waschtisch, Dusche] / [Heizkörper, Lüfter].
+    func testFlowLayoutWrapsSanBadChipsThreeThenTwo() {
+        let names = ["WC", "Waschtisch", "Dusche", "Heizkörper", "Lüfter"]
+        XCTAssertEqual(size(of: flow(names), width: 350).height, 36 + 8 + 36)
+        let widths = names.map { intrinsic(chip($0, .open)).width }
+        XCTAssertLessThanOrEqual(widths[0...2].reduce(0, +) + 16, 350)
+        XCTAssertGreaterThan(widths[0...3].reduce(0, +) + 24, 350)
+        XCTAssertEqual(size(of: flow(names), width: 800).height, 36)
+    }
+
+    /// Every chip on its own row when the container is as narrow as the widest chip.
+    func testFlowLayoutPutsEachItemOnItsOwnLineWhenNarrow() {
+        let names = ["WC", "Waschtisch", "Dusche"]
+        let widest = names.map { intrinsic(chip($0, .open)).width }.max() ?? 0
+        XCTAssertEqual(size(of: flow(names), width: widest).height, 3 * 36 + 2 * 8)
+    }
+
+    private func row(
+        ok: Bool, showsDivider: Bool, title: String = "Warm links, kalt rechts",
+        hint: String = "Hebel ganz nach links: Wasser wird warm."
+    ) -> ObjectCheckRow {
+        ObjectCheckRow(
+            title: title, hint: hint, ok: ok, showsDivider: showsDivider, okFill: Tokens.ok.sanBad,
+            okInk: Tokens.okInk.sanBad, outline: Tokens.outline, divider: Tokens.border.core,
+            okAccessibilityLabel: "Warm links, kalt rechts: in Ordnung",
+            defectAccessibilityLabel: "Warm links, kalt rechts: Mangel", identifiers: nil)
+    }
+
+    /// IosSanBad:48-60: `min-height: 56px` of content, the 44 pt buttons centred; row 2 on adds the 1 pt top border.
+    func testObjectCheckRowIs56TallAndAddsTheDivider() {
+        XCTAssertEqual(size(of: row(ok: true, showsDivider: false, hint: "Kurz."), width: 314).height, 56)
+        XCTAssertEqual(size(of: row(ok: false, showsDivider: true, hint: "Kurz."), width: 314).height, 57)
+    }
+
+    /// A hint that wraps in the 208 pt text column: title line box + gap 2 + two hint boxes of 13 x 1.35 (the host
+    /// rounds up to the 1/3 pt pixel grid), which just exceeds the 56 minimum like the reference's row 1.
+    func testObjectCheckRowGrowsWithAWrappedHint() {
+        let measured = size(of: row(ok: true, showsDivider: false), width: 314).height
+        XCTAssertEqual(measured, InterMetrics.lineBox(15) + 2 + 2 * 13 * 1.35, accuracy: 0.34)
+        XCTAssertGreaterThan(measured, 56)
+    }
+}

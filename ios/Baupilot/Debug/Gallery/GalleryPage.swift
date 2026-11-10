@@ -156,7 +156,8 @@ struct GalleryPlumbingPage: View {
     }
 }
 
-/// Sanitär step parts: the Druckprobe timer ring and the reading boxes (SanDruck).
+/// Sanitär step parts: the Druckprobe timer ring and the reading boxes (SanDruck), the wrapping object chips and the
+/// object check rows (SanBad).
 struct GalleryPlumbingStepsPage: View {
     @State private var end = ""
 
@@ -173,6 +174,34 @@ struct GalleryPlumbingStepsPage: View {
                 ReadingField(label: "Ende", content: .input(text: $end, placeholder: "– bar"), identifier: nil)
             }
             .frame(width: 314)
+        }
+        GalleryGroup("SelectionChip borderBox in FlowLayout · done, active, open (text + 26), gap 8") {
+            FlowLayout(spacing: 8, lineSpacing: 8) {
+                SelectionChip("WC", state: .done, openBorder: Tokens.outline, showsTick: true, borderBox: true)
+                SelectionChip("Waschtisch", state: .active, openBorder: Tokens.outline, showsTick: true, borderBox: true)
+                SelectionChip("Dusche", state: .open, openBorder: Tokens.outline, showsTick: true, borderBox: true)
+                SelectionChip("Heizkörper", state: .open, openBorder: Tokens.outline, showsTick: true, borderBox: true)
+                SelectionChip("Lüfter", state: .open, openBorder: Tokens.outline, showsTick: true, borderBox: true)
+            }
+            .frame(width: 350, alignment: .leading)
+        }
+        GalleryGroup("ObjectCheckRow · ok (filled ✓) and open, divider from row 2, min 56") {
+            Card(style: .standard, padding: EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16), border: .current) {
+                VStack(alignment: .leading, spacing: 4) {
+                    ObjectCheckRow(
+                        title: "Warm links, kalt rechts", hint: "Hebel ganz nach links: Wasser wird warm.", ok: true,
+                        showsDivider: false, okFill: Tokens.ok.sanBad, okInk: Tokens.okInk.sanBad,
+                        outline: Tokens.outline, divider: Tokens.border.core,
+                        okAccessibilityLabel: "Warm links, kalt rechts: in Ordnung",
+                        defectAccessibilityLabel: "Warm links, kalt rechts: Mangel", identifiers: nil)
+                    ObjectCheckRow(
+                        title: "Siphon & Anschlüsse trocken",
+                        hint: "Mit Papiertuch unten abwischen – muss trocken bleiben.", ok: false, showsDivider: true,
+                        okFill: Tokens.ok.sanBad, okInk: Tokens.okInk.sanBad, outline: Tokens.outline,
+                        divider: Tokens.border.core, okAccessibilityLabel: "Siphon & Anschlüsse trocken: in Ordnung",
+                        defectAccessibilityLabel: "Siphon & Anschlüsse trocken: Mangel", identifiers: nil)
+                }
+            }
         }
     }
 }
