@@ -760,3 +760,31 @@ class EsUebersichtDarkSnapshotTest {
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
+
+/** Ebenheit messen (D10: `logIn`, `select(Inspections)`, `open(Inspection("screed"))`, `open(InspectionCheck("screed", "flatness"))`), compared with `design/reference/android/EsEbenheit_light.png`. */
+class EsEbenheitLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("EsEbenheit", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun esEbenheit() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("screed"))
+            .open(AppRoute.InspectionCheck("screed", "flatness"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Ebenheit messen (D10, see the light test), compared with `design/reference/android/EsEbenheit_dark.png`. */
+class EsEbenheitDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("EsEbenheit", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun esEbenheit() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("screed"))
+            .open(AppRoute.InspectionCheck("screed", "flatness"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}

@@ -35,6 +35,7 @@ import de.baupilot.designsystem.components.SocketTileStyle
 import de.baupilot.designsystem.components.Step
 import de.baupilot.designsystem.components.StepState
 import de.baupilot.designsystem.components.StepperVariant
+import de.baupilot.designsystem.components.TextLink
 import de.baupilot.designsystem.components.TimerRing
 import de.baupilot.designsystem.components.ValueStepper
 
@@ -68,6 +69,7 @@ enum class GalleryPage(val goldenName: String) {
     ElectricalSteps2("GalleryElectricalSteps2"),
     Plumbing("GalleryPlumbing"),
     PlumbingSteps("GalleryPlumbingSteps"),
+    Screed("GalleryScreed"),
 }
 
 @Composable
@@ -106,6 +108,7 @@ fun GalleryPageContent(page: GalleryPage) {
                 GalleryPage.ElectricalSteps2 -> ElectricalSteps2Page()
                 GalleryPage.Plumbing -> PlumbingPage()
                 GalleryPage.PlumbingSteps -> PlumbingStepsPage()
+                GalleryPage.Screed -> ScreedPage()
             }
         }
     }
@@ -216,4 +219,13 @@ internal fun PlumbingStepsPage() {
         ObjectChip("Heizkörper", ObjectChipState.Open)
         ObjectChip("Lüfter", ObjectChipState.Open)
     }
+}
+
+/** Estrich parts, page: the text link, 44 tall in layout (AndEsEbenheit:56). */
+@Composable
+internal fun ScreedPage() {
+    Caption("TextLink · 14 / 500 err, Layout 44, Treffer 48 (AndEsEbenheit:56)")
+    TextLink("1 Messpunkt über Grenzwert → Mangel erfassen", Tokens.err)
+    Caption("TextLink · Platzhalter ohne Aktion, muted")
+    TextLink("Kein Messpunkt über Grenzwert", Tokens.muted)
 }

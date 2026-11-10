@@ -26,6 +26,7 @@ import de.baupilot.designsystem.components.SlopeResult
 import de.baupilot.designsystem.components.Step
 import de.baupilot.designsystem.components.StepState
 import de.baupilot.designsystem.components.StepperVariant
+import de.baupilot.designsystem.components.TextLink
 import de.baupilot.designsystem.components.TimerRing
 import de.baupilot.designsystem.components.ValueStepper
 import de.baupilot.snapshot.NoopSnapshotHandler
@@ -34,6 +35,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 
 /** Geometry of the later-trade parts, measured from the layout (px = dp x 3). */
 class ComponentMetricsLaterTradesTest {
@@ -210,5 +216,33 @@ class ComponentMetricsLaterTradesTest {
         }
         assertEquals(32 * 3, heights.getValue("now"))
         assertEquals(32 * 3, heights.getValue("open"))
+    }
+
+    /** AndEsEbenheit:56: the link is 44 tall in layout (14 / 500 text, centred) and as wide as its text. */
+    @Test
+    fun textLinkIs44TallInLayout() {
+        paparazzi.snapshot {
+            TextLink("1 Messpunkt über Grenzwert → Mangel erfassen", Tokens.err, Modifier.record("link"))
+        }
+        assertEquals(44 * 3, heights.getValue("link"))
+        assertTrue(widths.getValue("link") > 0)
+    }
+}
+
+/** The link keeps its 44 layout while the touch target (hit area) is at least 48 x 48. */
+@RunWith(RobolectricTestRunner::class)
+class TextLinkTouchTargetTest {
+    @get:Rule
+    val rule = createComposeRule()
+
+    @Test
+    fun touchTargetIsAtLeast48WithLayout44() {
+        rule.setContent {
+            TextLink("Mangel", Tokens.err, Modifier.testTag("link"), onClick = {})
+        }
+        val node = rule.onNodeWithTag("link").fetchSemanticsNode()
+        val density = rule.density.density
+        assertEquals(44f, node.size.height / density, 0.5f)
+        assertTrue(node.touchBoundsInRoot.height / density >= 48f - 0.5f)
     }
 }
