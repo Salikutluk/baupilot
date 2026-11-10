@@ -84,6 +84,7 @@ private fun providerKey(tab: AppTab, path: List<AppRoute>, view: InspectionsView
         is AppRoute.SignOff -> "sign:${route.inspectionId}"
         is AppRoute.InspectionCheck -> "check:${route.tradeId}/${route.check}"
         is AppRoute.InspectionRoom -> "room:${route.tradeId}/${route.roomId}"
+        is AppRoute.InspectionCheckItem -> "item:${route.tradeId}/${route.check}/${route.item}"
     }
     return "${tab.route}/${path.size}/$top"
 }
@@ -323,6 +324,12 @@ private fun TabContent(
                     PushedPlaceholder(route.roomId, "screen.inspection.${route.tradeId}.room.${route.roomId}", onBack)
                 }
             }
+
+            is AppRoute.InspectionCheckItem -> PushedPlaceholder(
+                route.item,
+                "screen.inspection.${route.tradeId}.${route.check}.${route.item}",
+                onBack,
+            )
 
             AppRoute.Notifications -> NotificationsScreen(
                 model = data.notifications,

@@ -345,6 +345,36 @@ class AppNavigationStateTest {
             .forEach { assertNull(it, AppNavigationState.Saver.restore(savedWith(it))) }
     }
 
+    @Test
+    fun saverRoundTripsCheckItemRoute() {
+        val scope = SaverScope { true }
+        val item = AppRoute.InspectionCheckItem("plumbing", "slope", "A3")
+        val state = loggedIn().select(AppTab.Inspections)
+            .open(AppRoute.Inspection("plumbing")).open(item)
+        val saved = with(AppNavigationState.Saver) { scope.save(state) }
+        assertEquals(state, AppNavigationState.Saver.restore(saved!!))
+        assertEquals(
+            listOf("inspection:plumbing", "item:plumbing/slope/A3"),
+            ((saved as List<*>)[2] as List<*>)[2],
+        )
+    }
+
+    @Test
+    fun saverRejectsMalformedItemRoute() {
+        listOf("item:", "item:a", "item:a/b", "item:a/b/c/d", "item:a/-b/c", "item:/b/c", "item:a/b/", "item:a b/c/d")
+            .forEach { assertNull(it, AppNavigationState.Saver.restore(savedWith(it))) }
+    }
+
+    @Test
+    fun checkItemRoutePushesAndPopsLikeAnyRoute() {
+        val plumbing = AppRoute.Inspection("plumbing")
+        val item = AppRoute.InspectionCheckItem("plumbing", "slope", "A3")
+        val state = inspectionsAt(plumbing, item)
+        assertEquals(listOf(plumbing, item), state.path(AppTab.Inspections))
+        assertEquals(listOf<AppRoute>(plumbing), state.pop().path(AppTab.Inspections))
+        assertEquals(state, state.open(item))
+    }
+
     private fun inspectionsAt(vararg routes: AppRoute): AppNavigationState =
         routes.fold(loggedIn().select(AppTab.Inspections)) { s, r -> s.open(r) }
 

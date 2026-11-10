@@ -60,7 +60,8 @@ class RouteParserTest {
     @Test
     fun malformedInspectionRoutesThrowDecoding() {
         listOf(
-            "inspection/", "inspection", "inspection/a/b/c", "inspection/a/room", "inspection/a/F8/step", "inspection/a/F8/step/0",
+            "inspection/", "inspection", "inspection/a/b/step", "inspection/a/b/sign", "inspection/a/b/c/d", "inspection/a/b/room",
+            "inspection/a/b/-x", "inspection//b/c", "inspection/a//c", "inspection/-a/b/c", "inspection/a/room", "inspection/a/F8/step", "inspection/a/F8/step/0",
             "inspection/a/F8/step/03", "inspection/a/F8/step/x", "inspection/a/F8/steps/3", "inspection/a/F8/step/-1",
             "inspection/a/F8/step/3/x", "inspection/-a", "inspection/a/-F8/step/3", "defect/old", "defect/new/x",
             "defect/", "defect", "inspection/a/sign/x", "inspection//sign",
@@ -85,6 +86,27 @@ class RouteParserTest {
         )
         assertEquals(AppRoute.InspectionRoom("a", "r_1"), RouteParser.route("inspection/a/room/r_1", "f"))
         assertEquals(NavigationTarget.Push(AppRoute.SignOff("shell")), RouteParser.target("inspection/shell/sign", "f"))
+    }
+
+    @Test
+    fun parsesCheckItemRoutes() {
+        assertEquals(
+            NavigationTarget.Push(AppRoute.InspectionCheckItem("plumbing", "slope", "A3")),
+            RouteParser.target("inspection/plumbing/slope/A3", "f"),
+        )
+        assertEquals(
+            AppRoute.InspectionCheckItem("a", "b", "c"),
+            RouteParser.route("inspection/a/b/c", "f"),
+        )
+        assertEquals(
+            NavigationTarget.Push(AppRoute.InspectionCheckItem("a", "F8-2", "x_1")),
+            RouteParser.inspectionLink("inspection/a/F8-2/x_1", "f"),
+        )
+        // room keeps priority over the item rule
+        assertEquals(
+            NavigationTarget.Push(AppRoute.InspectionRoom("a", "kitchen")),
+            RouteParser.target("inspection/a/room/kitchen", "f"),
+        )
     }
 
     @Test

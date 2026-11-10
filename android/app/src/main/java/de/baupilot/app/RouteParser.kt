@@ -30,6 +30,9 @@ object RouteParser {
                 ID.matches(parts[2]) -> AppRoute.InspectionCheck(parts[1], parts[2])
             parts.size == 4 && parts[0] == "inspection" && parts[2] == "room" && ID.matches(parts[1]) &&
                 ID.matches(parts[3]) -> AppRoute.InspectionRoom(parts[1], parts[3])
+            parts.size == 4 && parts[0] == "inspection" && parts[2] !in RESERVED_CHECKS && parts[3] !in RESERVED_CHECKS &&
+                ID.matches(parts[1]) && ID.matches(parts[2]) && ID.matches(parts[3]) ->
+                AppRoute.InspectionCheckItem(parts[1], parts[2], parts[3])
             parts.size == 5 && parts[0] == "inspection" && parts[3] == "step" && ID.matches(parts[1]) &&
                 ID.matches(parts[2]) && STEP_NUMBER.matches(parts[4]) ->
                 AppRoute.InspectionStep(parts[1], parts[2], parts[4].toIntOrNull() ?: throw RepositoryException.Decoding(field))

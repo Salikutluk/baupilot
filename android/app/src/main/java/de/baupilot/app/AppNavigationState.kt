@@ -21,6 +21,7 @@ sealed interface AppRoute {
     data class InspectionStep(val tradeId: String, val elementId: String, val step: Int) : AppRoute
     data class InspectionCheck(val tradeId: String, val check: String) : AppRoute
     data class InspectionRoom(val tradeId: String, val roomId: String) : AppRoute
+    data class InspectionCheckItem(val tradeId: String, val check: String, val item: String) : AppRoute
     data object NewDefect : AppRoute
     data class SignOff(val inspectionId: String) : AppRoute
 }
@@ -162,6 +163,7 @@ data class AppNavigationState(
         private const val SIGN_PREFIX = "sign:"
         private const val CHECK_PREFIX = "check:"
         private const val ROOM_PREFIX = "room:"
+        private const val ITEM_PREFIX = "item:"
         private val ID = Regex("^[A-Za-z0-9][A-Za-z0-9_-]*$")
         private val STEP_NUMBER = Regex("^[1-9][0-9]*$")
 
@@ -176,6 +178,7 @@ data class AppNavigationState(
             is AppRoute.SignOff -> SIGN_PREFIX + route.inspectionId
             is AppRoute.InspectionCheck -> "$CHECK_PREFIX${route.tradeId}/${route.check}"
             is AppRoute.InspectionRoom -> "$ROOM_PREFIX${route.tradeId}/${route.roomId}"
+            is AppRoute.InspectionCheckItem -> "$ITEM_PREFIX${route.tradeId}/${route.check}/${route.item}"
         }
 
         /** Throws on an unknown string, so [Saver] restores nothing instead of guessing a route (I7). */
@@ -190,7 +193,15 @@ data class AppNavigationState(
             text.startsWith(STEP_PREFIX) -> decodeStep(text.removePrefix(STEP_PREFIX))
             text.startsWith(CHECK_PREFIX) -> decodePair(text, CHECK_PREFIX, AppRoute::InspectionCheck)
             text.startsWith(ROOM_PREFIX) -> decodePair(text, ROOM_PREFIX, AppRoute::InspectionRoom)
+            text.startsWith(ITEM_PREFIX) -> decodeTriple(text)
             else -> throw IllegalArgumentException("Unknown route: $text")
+        }
+
+        /** `<trade>/<check>/<item>`: exactly three parts, each a valid id. */
+        private fun decodeTriple(text: String): AppRoute {
+            val parts = text.removePrefix(ITEM_PREFIX).split("/")
+            require(parts.size == 3 && parts.all { ID.matches(it) }) { "Unknown route: $text" }
+            return AppRoute.InspectionCheckItem(parts[0], parts[1], parts[2])
         }
 
         /** `<trade>/<id>`: exactly two parts, each a valid id. */
