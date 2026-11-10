@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -21,6 +23,9 @@ import de.baupilot.designsystem.BaupilotText
 import de.baupilot.designsystem.Tokens
 import de.baupilot.designsystem.BaupilotIcon
 import de.baupilot.designsystem.components.BaupilotVerticalStepper
+import de.baupilot.designsystem.components.ObjectCheckRow
+import de.baupilot.designsystem.components.ObjectChip
+import de.baupilot.designsystem.components.ObjectChipState
 import de.baupilot.designsystem.components.OutlinedButton
 import de.baupilot.designsystem.components.PhaseCard
 import de.baupilot.designsystem.components.PhaseCardState
@@ -176,8 +181,9 @@ internal fun PlumbingPage() {
     )
 }
 
-/** Sanitär parts, second page: the timer ring, the Compact stepper with meta 500 / spacing 14 and the 20 icon button. */
+/** Sanitär parts, second page: the timer ring, the Compact stepper with meta 500 / spacing 14, the 20 icon button, the check row and the object chips. */
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 internal fun PlumbingStepsPage() {
     Caption("TimerRing · 72, Loch 58, 58 % (AndSanDruck:50)")
     TimerRing(0.58f, "12:40", "Prüfzeit zu 58 Prozent abgelaufen")
@@ -197,4 +203,17 @@ internal fun PlumbingStepsPage() {
     )
     Caption("OutlinedButton · Icon 20 (AndSanDruck:71)")
     OutlinedButton(label = "Manometer fotografieren", icon = BaupilotIcon.Camera, iconSize = 20.dp)
+    Caption("ObjectCheckRow · in Ordnung, offen mit Trenner (AndSanBad:46)")
+    Column {
+        ObjectCheckRow("Warm links, kalt rechts", "Hebel ganz nach links: Wasser wird warm.", ok = true, showsDivider = false)
+        ObjectCheckRow("Siphon & Anschlüsse trocken", "Mit Papiertuch unten abwischen.", ok = false, showsDivider = true)
+    }
+    Caption("ObjectChip · erledigt, gewählt, offen im FlowRow (AndSanBad:30)")
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        ObjectChip("WC", ObjectChipState.Done)
+        ObjectChip("Waschtisch", ObjectChipState.Now)
+        ObjectChip("Dusche", ObjectChipState.Open)
+        ObjectChip("Heizkörper", ObjectChipState.Open)
+        ObjectChip("Lüfter", ObjectChipState.Open)
+    }
 }

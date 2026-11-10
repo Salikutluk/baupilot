@@ -706,3 +706,31 @@ class SanDruckDarkSnapshotTest {
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
+
+/** Bad OG Objekte (D10: `logIn`, `select(Inspections)`, `open(Inspection("plumbing"))`, `open(InspectionRoom("plumbing", "bathUpper"))`), compared with `design/reference/android/SanBad_light.png`. */
+class SanBadLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("SanBad", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun sanBad() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("plumbing"))
+            .open(AppRoute.InspectionRoom("plumbing", "bathUpper"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Bad OG Objekte (D10: `logIn`, `select(Inspections)`, `open(Inspection("plumbing"))`, `open(InspectionRoom("plumbing", "bathUpper"))`), compared with `design/reference/android/SanBad_dark.png`. */
+class SanBadDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("SanBad", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun sanBad() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("plumbing"))
+            .open(AppRoute.InspectionRoom("plumbing", "bathUpper"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}

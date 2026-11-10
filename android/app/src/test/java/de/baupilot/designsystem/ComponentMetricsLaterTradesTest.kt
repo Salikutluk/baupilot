@@ -15,6 +15,10 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.baupilot.designsystem.components.BaupilotVerticalStepper
+import de.baupilot.designsystem.components.ObjectCheckRow
+import de.baupilot.designsystem.components.ObjectChip
+import de.baupilot.designsystem.components.ObjectChipState
+import de.baupilot.designsystem.components.VerdictToggle
 import de.baupilot.designsystem.components.InfoCallout
 import de.baupilot.designsystem.components.PhaseCard
 import de.baupilot.designsystem.components.PhaseCardState
@@ -172,5 +176,39 @@ class ComponentMetricsLaterTradesTest {
         }
         assertEquals(2 * 40 * 3, heights.getValue("forty"))
         assertEquals(2 * 44 * 3, heights.getValue("default"))
+    }
+
+    /** AndSanBad:46-62: the row is at least 64 tall (+1 divider), a divider adds 1. */
+    @Test
+    fun objectCheckRowHasItsMinimumHeightAndThePair() {
+        paparazzi.snapshot {
+            Column(Modifier.width(358.dp)) {
+                ObjectCheckRow("Warm links, kalt rechts", "Hebel ganz nach links: Wasser wird warm.", ok = true, showsDivider = false, modifier = Modifier.record("first"))
+                ObjectCheckRow("Wasser läuft zügig ab", "Becken voll laufen lassen, Stopfen ziehen.", ok = false, showsDivider = true, modifier = Modifier.record("second"))
+            }
+        }
+        assertEquals(64 * 3, heights.getValue("first"))
+        assertEquals((64 + 1) * 3, heights.getValue("second"))
+    }
+
+    /** The pair: 1 `outline` border round two 48 wide cells, 40 inner, so 98 x 42 outside. */
+    @Test
+    fun verdictToggleIs98By42() {
+        paparazzi.snapshot { VerdictToggle(ok = true, modifier = Modifier.record("pair")) }
+        assertEquals(98 * 3, widths.getValue("pair"))
+        assertEquals(42 * 3, heights.getValue("pair"))
+    }
+
+    /** The chip keeps its 32 height whether it is selected (`Now`) or not. */
+    @Test
+    fun objectChipKeepsItsHeightWhenSelected() {
+        paparazzi.snapshot {
+            Column {
+                ObjectChip("Waschtisch", ObjectChipState.Now, selected = true, modifier = Modifier.record("now"))
+                ObjectChip("Dusche", ObjectChipState.Open, modifier = Modifier.record("open"))
+            }
+        }
+        assertEquals(32 * 3, heights.getValue("now"))
+        assertEquals(32 * 3, heights.getValue("open"))
     }
 }
