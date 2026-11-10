@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Constraints
@@ -165,18 +166,24 @@ fun TagChip(label: String, style: TagChipStyle, modifier: Modifier = Modifier) {
 /** State of an [ObjectChip] (AndSanBad:30). */
 enum class ObjectChipState { Done, Now, Open }
 
-/** Object chip: `Done` is green with a check, `Now` is `secondaryContainer`, `Open` is outlined. */
+/**
+ * Object chip: `Done` is green with a check, `Now` is `secondaryContainer`, `Open` is outlined. It is a tab for
+ * accessibility (`Role.Tab`, [selected] is the selected state, `Now` by default) and has no action. [showDoneIcon]
+ * is false where the label carries its own tick (MaRaum walls, "Nord ✓").
+ */
 @Composable
 fun ObjectChip(
     label: String,
     state: ObjectChipState,
     modifier: Modifier = Modifier,
+    selected: Boolean = state == ObjectChipState.Now,
     doneBackground: ColorToken = Tokens.okBg,
     doneForeground: ColorToken = Tokens.okFg,
     nowBackground: ColorToken = Tokens.secondaryContainer,
     nowForeground: ColorToken = Tokens.onSecondaryContainer,
     openForeground: ColorToken = Tokens.muted,
     borderColor: ColorToken = Tokens.outline,
+    showDoneIcon: Boolean = true,
 ) {
     val foreground = when (state) {
         ObjectChipState.Done -> doneForeground
@@ -184,7 +191,10 @@ fun ObjectChip(
         ObjectChipState.Open -> openForeground
     }
     ChipFrame(
-        modifier = modifier,
+        modifier = modifier.semantics(mergeDescendants = true) {
+            role = Role.Tab
+            this.selected = selected
+        },
         background = when (state) {
             ObjectChipState.Done -> doneBackground
             ObjectChipState.Now -> nowBackground
@@ -193,7 +203,7 @@ fun ObjectChip(
         border = if (state == ObjectChipState.Open) borderColor else null,
         padding = PaddingValues(horizontal = 12.dp),
     ) {
-        if (state == ObjectChipState.Done) Icon(BaupilotIcon.CheckW30, 16.dp, foreground.color())
+        if (state == ObjectChipState.Done && showDoneIcon) Icon(BaupilotIcon.CheckW30, 16.dp, foreground.color())
         BaupilotText(text = label, size = 14.sp, weight = 500, color = foreground)
     }
 }
@@ -216,6 +226,9 @@ enum class StatusChipSize(
 
     /** AndEsBelegreife:52. */
     H24(24.dp, PaddingValues(horizontal = 8.dp), 12.sp, 6.dp),
+
+    /** AndRohbauMasse:58: the measured-opening chips, placed fractionally (no whole-dp snapping, R12). */
+    H32Body(32.dp, PaddingValues(horizontal = 12.dp), 14.sp, 8.dp),
 }
 
 /** Fill, text and border of a [StatusChip]. A null [background] or [border] is not drawn. */

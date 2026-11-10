@@ -3,12 +3,14 @@ import SwiftUI
 /// Label size of a text button; every size is weight 600.
 public enum ButtonSize {
     case large, medium, small
+    /// 44 tall, padding 0 16, radius 12, hugging its label (IosEsBelegreife:51); only `PrimaryButton` honours it.
+    case compact
 
     var fontSize: CGFloat {
         switch self {
         case .large: return 17
         case .medium: return 16
-        case .small: return 15
+        case .small, .compact: return 15
         }
     }
 }
@@ -95,7 +97,7 @@ public enum ButtonHeight {
     }
 }
 
-/// Filled accent button, 50 tall (52 with `.tall`), radius 14.
+/// Filled accent button, 50 tall (52 with `.tall`), radius 14; `size: .compact` is the 44 tall, width-hugging variant.
 public struct PrimaryButton: View {
     private let title: String
     private let size: ButtonSize
@@ -114,10 +116,22 @@ public struct PrimaryButton: View {
 
     public var body: some View {
         FlatButton(action: action) {
-            TextButtonFace(
-                title: title, size: size, icon: nil, iconSize: 0,
-                foreground: Tokens.onAccent, background: Tokens.accent, outline: nil,
-                height: height.points)
+            if size == .compact {
+                let shape = RoundedRectangle(cornerRadius: 12)
+                Text(title)
+                    .interText(size.fontSize, .semibold)
+                    .foregroundStyle(Tokens.onAccent.color)
+                    .padding(.horizontal, 16)
+                    .frame(height: 44)
+                    .background(shape.fill(Tokens.accent.color))
+                    .contentShape(shape)
+                    .fixedSize()
+            } else {
+                TextButtonFace(
+                    title: title, size: size, icon: nil, iconSize: 0,
+                    foreground: Tokens.onAccent, background: Tokens.accent, outline: nil,
+                    height: height.points)
+            }
         }
     }
 }
@@ -205,12 +219,19 @@ public struct SecondaryIconButton: View {
     }
 }
 
-/// Outlined error button ("Mangel"): 50 pt content plus an outer 1 pt border, 52 pt tall.
+/// Error button ("Mangel"): outlined by default (50 pt content plus an outer 1 pt border, 52 pt tall), or `.filled`
+/// (50 tall, `fill` background, `ink` label, no border; FlBad "Als Mangel").
 public struct DefectButton: View {
+    public enum Style {
+        case outlined
+        case filled(fill: ColorToken, ink: ColorToken)
+    }
+
     private let title: String
     private let size: ButtonSize
     private let showsIcon: Bool
     private let errColor: ColorToken
+    private let style: Style
     private let action: (() -> Void)?
 
     public init(
@@ -218,20 +239,63 @@ public struct DefectButton: View {
         size: ButtonSize = .small,
         showsIcon: Bool = false,
         errColor: ColorToken = Tokens.err.core,
+        style: Style = .outlined,
         action: (() -> Void)?
     ) {
         self.title = title
         self.size = size
         self.showsIcon = showsIcon
         self.errColor = errColor
+        self.style = style
         self.action = action
     }
 
     public var body: some View {
         FlatButton(action: action) {
-            TextButtonFace(
-                title: title, size: size, icon: showsIcon ? .alertTriangleW22 : nil, iconSize: 18,
-                foreground: errColor, background: nil, outline: errColor)
+            switch style {
+            case .outlined:
+                TextButtonFace(
+                    title: title, size: size, icon: showsIcon ? .alertTriangleW22 : nil, iconSize: 18,
+                    foreground: errColor, background: nil, outline: errColor)
+            case .filled(let fill, let ink):
+                TextButtonFace(
+                    title: title, size: size, icon: showsIcon ? .alertTriangleW22 : nil, iconSize: 18,
+                    foreground: ink, background: fill, outline: nil)
+            }
+        }
+    }
+}
+
+/// Neutral outlined button ("Keine Hohlstellen"): 50 tall, radius 14, a 1 pt `border` drawn inside the box
+/// (border-box `<button>`), transparent inside, label in `text`.
+public struct NeutralOutlineButton: View {
+    private let title: String
+    private let size: ButtonSize
+    private let border: ColorToken
+    private let text: ColorToken
+    private let action: (() -> Void)?
+
+    public init(
+        _ title: String, size: ButtonSize = .small, border: ColorToken = Tokens.muted, text: ColorToken = Tokens.text,
+        action: (() -> Void)?
+    ) {
+        self.title = title
+        self.size = size
+        self.border = border
+        self.text = text
+        self.action = action
+    }
+
+    public var body: some View {
+        FlatButton(action: action) {
+            let shape = RoundedRectangle(cornerRadius: ButtonMetrics.radius)
+            Text(title)
+                .interText(size.fontSize, .semibold)
+                .foregroundStyle(text.color)
+                .frame(maxWidth: .infinity)
+                .frame(height: ButtonMetrics.height)
+                .overlay { shape.strokeBorder(border.color, lineWidth: ButtonMetrics.outlineWidth) }
+                .contentShape(shape)
         }
     }
 }

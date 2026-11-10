@@ -1,0 +1,382 @@
+package de.baupilot.designsystem
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import de.baupilot.app.HeatingBar
+import de.baupilot.app.HeatingBarKind
+import de.baupilot.designsystem.components.BaupilotVerticalStepper
+import de.baupilot.designsystem.components.ButtonSize
+import de.baupilot.designsystem.components.CheckMetaRow
+import de.baupilot.designsystem.components.FactGrid
+import de.baupilot.designsystem.components.FactItem
+import de.baupilot.designsystem.components.FilledButton
+import de.baupilot.designsystem.components.FilledContainer
+import de.baupilot.designsystem.components.HeatingBarChart
+import de.baupilot.designsystem.components.ObjectCheckRow
+import de.baupilot.designsystem.components.ObjectChip
+import de.baupilot.designsystem.components.ObjectChipState
+import de.baupilot.designsystem.components.VerdictToggle
+import de.baupilot.designsystem.components.InfoCallout
+import de.baupilot.designsystem.components.PhaseCard
+import de.baupilot.designsystem.components.PhaseCardState
+import de.baupilot.designsystem.components.RakingLightSketch
+import de.baupilot.designsystem.components.SlopeResult
+import de.baupilot.designsystem.components.Step
+import de.baupilot.designsystem.components.StepState
+import de.baupilot.designsystem.components.StepperVariant
+import de.baupilot.designsystem.components.TextLink
+import de.baupilot.designsystem.components.TileGrid
+import de.baupilot.designsystem.components.TileItem
+import de.baupilot.designsystem.components.TimerRing
+import de.baupilot.designsystem.components.ValueStepper
+import de.baupilot.snapshot.NoopSnapshotHandler
+import de.baupilot.snapshot.baupilotPaparazzi
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
+
+/** Geometry of the later-trade parts, measured from the layout (px = dp x 3). */
+class ComponentMetricsLaterTradesTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(handler = NoopSnapshotHandler)
+
+    private val heights = mutableMapOf<String, Int>()
+    private val widths = mutableMapOf<String, Int>()
+
+    private fun Modifier.record(key: String): Modifier = onGloballyPositioned {
+        heights[key] = it.size.height
+        widths[key] = it.size.width
+    }
+
+    /** AndSanUebersicht:30-39: the active and the planned card share one height, 2 x 175 wide. */
+    @Test
+    fun plannedPhaseCardHasTheHeightOfItsActiveNeighbour() {
+        paparazzi.snapshot {
+            Row(
+                Modifier.padding(horizontal = 16.dp).height(IntrinsicSize.Min),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                PhaseCard(
+                    "1 · Rohinstallation", "3 von 6 geprüft", PhaseCardState.Active(0.5f, Tokens.track.sanUebersicht),
+                    Modifier.weight(1f).fillMaxHeight().record("active"),
+                )
+                PhaseCard(
+                    "2 · Fertigmontage", "Geplant KW 14", PhaseCardState.Planned,
+                    Modifier.weight(1f).fillMaxHeight().record("planned"),
+                )
+            }
+        }
+        assertEquals(heights.getValue("active"), heights.getValue("planned"))
+        assertEquals(175 * 3, widths.getValue("planned"))
+    }
+
+    /** Planned is laid out like Done: 1 + 12 + label + 4 + value + 12 + 1. */
+    @Test
+    fun plannedPhaseCardHasTheHeightOfADoneCard() {
+        paparazzi.snapshot {
+            androidx.compose.foundation.layout.Column {
+                PhaseCard("1 · Rohinstallation", "Abgenommen 29.01.", PhaseCardState.Done, Modifier.record("done"))
+                PhaseCard("2 · Fertigmontage", "Geplant KW 14", PhaseCardState.Planned, Modifier.record("planned"))
+            }
+        }
+        assertEquals(heights.getValue("done"), heights.getValue("planned"))
+    }
+
+    /** AndSanGefaelle:41-55: two 158 wide steppers (50 tall) side by side with a gap of 10 in a 326 wide card body. */
+    @Test
+    fun fillingValueSteppersSplitTheRowInto158AndGap10() {
+        paparazzi.snapshot {
+            Row(Modifier.width(326.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                ValueStepper("Länge", "2,0 m", null, null, Modifier.weight(1f).record("left"), fillsWidth = true)
+                ValueStepper(
+                    "Höhenunterschied", "2,5 cm", null, null, Modifier.weight(1f).record("right"), fillsWidth = true,
+                )
+            }
+        }
+        assertEquals(158 * 3, widths.getValue("left"))
+        assertEquals(158 * 3, widths.getValue("right"))
+        assertEquals(50 * 3, heights.getValue("left"))
+    }
+
+    /** AndSanGefaelle:62: the result box is 14 + max(44, 30 + 2 + 15) + 14 tall; the schema is 92 x 44. */
+    @Test
+    fun slopeResultHasTheSchemaAndTheTextColumn() {
+        paparazzi.snapshot {
+            SlopeResult(
+                percent = "1,25 %", verdict = "Ausreichend · Soll ≥ 1,0 %", sufficient = true, schemaY2 = 24.5,
+                levelLabel = "waagerecht", deltaLabel = "Δh",
+                modifier = Modifier.width(326.dp).record("result"),
+            )
+        }
+        assertEquals(326 * 3, widths.getValue("result"))
+        assertTrue(heights.getValue("result") >= (14 + 44 + 14) * 3)
+    }
+
+    /** AndSanGefaelle:78-81: the note has padding 4, a 20 icon and 13 / 18 text: two lines are 4 + 36 + 4 tall. */
+    @Test
+    fun plainInfoCalloutUsesItsPaddingAndLineHeight() {
+        paparazzi.snapshot {
+            Column {
+                InfoCallout(
+                    text = "Jetzt prüfen: Nach Estrich und Verkleidung lässt sich fehlendes Gefälle kaum noch korrigieren.",
+                    modifier = Modifier.width(358.dp).record("note"),
+                    container = null,
+                    content = Tokens.muted,
+                    contentPadding = PaddingValues(4.dp),
+                    textSize = 13.sp,
+                    lineHeight = 18.sp,
+                )
+                InfoCallout("Text", modifier = Modifier.record("default"))
+            }
+        }
+        assertEquals((4 + 36 + 4) * 3, heights.getValue("note"))
+        assertEquals((12 + 20 + 12) * 3, heights.getValue("default"))
+    }
+
+    /** AndSanDruck:50: the ring is 72 x 72 (the 58 hole is inside it). */
+    @Test
+    fun timerRingIs72Square() {
+        paparazzi.snapshot { TimerRing(0.58f, "12:40", "Prüfzeit zu 58 Prozent abgelaufen", Modifier.record("ring")) }
+        assertEquals(72 * 3, widths.getValue("ring"))
+        assertEquals(72 * 3, heights.getValue("ring"))
+    }
+
+    private fun currentStep(body: Modifier) = Step(
+        number = 3,
+        title = "Manometer",
+        state = StepState.Current,
+        body = { Box(body.width(100.dp).height(40.dp)) },
+    )
+
+    /** AndSanDruck:36: the rows of the current card are 14 apart; the default stays 12. */
+    @Test
+    fun compactCurrentCardUsesItsSpacing() {
+        paparazzi.snapshot {
+            Column {
+                BaupilotVerticalStepper(
+                    listOf(currentStep(Modifier)), StepperVariant.Compact, Modifier.record("spaced"), currentSpacing = 14.dp,
+                )
+                BaupilotVerticalStepper(listOf(currentStep(Modifier)), StepperVariant.Compact, Modifier.record("default"))
+            }
+        }
+        // padding 16 + header 24 + gap + body 40 + padding 16
+        assertEquals((16 + 24 + 14 + 40 + 16) * 3, heights.getValue("spaced"))
+        assertEquals((16 + 24 + 12 + 40 + 16) * 3, heights.getValue("default"))
+    }
+
+    /** FlBad / MaRaum open rows are 40 tall; the default stays 44 (AndSanDruck:90). */
+    @Test
+    fun compactOpenRowsUseTheirMinimumHeight() {
+        val open = List(2) { Step(number = 4 + it, title = "Offen", state = StepState.Open) }
+        paparazzi.snapshot {
+            Column {
+                BaupilotVerticalStepper(open, StepperVariant.Compact, Modifier.record("forty"), openMinHeight = 40.dp)
+                BaupilotVerticalStepper(open, StepperVariant.Compact, Modifier.record("default"))
+            }
+        }
+        assertEquals(2 * 40 * 3, heights.getValue("forty"))
+        assertEquals(2 * 44 * 3, heights.getValue("default"))
+    }
+
+    /** AndSanBad:46-62: the row is at least 64 tall (+1 divider), a divider adds 1. */
+    @Test
+    fun objectCheckRowHasItsMinimumHeightAndThePair() {
+        paparazzi.snapshot {
+            Column(Modifier.width(358.dp)) {
+                ObjectCheckRow("Warm links, kalt rechts", "Hebel ganz nach links: Wasser wird warm.", ok = true, showsDivider = false, modifier = Modifier.record("first"))
+                ObjectCheckRow("Wasser läuft zügig ab", "Becken voll laufen lassen, Stopfen ziehen.", ok = false, showsDivider = true, modifier = Modifier.record("second"))
+            }
+        }
+        assertEquals(64 * 3, heights.getValue("first"))
+        assertEquals((64 + 1) * 3, heights.getValue("second"))
+    }
+
+    /** The pair: 1 `outline` border round two 48 wide cells, 40 inner, so 98 x 42 outside. */
+    @Test
+    fun verdictToggleIs98By42() {
+        paparazzi.snapshot { VerdictToggle(ok = true, modifier = Modifier.record("pair")) }
+        assertEquals(98 * 3, widths.getValue("pair"))
+        assertEquals(42 * 3, heights.getValue("pair"))
+    }
+
+    /** The chip keeps its 32 height whether it is selected (`Now`) or not. */
+    @Test
+    fun objectChipKeepsItsHeightWhenSelected() {
+        paparazzi.snapshot {
+            Column {
+                ObjectChip("Waschtisch", ObjectChipState.Now, selected = true, modifier = Modifier.record("now"))
+                ObjectChip("Dusche", ObjectChipState.Open, modifier = Modifier.record("open"))
+            }
+        }
+        assertEquals(32 * 3, heights.getValue("now"))
+        assertEquals(32 * 3, heights.getValue("open"))
+    }
+
+    /** AndEsEbenheit:56: the link is 44 tall in layout (14 / 500 text, centred) and as wide as its text. */
+    @Test
+    fun textLinkIs44TallInLayout() {
+        paparazzi.snapshot {
+            TextLink("1 Messpunkt über Grenzwert → Mangel erfassen", Tokens.err, Modifier.record("link"))
+        }
+        assertEquals(44 * 3, heights.getValue("link"))
+        assertTrue(widths.getValue("link") > 0)
+    }
+
+    /** AndEsBelegreife:30: the chart is 80 tall and as wide as its card body (326); the bars split it (326 - 60) / 21. */
+    @Test
+    fun heatingBarChartIs80TallAndFillsTheCardBody() {
+        val bars = List(21) { HeatingBar(40, if (it < 5) HeatingBarKind.Recorded else HeatingBarKind.Planned) }
+        paparazzi.snapshot {
+            HeatingBarChart(
+                bars, "Vorlauftemperatur", Tokens.ok, Tokens.primary, Tokens.track.esBelegreife,
+                Modifier.width(326.dp).record("chart"),
+            )
+        }
+        assertEquals(80 * 3, heights.getValue("chart"))
+        assertEquals(326 * 3, widths.getValue("chart"))
+    }
+
+    /** AndEsBelegreife:55: the row is at least 44 tall, an open and a done row alike. */
+    @Test
+    fun checkMetaRowIs44Tall() {
+        paparazzi.snapshot {
+            Column(Modifier.width(326.dp)) {
+                CheckMetaRow("Messstellen markiert", "wegen Fußbodenheizung", true, Modifier.record("done"))
+                CheckMetaRow("Messung durchgeführt", "geplant 19.03.", false, Modifier.record("open"))
+            }
+        }
+        assertEquals(44 * 3, heights.getValue("done"))
+        assertEquals(44 * 3, heights.getValue("open"))
+    }
+
+    /** AndEsBelegreife:44: the compact button is 48 tall; padding 20 makes it 8 wider than the default 16. */
+    @Test
+    fun compactFilledButtonUsesItsHorizontalPadding() {
+        paparazzi.snapshot {
+            Column {
+                FilledButton("Tag 6 eintragen", ButtonSize.Compact, FilledContainer.Primary, Modifier.record("wide"), horizontalPadding = 20.dp)
+                FilledButton("Tag 6 eintragen", ButtonSize.Compact, FilledContainer.Primary, Modifier.record("default"))
+            }
+        }
+        assertEquals(48 * 3, heights.getValue("wide"))
+        assertEquals(widths.getValue("default") + 8 * 3, widths.getValue("wide"))
+    }
+
+    /** AndFlBad:51-53: 8 columns in a 326 wide grid with padding 8 and gap 4 give tiles of (310 - 28) / 8 = 35.25 x 44; the grid is 156 tall. */
+    @Test
+    fun tileGridTilesAre35Point25By44AndTheGridIs156Tall() {
+        val tiles = List(24) { TileItem("tile-${it + 1}", it == 2 || it == 3, if (it == 2 || it == 3) "hohl" else null, "Fliese ${it + 1}", Modifier.record("tile-${it + 1}")) }
+        paparazzi.snapshot { TileGrid(tiles, 8, Modifier.width(326.dp).record("grid")) }
+        assertEquals(44 * 3, heights.getValue("tile-1"))
+        assertEquals(35.25f * 3, widths.getValue("tile-1").toFloat(), 1f)
+        assertEquals(35.25f * 3, widths.getValue("tile-24").toFloat(), 1f)
+        assertEquals(156 * 3, heights.getValue("grid"))
+    }
+
+    /** AndMaUebersicht:25-32: a 358 wide card with padding 16 and gap 8 gives three columns of (326 - 16) / 3 = 103.33; padding 14 16 and two text lines (16 + 19 + 2) make it 65 tall. */
+    @Test
+    fun factGridHasThreeColumnsOf103Point33() {
+        val items = listOf(FactItem("Qualität", "Q3", Modifier.record("f0")), FactItem("Farbtöne", "3 bemustert", Modifier.record("f1")), FactItem("Räume", "3 von 9", Modifier.record("f2")))
+        paparazzi.snapshot { FactGrid(items, Modifier.width(358.dp).record("grid")) }
+        for (key in listOf("f0", "f1", "f2")) assertEquals(103.33f * 3, widths.getValue(key).toFloat(), 1f)
+        assertEquals(358 * 3, widths.getValue("grid"))
+        assertEquals(heights.getValue("f0") + 28 * 3, heights.getValue("grid"))
+    }
+
+    /** AndFlBad:62: the open rows of the compact stepper are 40 tall with `openMinHeight = 40`, 44 by default. */
+    @Test
+    fun compactStepperOpenRowsFollowOpenMinHeight() {
+        paparazzi.snapshot {
+            Column(Modifier.width(326.dp)) {
+                BaupilotVerticalStepper(
+                    listOf(Step(4, "Dusche", StepState.Open)), StepperVariant.Compact,
+                    Modifier.record("forty"), openMinHeight = 40.dp,
+                )
+                BaupilotVerticalStepper(listOf(Step(4, "Dusche", StepState.Open)), StepperVariant.Compact, Modifier.record("default"))
+            }
+        }
+        assertEquals(40 * 3, heights.getValue("forty"))
+        assertEquals(44 * 3, heights.getValue("default"))
+    }
+
+    /** AndMaRaum:34-39: the sketch is 326 x 88 (the box of its parent, clipped r12). */
+    @Test
+    fun rakingLightSketchIs326By88() {
+        paparazzi.snapshot { RakingLightSketch(Modifier.width(326.dp).record("sketch")) }
+        assertEquals(326 * 3, widths.getValue("sketch"))
+        assertEquals(88 * 3, heights.getValue("sketch"))
+    }
+
+    /** AndMaRaum:22: a done row with a trailing swatch of 22 keeps its 44 height. */
+    @Test
+    fun doneStepTrailingSwatchIs22AndKeepsTheRowAt44() {
+        paparazzi.snapshot {
+            Column(Modifier.width(326.dp)) {
+                BaupilotVerticalStepper(
+                    listOf(
+                        Step(
+                            number = 1,
+                            title = "Farbton wie bemustert",
+                            state = StepState.Done,
+                            trailing = { Box(Modifier.height(22.dp).width(22.dp).record("swatch")) },
+                        ),
+                    ),
+                    StepperVariant.Compact,
+                    Modifier.record("row"),
+                )
+            }
+        }
+        assertEquals(44 * 3, heights.getValue("row"))
+        assertEquals(22 * 3, widths.getValue("swatch"))
+        assertEquals(22 * 3, heights.getValue("swatch"))
+    }
+
+    /** AndMaRaum:55: the wall chip keeps its ✓ in the text, so `showDoneIcon = false` drops the 16 icon and its 6 gap. */
+    @Test
+    fun doneObjectChipWithoutIconIsNarrower() {
+        paparazzi.snapshot {
+            Column {
+                ObjectChip("Nord ✓", ObjectChipState.Done, modifier = Modifier.record("plain"), showDoneIcon = false)
+                ObjectChip("Nord ✓", ObjectChipState.Done, modifier = Modifier.record("icon"))
+            }
+        }
+        assertTrue(widths.getValue("plain") < widths.getValue("icon"))
+        assertEquals(32 * 3, heights.getValue("plain"))
+    }
+}
+
+/** The link keeps its 44 layout while the touch target (hit area) is at least 48 x 48. */
+@RunWith(RobolectricTestRunner::class)
+class TextLinkTouchTargetTest {
+    @get:Rule
+    val rule = createComposeRule()
+
+    @Test
+    fun touchTargetIsAtLeast48WithLayout44() {
+        rule.setContent {
+            TextLink("Mangel", Tokens.err, Modifier.testTag("link"), onClick = {})
+        }
+        val node = rule.onNodeWithTag("link").fetchSemanticsNode()
+        val density = rule.density.density
+        assertEquals(44f, node.size.height / density, 0.5f)
+        assertTrue(node.touchBoundsInRoot.height / density >= 48f - 0.5f)
+    }
+}

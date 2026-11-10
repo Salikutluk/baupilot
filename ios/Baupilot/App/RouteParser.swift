@@ -23,6 +23,16 @@ enum RouteParser {
             return .push(.inspection(tradeId: parts[1]))
         case "inspection" where parts.count == 3 && isIdentifier(parts[1]) && parts[2] == "sign":
             return .push(.signOff(inspectionId: parts[1]))
+        case "inspection" where parts.count == 3 && isIdentifier(parts[1]) && isIdentifier(parts[2])
+            && !reservedCheckWords.contains(parts[2]):
+            return .push(.inspectionCheck(tradeId: parts[1], check: parts[2]))
+        case "inspection" where parts.count == 4 && isIdentifier(parts[1]) && parts[2] == "room"
+            && isIdentifier(parts[3]):
+            return .push(.inspectionRoom(tradeId: parts[1], roomId: parts[3]))
+        case "inspection" where parts.count == 4 && isIdentifier(parts[1]) && isIdentifier(parts[2])
+            && isIdentifier(parts[3]) && !reservedCheckWords.contains(parts[2])
+            && !reservedCheckWords.contains(parts[3]):
+            return .push(.inspectionCheckItem(tradeId: parts[1], check: parts[2], item: parts[3]))
         case "inspection" where parts.count == 5 && isIdentifier(parts[1]) && isIdentifier(parts[2])
             && parts[3] == "step":
             guard let step = stepNumber(parts[4]) else { throw RepositoryError.decoding(field) }
@@ -32,6 +42,8 @@ enum RouteParser {
         }
     }
 
+    private nonisolated static let reservedCheckWords: Set<String> = ["sign", "step", "room"]
+
     /// A target that must open a pushed screen; a tab or the defects view is rejected.
     nonisolated static func route(_ raw: String?, field: String) throws -> AppRoute? {
         switch try target(raw, field: field) {
@@ -39,6 +51,14 @@ enum RouteParser {
         case let .push(route): return route
         case .tab, .defects: throw RepositoryError.decoding(field)
         }
+    }
+
+    /// A link of an inspection overview row: a pushed screen or the defects view; a tab is rejected.
+    nonisolated static func inspectionLink(_ raw: String, field: String) throws -> NavigationTarget {
+        let parsed = try target(raw, field: field)
+        if case .tab = parsed { throw RepositoryError.decoding(field) }
+        guard let parsed else { throw RepositoryError.decoding(field) }
+        return parsed
     }
 
     /// An id of a trade or document: `^[A-Za-z0-9][A-Za-z0-9_-]*$`.

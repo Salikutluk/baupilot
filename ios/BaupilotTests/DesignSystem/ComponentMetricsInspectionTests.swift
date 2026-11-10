@@ -80,7 +80,7 @@ final class ComponentMetricsInspectionTests: XCTestCase {
     func testCheckedSceneTilePlacesTheBadgeAt6FromTheTopRight() {
         func tile(checked: Bool) -> Pixels {
             let tile = PhotoTile(
-                kind: .scene(AnyView(Color.gray), caption: nil, checked: checked), height: .h84)
+                kind: .scene(AnyView(Color.clear), caption: nil, checked: checked), height: .h84)
             return render(tile, size: CGSize(width: 100, height: 84), scale: 2)
         }
         let plain = tile(checked: false)

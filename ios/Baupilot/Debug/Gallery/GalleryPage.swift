@@ -43,7 +43,7 @@ struct GalleryGroup<Content: View>: View {
 
 /// One full-screen page of the component gallery. Each page is one golden pair.
 enum GalleryPage: String, CaseIterable {
-    case structure, containers, statusInput, buttons, bars, steps, tiles, icons, forms, overview, schedule, settings, trade, documents, compare, notifications, inspections, inspectionElements, inspectionStep, defectForm, signOff
+    case structure, containers, statusInput, buttons, bars, steps, tiles, icons, forms, overview, schedule, settings, trade, documents, compare, notifications, inspections, inspectionElements, inspectionStep, defectForm, signOff, `protocol`, measure, electrical, electricalSteps, electricalSteps2, plumbing, plumbingSteps, screed, finishing
 
     /// ASCII letters only, so the name is a valid file name on every platform.
     var goldenName: String { "Gallery" + rawValue.capitalizedFirst }
@@ -74,6 +74,15 @@ enum GalleryPage: String, CaseIterable {
             case .inspectionStep: GalleryInspectionStepPage()
             case .defectForm: GalleryDefectFormPage()
             case .signOff: GallerySignOffPage()
+            case .`protocol`: GalleryProtocolPage()
+            case .measure: GalleryMeasurePage()
+            case .electrical: GalleryElectricalPage()
+            case .electricalSteps: GalleryElectricalStepsPage()
+            case .electricalSteps2: GalleryElectricalSteps2Page()
+            case .plumbing: GalleryPlumbingPage()
+            case .plumbingSteps: GalleryPlumbingStepsPage()
+            case .screed: GalleryScreedPage()
+            case .finishing: GalleryFinishingPage()
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -87,6 +96,246 @@ enum GalleryPage: String, CaseIterable {
         content
             .frame(width: 390, height: 844, alignment: .topLeading)
             .background(Tokens.bg.color)
+    }
+}
+
+/// Sanitär parts: the ListRow with a greedy wrapped subtitle (SanUebersicht row 1) and the slope check's socket tiles,
+/// full-width steppers and result (SanGefaelle).
+struct GalleryPlumbingPage: View {
+    var body: some View {
+        GalleryGroup("ListRow · greedy subtitle wraps like Chrome, textGap 1, min 52") {
+            Card(style: .row, padding: EdgeInsets()) {
+                VStack(spacing: 0) {
+                    ListRow(
+                        title: "Gefälle Abwasser", subtitle: "4 Abschnitte · 2 geprüft, 1 Mangel",
+                        leading: .iconTile(.pipe, size: .s34r9), trailing: .badge(StatusBadge("1 Mangel", tone: .error())),
+                        density: .minHeight(52), showsDivider: false, subtitleLines: .greedy, textGap: 1,
+                        titleLines: .greedy, action: nil)
+                    ListRow(
+                        title: "Dämmung Warmwasser", subtitle: "Sichtprüfung · 2 Fotos",
+                        leading: .iconTile(.pipe, size: .s34r9), trailing: .badge(StatusBadge("In Ordnung", tone: .ok)),
+                        density: .minHeight(52), showsDivider: true, subtitleLines: .greedy, textGap: 1,
+                        titleLines: .greedy, action: nil)
+                }
+            }
+        }
+        GalleryGroup("SocketGrid · 4 columns, tile 52, gap 8 (ok, defect, now, open)") {
+            SocketGrid(
+                tiles: [
+                    slopeTile("A1", "1,4 %", SocketTile.Style(background: Tokens.oSoft, foreground: Tokens.oFg)),
+                    slopeTile("A2", "0,4 %", SocketTile.Style(background: Tokens.eSoft.core, foreground: Tokens.eFg)),
+                    slopeTile(
+                        "A3", "jetzt",
+                        SocketTile.Style(background: Tokens.aSoft, foreground: Tokens.aFg, border: Tokens.accent)),
+                    slopeTile("A4", "offen", SocketTile.Style(background: Tokens.chip.core, foreground: Tokens.muted)),
+                ], height: 52)
+        }
+        GalleryGroup("ValueStepper · fillsWidth, two columns of 152, gap 10") {
+            HStack(spacing: 10) {
+                ValueStepper(
+                    label: "Länge", value: "2,0 m", fillsWidth: true, onDecrement: nil, onIncrement: nil)
+                ValueStepper(
+                    label: "Höhenunterschied", value: "2,5 cm", fillsWidth: true, onDecrement: nil,
+                    onIncrement: nil)
+            }
+        }
+        GalleryGroup("SlopeResult · sufficient") {
+            SlopeResult(
+                percent: "1,25 %", verdict: "Ausreichend · Soll ≥ 1,0 %", schemaY2: 15.1, levelLabel: "waagerecht",
+                deltaLabel: "Δh", background: Tokens.oSoft, foreground: Tokens.oFg)
+        }
+        GalleryGroup("SlopeResult · too flat") {
+            SlopeResult(
+                percent: "0,25 %", verdict: "Zu flach · Soll ≥ 1,0 %", schemaY2: 14.0, levelLabel: "waagerecht",
+                deltaLabel: "Δh", background: Tokens.eSoft.core, foreground: Tokens.eFg)
+        }
+    }
+
+    private func slopeTile(_ id: String, _ label: String, _ style: SocketTile.Style) -> SocketTile {
+        SocketTile(
+            id: id, label: label, style: style, accessibilityLabel: "Abschnitt \(id): \(label)",
+            identifier: "gallery.slope.\(id)", height: 52)
+    }
+}
+
+/// Sanitär step parts: the Druckprobe timer ring and the reading boxes (SanDruck), the wrapping object chips and the
+/// object check rows (SanBad).
+struct GalleryPlumbingStepsPage: View {
+    @State private var end = ""
+
+    var body: some View {
+        GalleryGroup("TimerRing · 72, hole 56, 58 %, accent over the track") {
+            TimerRing(
+                text: "12:40", fraction: 0.58, accessibilityLabel: "Prüfzeit zu 58 Prozent abgelaufen",
+                fill: Tokens.accent, track: Tokens.track.sanDruck, hole: Tokens.surface, holeDiameter: 56,
+                textWeight: .bold)
+        }
+        GalleryGroup("ReadingField · value (chip, inset 14) and input (accent border, placeholder)") {
+            HStack(alignment: .top, spacing: 10) {
+                ReadingField(label: "Start (10:02)", content: .value("10,0 bar"), identifier: nil)
+                ReadingField(label: "Ende", content: .input(text: $end, placeholder: "– bar"), identifier: nil)
+            }
+            .frame(width: 314)
+        }
+        GalleryGroup("SelectionChip borderBox in FlowLayout · done, active, open (text + 26), gap 8") {
+            FlowLayout(spacing: 8, lineSpacing: 8) {
+                SelectionChip("WC", state: .done, openBorder: Tokens.outline, showsTick: true, borderBox: true)
+                SelectionChip("Waschtisch", state: .active, openBorder: Tokens.outline, showsTick: true, borderBox: true)
+                SelectionChip("Dusche", state: .open, openBorder: Tokens.outline, showsTick: true, borderBox: true)
+                SelectionChip("Heizkörper", state: .open, openBorder: Tokens.outline, showsTick: true, borderBox: true)
+                SelectionChip("Lüfter", state: .open, openBorder: Tokens.outline, showsTick: true, borderBox: true)
+            }
+            .frame(width: 350, alignment: .leading)
+        }
+        GalleryGroup("ObjectCheckRow · ok (filled ✓) and open, divider from row 2, min 56") {
+            Card(style: .standard, padding: EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16), border: .current) {
+                VStack(alignment: .leading, spacing: 4) {
+                    ObjectCheckRow(
+                        title: "Warm links, kalt rechts", hint: "Hebel ganz nach links: Wasser wird warm.", ok: true,
+                        showsDivider: false, okFill: Tokens.ok.sanBad, okInk: Tokens.okInk.sanBad,
+                        outline: Tokens.outline, divider: Tokens.border.core,
+                        okAccessibilityLabel: "Warm links, kalt rechts: in Ordnung",
+                        defectAccessibilityLabel: "Warm links, kalt rechts: Mangel", identifiers: nil)
+                    ObjectCheckRow(
+                        title: "Siphon & Anschlüsse trocken",
+                        hint: "Mit Papiertuch unten abwischen – muss trocken bleiben.", ok: false, showsDivider: true,
+                        okFill: Tokens.ok.sanBad, okInk: Tokens.okInk.sanBad, outline: Tokens.outline,
+                        divider: Tokens.border.core, okAccessibilityLabel: "Siphon & Anschlüsse trocken: in Ordnung",
+                        defectAccessibilityLabel: "Siphon & Anschlüsse trocken: Mangel", identifiers: nil)
+                }
+            }
+        }
+    }
+}
+
+/// Estrich parts: the straightedge sketch within and over the limit, the measurement chips in a wrapping row and the
+/// greedy text link (EsEbenheit), the heating bar chart, the check rows with a note, the compact button and the lock
+/// note (EsBelegreife).
+struct GalleryScreedPage: View {
+    var body: some View {
+        GalleryGroup("FlatnessSketch · 64, gap line 8 (within, oFg)") {
+            FlatnessSketch(
+                lineHeight: 8, line: Tokens.oFg, lath: Tokens.accent, floor: Tokens.track.esEbenheit,
+                background: Tokens.surface)
+        }
+        GalleryGroup("FlatnessSketch · gap line 26 (over, eFg)") {
+            FlatnessSketch(
+                lineHeight: 26, line: Tokens.eFg, lath: Tokens.accent, floor: Tokens.track.esEbenheit,
+                background: Tokens.surface)
+        }
+        GalleryGroup("MeasureChip · 36, within and over, gap 8") {
+            FlowLayout(spacing: 8, lineSpacing: 8) {
+                MeasureChip("M1 · 2 mm", background: Tokens.oSoft, foreground: Tokens.oFg)
+                MeasureChip("M2 · 3 mm", background: Tokens.oSoft, foreground: Tokens.oFg)
+                MeasureChip("M3 · 6 mm", background: Tokens.eSoft.core, foreground: Tokens.eFg)
+            }
+            .frame(width: 350, alignment: .leading)
+        }
+        GalleryGroup("TextLink · min 44, greedy wrap, leading") {
+            TextLink("1 Messpunkt über Grenzwert → Mangel erfassen", color: Tokens.err.core, action: nil)
+        }
+        GalleryGroup("HeatingBarChart · 84, bars (314 − 3 × 20) / 21, recorded ok, today accent, planned track") {
+            HeatingBarChart(bars: Self.bars, accessibilityLabel: "Vorlauftemperatur je Tag")
+                .frame(width: 314)
+        }
+        GalleryGroup("CheckMetaRow · done (ok ring, tick) and open (track ring), min 40") {
+            VStack(spacing: 0) {
+                CheckMetaRow(
+                    title: "Messstellen markiert", meta: "wegen Fußbodenheizung", done: true, ok: Tokens.ok.core,
+                    okInk: Tokens.okInk.core, openRing: Tokens.track.esBelegreife)
+                CheckMetaRow(
+                    title: "Messung durchgeführt", meta: "geplant 19.03.", done: false, ok: Tokens.ok.core,
+                    okInk: Tokens.okInk.core, openRing: Tokens.track.esBelegreife)
+            }
+            .frame(width: 314)
+        }
+        GalleryGroup("PrimaryButton · compact, 44, hugs its label") {
+            PrimaryButton("Tag 6 eintragen", size: .compact, action: nil)
+        }
+        GalleryGroup("InfoCallout · locked, leading text, normal line height, centred row") {
+            InfoCallout(
+                text: "Bodenbelag erst nach Freigabe", icon: .lock, tone: .locked, textSize: 14,
+                textAlignment: .leading, lineHeight: .normal, alignment: .center)
+        }
+    }
+
+    /// IosEsBelegreife:80-83: the plan of the protocol scaled `round(v / 45 × 72)`, days 1-5 recorded, day 6 today.
+    private static let bars: [(height: CGFloat, color: ColorToken)] = [25, 25, 25, 30, 35, 35, 40, 45, 45, 45, 45, 45, 45, 40, 35, 30, 25, 25, 25, 25, 25]
+        .enumerated().map { index, value in
+            (
+                height: CGFloat((Double(value) / 45 * 72).rounded()),
+                color: index < 5 ? Tokens.ok.core : index == 5 ? Tokens.accent : Tokens.track.esBelegreife
+            )
+        }
+}
+
+/// Fliesen and Maler parts: the tile raster with its legend row, the filled error button and the neutral outlined
+/// button (FlBad), the raking-light sketch and the square swatch of a done step row (MaRaum).
+struct GalleryFinishingPage: View {
+    var body: some View {
+        GalleryGroup("LegendRow · 12/600, swatch 12 r2, space-between") {
+            LegendRow(
+                leading: "↑ Wand mit Dusche", swatchLabel: "klingt hohl", swatchFill: Tokens.eSoft.flBad,
+                swatchBorder: Tokens.err.flBad, color: Tokens.muted)
+                .frame(width: 314)
+        }
+        GalleryGroup("TileGrid · 8 × 3, tile 33,75 × 44, hollow 3 and 4") {
+            TileGrid(
+                tiles: Self.tiles, columns: 8, radius: 10, tileRadius: 3, background: Tokens.grout,
+                accessibilityLabel: "Fliesenraster Boden, oben die Wand mit Dusche, unten die Tür")
+                .frame(width: 314)
+        }
+        GalleryGroup("ListRow swatch · 14 + 1 border, min 52, divider border.maUebersicht") {
+            Card(style: .row, padding: EdgeInsets()) {
+                VStack(spacing: 0) {
+                    swatchRow("Wohnen / Essen", "Sand · Decke Weiß · Schritt 2 von 5", Tokens.paintSand, "Läuft", .accent, false)
+                    swatchRow("Küche", "Weiß, Latex abwaschbar", Tokens.paintWhite, "In Ordnung", .ok, true)
+                    swatchRow("Schlafen", "Salbei, Akzentwand", Tokens.paintSage, "Offen", .neutral(), true)
+                }
+            }
+            .frame(width: 350)
+        }
+        GalleryGroup("DefectButton filled + NeutralOutlineButton · 50") {
+            HStack(spacing: 10) {
+                DefectButton(
+                    "Als Mangel", style: .filled(fill: Tokens.err.flBad, ink: Tokens.onDangerFill), action: nil)
+                NeutralOutlineButton("Keine Hohlstellen", action: nil)
+            }
+            .frame(width: 314)
+        }
+        GalleryGroup("RakingLightSketch · 88, r12, torch, glow, shadow 62 %") {
+            RakingLightSketch(
+                lit: Tokens.lit, wall: Tokens.wall, lamp: Tokens.text, glow: Tokens.lampGlow, shadow: Tokens.shadow)
+                .frame(width: 314)
+        }
+        GalleryGroup("StepRow swatchSquare · 18 + 1 border, r5") {
+            StepRow(
+                number: 1, title: "Farbton wie bemustert", state: .done,
+                meta: .swatchSquare(Tokens.paintSand, side: 18, radius: 5, border: Tokens.border.maRaum))
+                .frame(width: 350)
+        }
+    }
+
+    private func swatchRow(
+        _ title: String, _ subtitle: String, _ paint: ColorToken, _ status: String, _ tone: StatusBadge.Tone,
+        _ divider: Bool
+    ) -> some View {
+        ListRow(
+            title: title, subtitle: subtitle,
+            leading: .swatch(paint, side: 14, radius: 4, border: Tokens.border.maUebersicht),
+            trailing: .badge(StatusBadge(status, tone: tone)), density: .minHeight(52), showsDivider: divider,
+            dividerColor: Tokens.border.maUebersicht, textGap: 1, action: nil)
+    }
+
+    private static let tiles: [TileGrid.Tile] = (1...24).map { number in
+        let hollow = number == 3 || number == 4
+        return TileGrid.Tile(
+            id: "tile-\(number)",
+            style: hollow
+                ? TileGrid.Tile.Style(fill: Tokens.eSoft.flBad, border: Tokens.err.flBad, labelColor: Tokens.eFg)
+                : TileGrid.Tile.Style(fill: Tokens.tile, border: nil, labelColor: Tokens.eFg),
+            label: hollow ? "hohl" : nil, accessibilityLabel: "Fliese \(number)\(hollow ? ": hohl" : "")",
+            identifier: "gallery.tile.\(number)")
     }
 }
 #endif

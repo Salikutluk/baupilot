@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,13 +52,14 @@ private fun ButtonContent(
     contentColor: ColorToken,
     letterSpacing: TextUnit = 0.sp,
     leading: (@Composable () -> Unit)? = null,
+    iconSize: Dp = 18.dp,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(if (leading != null) 10.dp else 8.dp, Alignment.CenterHorizontally),
     ) {
         if (leading != null) leading()
-        if (icon != null) Icon(icon, 18.dp, contentColor.color())
+        if (icon != null) Icon(icon, iconSize, contentColor.color())
         BaupilotText(
             text = label,
             size = if (size == ButtonSize.Regular) 15.sp else 14.sp,
@@ -70,7 +72,8 @@ private fun ButtonContent(
 
 /**
  * Filled pill button, height 48, radius 24. `Regular` 15 / 500 full width, `Compact` 14 / 500 with padding-x 16.
- * [letterSpacing] is the prototype's `letter-spacing` (AndLogin:44 uses 0.1).
+ * [letterSpacing] is the prototype's `letter-spacing` (AndLogin:44 uses 0.1). [horizontalPadding] replaces the padding-x
+ * of the size (the "Tag 6 eintragen" button has 20, AndEsBelegreife:44).
  */
 @Composable
 fun FilledButton(
@@ -85,6 +88,7 @@ fun FilledButton(
     errorBackground: ColorToken = Tokens.errBtn,
     errorContent: ColorToken = Tokens.onErrBtn,
     letterSpacing: TextUnit = 0.sp,
+    horizontalPadding: Dp? = null,
 ) {
     val background = if (container == FilledContainer.Primary) primaryBackground else errorBackground
     val content = if (container == FilledContainer.Primary) primaryContent else errorContent
@@ -95,7 +99,7 @@ fun FilledButton(
             .clip(ButtonShape)
             .background(background.color(), ButtonShape)
             .pressable(onClick)
-            .padding(horizontal = if (size == ButtonSize.Compact) 16.dp else 0.dp),
+            .padding(horizontal = horizontalPadding ?: if (size == ButtonSize.Compact) 16.dp else 0.dp),
         contentAlignment = Alignment.Center,
     ) {
         ButtonContent(label, size, icon, content, letterSpacing)
@@ -105,7 +109,8 @@ fun FilledButton(
 /**
  * Outlined pill button: 1 border, transparent background, radius 24. Height 48 border-box, or
  * 50 when [borderOutside] is set (the prototype's `<a>` buttons draw the border outside the box).
- * [leading] is drawn before the label with a gap of 10 (the Google mark, AndLogin:46).
+ * [leading] is drawn before the label with a gap of 10 (the Google mark, AndLogin:46). [iconSize] is the edge of the
+ * [icon] (the Druck photo button draws 20, AndSanDruck:71).
  */
 @Composable
 fun OutlinedButton(
@@ -118,6 +123,7 @@ fun OutlinedButton(
     borderOutside: Boolean = false,
     leading: (@Composable () -> Unit)? = null,
     onClick: (() -> Unit)? = null,
+    iconSize: Dp = 18.dp,
 ) {
     Box(
         modifier = modifier
@@ -129,7 +135,7 @@ fun OutlinedButton(
             .padding(horizontal = if (size == ButtonSize.Compact) 16.dp else 0.dp),
         contentAlignment = Alignment.Center,
     ) {
-        ButtonContent(label, size, icon, contentColor, leading = leading)
+        ButtonContent(label, size, icon, contentColor, leading = leading, iconSize = iconSize)
     }
 }
 

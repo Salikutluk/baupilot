@@ -41,15 +41,24 @@ public struct InfoCallout: View {
     private let chip: ColorToken
     private let warnFg: ColorToken
     private let textLines: TextLines
+    private let textAlignment: TextAlignment?
+    private let lineHeight: LineHeight?
+    private let alignment: VerticalAlignment?
 
     /// `chip` (locked tone) and `warnFg` (warn tone) vary per screen. `textLines` is `.block` where the screen is
     /// measured against Chrome's full line box (Vergleich); `.multi` keeps the geometry of the earlier goldens.
+    /// `textAlignment`, `lineHeight` and `alignment` (the row's vertical alignment) override the per-tone look when set
+    /// (the Belegreife lock note: leading text, normal line height, centred row).
     public init(
         text: String, icon: BaupilotIcon, tone: Tone, radius: Radius = .r12, textSize: CGFloat = 13,
         iconSize: CGFloat = 18, chip: ColorToken = Tokens.chip.core,
         warnFg: ColorToken = Tokens.wFg.core,
-        textLines: TextLines = .multi
+        textLines: TextLines = .multi, textAlignment: TextAlignment? = nil, lineHeight: LineHeight? = nil,
+        alignment: VerticalAlignment? = nil
     ) {
+        self.textAlignment = textAlignment
+        self.lineHeight = lineHeight
+        self.alignment = alignment
         self.chip = chip
         self.warnFg = warnFg
         self.textLines = textLines
@@ -61,16 +70,26 @@ public struct InfoCallout: View {
         self.iconSize = iconSize
     }
 
+    private var resolvedTextAlignment: TextAlignment { textAlignment ?? (tone == .locked ? .center : .leading) }
+
+    private var frameAlignment: Alignment {
+        switch resolvedTextAlignment {
+        case .leading: return .leading
+        case .center: return .center
+        case .trailing: return .trailing
+        }
+    }
+
     public var body: some View {
-        HStack(alignment: tone == .locked ? .center : .top, spacing: 10) {
+        HStack(alignment: alignment ?? (tone == .locked ? .center : .top), spacing: 10) {
             Icon(icon, size: iconSize, color: tone.foreground(warnFg: warnFg).color)
                 .padding(.top, tone == .accent ? 1 : 0)
                 .layoutPriority(1)
             Text(text)
-                .interText(textSize, .regular, lineHeight: .factor(1.4), lines: textLines)
+                .interText(textSize, .regular, lineHeight: lineHeight ?? .factor(1.4), lines: textLines)
                 .foregroundStyle(tone.foreground(warnFg: warnFg).color)
-                .multilineTextAlignment(tone == .locked ? .center : .leading)
-                .frame(maxWidth: .infinity, alignment: tone == .locked ? .center : .leading)
+                .multilineTextAlignment(resolvedTextAlignment)
+                .frame(maxWidth: .infinity, alignment: frameAlignment)
         }
         .padding(.vertical, 12)
         .padding(.horizontal, 14)

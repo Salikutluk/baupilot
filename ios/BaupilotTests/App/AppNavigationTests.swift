@@ -267,4 +267,83 @@ final class AppNavigationTests: XCTestCase {
         nav.go(.defects)
         XCTAssertEqual(nav, before)
     }
+
+    private func inspectionsNav(_ path: [AppRoute]) -> AppNavigation {
+        var nav = loggedIn()
+        nav.select(.inspections)
+        for route in path { nav.push(route) }
+        return nav
+    }
+
+    func testSaveDefectFromWindowsKeepsM4Flow() {
+        let step = AppRoute.inspectionStep(tradeId: "windows", elementId: "F8", step: 3)
+        var nav = inspectionsNav([.inspection(tradeId: "windows"), step, .newDefect])
+        nav.saveDefect(formTradeId: "windows", hasSignOff: true)
+        XCTAssertEqual(
+            nav.path(for: .inspections), [.inspection(tradeId: "windows"), .signOff(inspectionId: "windows")])
+
+        var without = inspectionsNav([.inspection(tradeId: "windows"), step, .newDefect])
+        without.saveDefect(formTradeId: "windows", hasSignOff: false)
+        XCTAssertEqual(without.path(for: .inspections), [.inspection(tradeId: "windows")])
+    }
+
+    func testSaveDefectFromElementRowKeepsM4Flow() {
+        var nav = inspectionsNav([.inspection(tradeId: "windows"), .newDefect])
+        nav.saveDefect(formTradeId: "windows", hasSignOff: true)
+        XCTAssertEqual(
+            nav.path(for: .inspections), [.inspection(tradeId: "windows"), .signOff(inspectionId: "windows")])
+    }
+
+    func testSaveDefectFromShellMeasurePops() {
+        let shell = AppRoute.inspection(tradeId: "shell")
+        let check = AppRoute.inspectionCheck(tradeId: "shell", check: "measure")
+        var nav = inspectionsNav([shell, check, .newDefect])
+        nav.saveDefect(formTradeId: "shell", hasSignOff: false)
+        XCTAssertEqual(nav.path(for: .inspections), [shell, check])
+    }
+
+    func testSaveDefectFromElectricalRoomPops() {
+        let electrical = AppRoute.inspection(tradeId: "electrical")
+        let room = AppRoute.inspectionRoom(tradeId: "electrical", roomId: "kitchen")
+        var nav = inspectionsNav([electrical, room, .newDefect])
+        nav.saveDefect(formTradeId: "electrical", hasSignOff: true)
+        XCTAssertEqual(nav.path(for: .inspections), [electrical, room])
+
+        var alone = inspectionsNav([.newDefect])
+        alone.saveDefect(formTradeId: "windows", hasSignOff: true)
+        XCTAssertEqual(alone.path(for: .inspections), [])
+    }
+
+    func testSaveDefectFromSlopePops() {
+        let plumbing = AppRoute.inspection(tradeId: "plumbing")
+        let slope = AppRoute.inspectionCheckItem(tradeId: "plumbing", check: "slope", item: "A3")
+        var nav = inspectionsNav([plumbing, slope, .newDefect])
+        nav.saveDefect(formTradeId: "plumbing", hasSignOff: false)
+        XCTAssertEqual(nav.path(for: .inspections), [plumbing, slope])
+    }
+
+    func testSaveDefectFromTileRoomPops() {
+        let tiles = AppRoute.inspection(tradeId: "tiles")
+        let bath = AppRoute.inspectionRoom(tradeId: "tiles", roomId: "bath")
+        var nav = inspectionsNav([tiles, bath, .newDefect])
+        nav.saveDefect(formTradeId: "tiles", hasSignOff: true)
+        XCTAssertEqual(nav.path(for: .inspections), [tiles, bath])
+    }
+
+    func testSaveDefectIsNoOpWhenLoggedOutOrNotOnTop() {
+        var out = AppNavigation()
+        let before = out
+        out.saveDefect(formTradeId: "windows", hasSignOff: true)
+        XCTAssertEqual(out, before)
+
+        var notOnTop = inspectionsNav([.newDefect, .inspection(tradeId: "windows")])
+        let pathBefore = notOnTop
+        notOnTop.saveDefect(formTradeId: "windows", hasSignOff: true)
+        XCTAssertEqual(notOnTop, pathBefore)
+
+        var empty = inspectionsNav([])
+        let emptyBefore = empty
+        empty.saveDefect(formTradeId: "windows", hasSignOff: true)
+        XCTAssertEqual(empty, emptyBefore)
+    }
 }

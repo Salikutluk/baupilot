@@ -117,12 +117,7 @@ struct AppShell: View {
                     .accessibilityIdentifier("screen.document.\(id)")
             }
         case let .inspection(tradeId):
-            if let model = data.inspectionElements[tradeId] {
-                ElementsScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
-            } else {
-                PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
-                    .accessibilityIdentifier("screen.inspection.\(tradeId)")
-            }
+            inspectionDestination(tradeId, route: route, backLabel: backLabel, onBack: onBack, fallback: fallback)
         case let .inspectionStep(tradeId, elementId, step):
             if let model = data.inspectionSteps[route] {
                 InspectionStepScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
@@ -139,6 +134,102 @@ struct AppShell: View {
                 PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
                     .accessibilityIdentifier("screen.inspection.\(inspectionId).sign")
             }
+        case let .inspectionCheck(tradeId, check):
+            if let model = data.measureChecks[route] {
+                RohbauMasseScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else if let model = data.roomChecks[route] {
+                ElRaumScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else if let model = data.panelChecks[route] {
+                ElVerteilerScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else if let model = data.smokeChecks[route] {
+                ElRauchmelderScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else if let model = data.pressureChecks[route] {
+                SanDruckScreen(model: model, backLabel: backLabel, onBack: onBack)
+            } else if let model = data.flatnessChecks[route] {
+                EsEbenheitScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else if let model = data.readinessChecks[route] {
+                EsBelegreifeScreen(model: model, backLabel: backLabel, onBack: onBack)
+            } else {
+                PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
+                    .accessibilityIdentifier("screen.inspection.\(tradeId).\(check)")
+            }
+        case let .inspectionRoom(tradeId, roomId):
+            if let model = data.roomChecks[route] {
+                ElRaumScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else if let model = data.objectChecks[route] {
+                SanBadScreen(model: model, backLabel: backLabel, onBack: onBack)
+            } else if let model = data.tileChecks[route] {
+                FlBadScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else if let model = data.paintChecks[route] {
+                MaRaumScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else {
+                PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
+                    .accessibilityIdentifier("screen.inspection.\(tradeId).room.\(roomId)")
+            }
+        case let .inspectionCheckItem(tradeId, check, item):
+            if let model = data.slopeChecks[route] {
+                SanGefaelleScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else {
+                PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
+                    .accessibilityIdentifier("screen.inspection.\(tradeId).\(check).\(item)")
+            }
+        }
+    }
+
+    /// The lookup chain of an inspection trade (D2): element list, protocol, electrical overview, M6 overview,
+    /// placeholder.
+    @ViewBuilder
+    private func inspectionDestination(
+        _ tradeId: String, route: AppRoute, backLabel: String, onBack: @escaping () -> Void,
+        fallback: PlaceholderScreen.Presentation
+    ) -> some View {
+        if let model = data.inspectionElements[tradeId] {
+            ElementsScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+        } else if let model = data.tradeProtocols[tradeId], let screen = protocolScreen(
+            model, backLabel: backLabel, onBack: onBack) {
+            screen
+        } else if let model = data.electricalOverviews[tradeId] {
+            ElUebersichtScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+        } else if let model = data.tradeOverviews[tradeId], let screen = overviewScreen(
+            model, backLabel: backLabel, onBack: onBack) {
+            screen
+        } else {
+            PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
+                .accessibilityIdentifier("screen.inspection.\(tradeId)")
+        }
+    }
+
+    /// Plumbing, screed, tiles and painting each have their own overview screen.
+    private func overviewScreen(
+        _ model: TradeOverviewModel, backLabel: String, onBack: @escaping () -> Void
+    ) -> AnyView? {
+        switch model.tradeId {
+        case "plumbing":
+            return AnyView(SanUebersichtScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle))
+        case "screed":
+            return AnyView(EsUebersichtScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle))
+        case "tiles":
+            return AnyView(FlUebersichtScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle))
+        case "painting":
+            return AnyView(MaUebersichtScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle))
+        default:
+            return nil
+        }
+    }
+
+    /// Earthworks, shell and carpentry each have their own protocol screen.
+    private func protocolScreen(
+        _ model: TradeProtocolModel, backLabel: String, onBack: @escaping () -> Void
+    ) -> AnyView? {
+        switch model.tradeId {
+        case "earthworks":
+            return AnyView(ErdScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle))
+        case "shell":
+            return AnyView(RohbauScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle))
+        case "carpentry":
+            return AnyView(ZimmererScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle))
+        default:
+            return nil
         }
     }
 
@@ -224,11 +315,49 @@ struct AppShell: View {
         case .cancel:
             navigation.pop()
         case let .save(tradeId):
-            if data.signOffs[tradeId] != nil {
-                navigation.open(.signOff(inspectionId: tradeId), above: .inspection(tradeId: tradeId))
-            } else {
-                navigation.open(.inspection(tradeId: tradeId))
-            }
+            navigation.saveDefect(formTradeId: tradeId, hasSignOff: data.signOffs[tradeId] != nil)
+        }
+    }
+
+    private func handle(_ action: ProtocolAction) {
+        switch action {
+        case let .open(target): navigation.go(target)
+        }
+    }
+
+    private func handle(_ action: ElectricalAction) {
+        switch action {
+        case let .open(route): navigation.open(route)
+        }
+    }
+
+    private func handle(_ action: MeasureAction) {
+        switch action {
+        case let .open(route): navigation.open(route)
+        }
+    }
+
+    private func handle(_ action: CheckStepAction) {
+        switch action {
+        case let .open(route): navigation.open(route)
+        }
+    }
+
+    private func handle(_ action: OverviewAction) {
+        switch action {
+        case let .open(route): navigation.open(route)
+        }
+    }
+
+    private func handle(_ action: SlopeAction) {
+        switch action {
+        case let .open(route): navigation.open(route)
+        }
+    }
+
+    private func handle(_ action: FlatnessAction) {
+        switch action {
+        case let .open(route): navigation.open(route)
         }
     }
 

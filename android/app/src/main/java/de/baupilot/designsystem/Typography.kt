@@ -9,6 +9,7 @@ import androidx.compose.ui.layout.AlignmentLine
 import androidx.compose.ui.layout.FirstBaseline
 import androidx.compose.ui.layout.LastBaseline
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.LineHeightStyle
@@ -91,6 +92,65 @@ fun BaupilotText(
 @Composable
 fun BaupilotText(
     text: String,
+    size: TextUnit,
+    weight: Int = 400,
+    color: Color,
+    modifier: Modifier = Modifier,
+    letterSpacing: TextUnit = 0.sp,
+    lineHeight: TextUnit = TextUnit.Unspecified,
+    maxLines: Int = Int.MAX_VALUE,
+    overflow: TextOverflow = TextOverflow.Clip,
+    textAlign: TextAlign? = null,
+) {
+    BaupilotText(
+        text = AnnotatedString(text),
+        size = size,
+        weight = weight,
+        color = color,
+        modifier = modifier,
+        letterSpacing = letterSpacing,
+        lineHeight = lineHeight,
+        maxLines = maxLines,
+        overflow = overflow,
+        textAlign = textAlign,
+    )
+}
+
+/**
+ * Text with inline styles, for a line that changes weight or colour midway (ElRaum: "5 von 8 getestet · " plus a
+ * 500 `err` "S4: Mangel erfasst"). [weight] and [color] are the defaults; spans override them.
+ */
+@Composable
+fun BaupilotText(
+    text: AnnotatedString,
+    size: TextUnit,
+    weight: Int = 400,
+    color: ColorToken,
+    modifier: Modifier = Modifier,
+    letterSpacing: TextUnit = 0.sp,
+    lineHeight: TextUnit = TextUnit.Unspecified,
+    maxLines: Int = Int.MAX_VALUE,
+    overflow: TextOverflow = TextOverflow.Clip,
+    textAlign: TextAlign? = null,
+) {
+    BaupilotText(
+        text = text,
+        size = size,
+        weight = weight,
+        color = color.color(),
+        modifier = modifier,
+        letterSpacing = letterSpacing,
+        lineHeight = lineHeight,
+        maxLines = maxLines,
+        overflow = overflow,
+        textAlign = textAlign,
+    )
+}
+
+/** Same as the annotated [ColorToken] overload, for an already resolved [Color]. */
+@Composable
+fun BaupilotText(
+    text: AnnotatedString,
     size: TextUnit,
     weight: Int = 400,
     color: Color,

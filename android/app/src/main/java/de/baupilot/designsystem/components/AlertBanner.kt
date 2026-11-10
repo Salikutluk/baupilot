@@ -21,13 +21,14 @@ import de.baupilot.designsystem.wholeDpCentered
 
 /**
  * Alert banner (AndAbnMangel.dc.html:27-33): radius 12, padding 12 16, gap 12, a 20 [icon] and the 15 / 500 [title]
- * above the 13 [subtitle] (gap 2). [background] and [foreground] are the `errBg` / `errFg` pair.
+ * above the 13 [subtitle] (gap 2). [background] and [foreground] are the `errBg` / `errFg` pair. A null [icon] or
+ * [subtitle] hides its slot (the Maße & Lot result is the title alone).
  */
 @Composable
 fun AlertBanner(
-    icon: BaupilotIcon,
+    icon: BaupilotIcon?,
     title: String,
-    subtitle: String,
+    subtitle: String?,
     modifier: Modifier = Modifier,
     background: ColorToken = Tokens.errBg,
     foreground: ColorToken = Tokens.errFg,
@@ -40,10 +41,10 @@ fun AlertBanner(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Icon(icon, 20.dp, foreground.color())
+        if (icon != null) Icon(icon, 20.dp, foreground.color())
         Column(Modifier.weight(1f).then(wholeDpCentered()), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             BaupilotText(text = title, size = 15.sp, weight = 500, color = foreground)
-            BaupilotText(text = subtitle, size = 13.sp, color = foreground)
+            if (subtitle != null) BaupilotText(text = subtitle, size = 13.sp, color = foreground)
         }
     }
 }

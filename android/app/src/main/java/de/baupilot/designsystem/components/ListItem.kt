@@ -69,6 +69,9 @@ sealed interface Leading {
 
     /** Plain icon, 22. */
     class Icon(val icon: BaupilotIcon, val tint: ColorToken = Tokens.muted) : Leading
+
+    /** Round status dot of [size] (10), [start] (7) in from the row's edge (AndElRauchmelder:57). */
+    class Dot(val color: ColorToken, val size: Dp = 10.dp, val start: Dp = 7.dp) : Leading
 }
 
 /** Trailing element of a list row. */
@@ -91,7 +94,7 @@ sealed interface Trailing {
     class Switch(val content: @Composable () -> Unit) : Trailing
 }
 
-/** List row: gap 16, title 16 `text`, subtitle 14 `muted` (text gap 2), no divider. */
+/** List row: gap 16, title [titleSize] (16) `text`, subtitle [subtitleSize] (14) `muted` (text gap 2), no divider. */
 @Composable
 fun BaupilotListItem(
     title: String,
@@ -107,6 +110,8 @@ fun BaupilotListItem(
     onClick: (() -> Unit)? = null,
     titleColor: ColorToken = Tokens.text,
     subtitleColor: ColorToken = Tokens.muted,
+    titleSize: TextUnit = 16.sp,
+    subtitleSize: TextUnit = 14.sp,
 ) {
     var row = modifier.fillMaxWidth()
     if (background != null) row = row.background(background.color())
@@ -125,7 +130,7 @@ fun BaupilotListItem(
         ) {
             BaupilotText(
                 text = title,
-                size = 16.sp,
+                size = titleSize,
                 weight = titleWeight,
                 color = titleColor,
                 maxLines = if (ellipsis) 1 else Int.MAX_VALUE,
@@ -134,7 +139,7 @@ fun BaupilotListItem(
             if (subtitle != null) {
                 BaupilotText(
                     text = subtitle,
-                    size = 14.sp,
+                    size = subtitleSize,
                     color = subtitleColor,
                     maxLines = if (ellipsis) 1 else Int.MAX_VALUE,
                     overflow = if (ellipsis) TextOverflow.Ellipsis else TextOverflow.Clip,
@@ -172,6 +177,10 @@ private fun LeadingContent(leading: Leading) {
         )
 
         is Leading.Icon -> Icon(leading.icon, 22.dp, leading.tint.color())
+
+        is Leading.Dot -> Box(
+            Modifier.padding(start = leading.start).size(leading.size).background(leading.color.color(), CircleShape),
+        )
     }
 }
 

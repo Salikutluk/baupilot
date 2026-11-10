@@ -15,6 +15,18 @@ import de.baupilot.screens.compare.CompareAction
 import de.baupilot.screens.compare.CompareScreen
 import de.baupilot.screens.docviewer.DocViewerAction
 import de.baupilot.screens.docviewer.DocViewerScreen
+import de.baupilot.screens.earlytrades.CheckStepAction
+import de.baupilot.screens.earlytrades.ElRaumScreen
+import de.baupilot.screens.earlytrades.ElRauchmelderScreen
+import de.baupilot.screens.earlytrades.ElUebersichtScreen
+import de.baupilot.screens.earlytrades.ElVerteilerScreen
+import de.baupilot.screens.earlytrades.ElectricalAction
+import de.baupilot.screens.earlytrades.ErdScreen
+import de.baupilot.screens.earlytrades.MeasureAction
+import de.baupilot.screens.earlytrades.ProtocolAction
+import de.baupilot.screens.earlytrades.RohbauMasseScreen
+import de.baupilot.screens.earlytrades.RohbauScreen
+import de.baupilot.screens.earlytrades.ZimmererScreen
 import de.baupilot.screens.defectform.DefectFormAction
 import de.baupilot.screens.defectform.DefectFormScreen
 import de.baupilot.screens.defects.DefectsAction
@@ -29,6 +41,20 @@ import de.baupilot.screens.inspections.InspectionsAction
 import de.baupilot.screens.inspections.InspectionsScreen
 import de.baupilot.screens.inspectionstep.InspectionStepScreen
 import de.baupilot.screens.inspectionstep.StepAction
+import de.baupilot.screens.latertrades.EsBelegreifeScreen
+import de.baupilot.screens.latertrades.EsEbenheitScreen
+import de.baupilot.screens.latertrades.EsUebersichtScreen
+import de.baupilot.screens.latertrades.FlBadScreen
+import de.baupilot.screens.latertrades.FlUebersichtScreen
+import de.baupilot.screens.latertrades.FlatnessAction
+import de.baupilot.screens.latertrades.MaRaumScreen
+import de.baupilot.screens.latertrades.MaUebersichtScreen
+import de.baupilot.screens.latertrades.OverviewAction
+import de.baupilot.screens.latertrades.SanBadScreen
+import de.baupilot.screens.latertrades.SanDruckScreen
+import de.baupilot.screens.latertrades.SanGefaelleScreen
+import de.baupilot.screens.latertrades.SanUebersichtScreen
+import de.baupilot.screens.latertrades.SlopeAction
 import de.baupilot.screens.notifications.NotificationsAction
 import de.baupilot.screens.notifications.NotificationsScreen
 import de.baupilot.screens.placeholder.PlaceholderPresentation
@@ -70,6 +96,9 @@ private fun providerKey(tab: AppTab, path: List<AppRoute>, view: InspectionsView
         is AppRoute.InspectionStep -> "step:${route.tradeId}/${route.elementId}/${route.step}"
         AppRoute.NewDefect -> "defect:new"
         is AppRoute.SignOff -> "sign:${route.inspectionId}"
+        is AppRoute.InspectionCheck -> "check:${route.tradeId}/${route.check}"
+        is AppRoute.InspectionRoom -> "room:${route.tradeId}/${route.roomId}"
+        is AppRoute.InspectionCheckItem -> "item:${route.tradeId}/${route.check}/${route.item}"
     }
     return "${tab.route}/${path.size}/$top"
 }
@@ -171,10 +200,19 @@ private fun TabContent(
             }
 
             is AppRoute.Inspection -> {
-                val model = data.inspectionElements[route.tradeId]
-                if (model != null) {
+                // D2 lookup chain: windows (M4), a trade protocol, the electrical overview, else the placeholder.
+                val elements = data.inspectionElements[route.tradeId]
+                val protocol = data.tradeProtocols[route.tradeId]
+                val electrical = data.electricalOverviews[route.tradeId]
+                val overview = data.tradeOverviews[route.tradeId]
+                val onProtocol = { action: ProtocolAction ->
+                    when (action) {
+                        is ProtocolAction.Open -> onStateChange(state.go(action.target))
+                    }
+                }
+                if (elements != null) {
                     ElementsScreen(
-                        model = model,
+                        model = elements,
                         onBack = onBack,
                         onAction = { action ->
                             when (action) {
@@ -182,9 +220,38 @@ private fun TabContent(
                             }
                         },
                     )
+                } else if (protocol != null) {
+                    when (route.tradeId) {
+                        "earthworks" -> ErdScreen(model = protocol, onBack = onBack, onAction = onProtocol)
+                        "shell" -> RohbauScreen(model = protocol, onBack = onBack, onAction = onProtocol)
+                        "carpentry" -> ZimmererScreen(model = protocol, onBack = onBack, onAction = onProtocol)
+                        else -> InspectionPlaceholder(data, route.tradeId, onBack)
+                    }
+                } else if (electrical != null) {
+                    ElUebersichtScreen(
+                        model = electrical,
+                        onBack = onBack,
+                        onAction = { action ->
+                            when (action) {
+                                is ElectricalAction.Open -> onStateChange(state.open(action.route))
+                            }
+                        },
+                    )
+                } else if (overview != null) {
+                    val onOverview = { action: OverviewAction ->
+                        when (action) {
+                            is OverviewAction.Open -> onStateChange(state.open(action.route))
+                        }
+                    }
+                    when (route.tradeId) {
+                        "plumbing" -> SanUebersichtScreen(model = overview, onBack = onBack, onAction = onOverview)
+                        "screed" -> EsUebersichtScreen(model = overview, onBack = onBack, onAction = onOverview)
+                        "tiles" -> FlUebersichtScreen(model = overview, onBack = onBack, onAction = onOverview)
+                        "painting" -> MaUebersichtScreen(model = overview, onBack = onBack, onAction = onOverview)
+                        else -> InspectionPlaceholder(data, route.tradeId, onBack)
+                    }
                 } else {
-                    val title = data.inspections.rows.firstOrNull { it.tradeId == route.tradeId }?.name ?: route.tradeId
-                    PushedPlaceholder(title, "screen.inspection.${route.tradeId}", onBack)
+                    InspectionPlaceholder(data, route.tradeId, onBack)
                 }
             }
 
@@ -215,14 +282,10 @@ private fun TabContent(
                     onStateChange(
                         when (action) {
                             DefectFormAction.Cancel -> state.pop()
-                            is DefectFormAction.Save -> {
-                                val inspection = AppRoute.Inspection(action.tradeId)
-                                if (data.signOffs.containsKey(action.tradeId)) {
-                                    state.open(AppRoute.SignOff(action.tradeId), above = inspection)
-                                } else {
-                                    state.open(inspection)
-                                }
-                            }
+                            is DefectFormAction.Save -> state.saveDefect(
+                                formTradeId = action.tradeId,
+                                hasSignOff = data.signOffs[action.tradeId] != null,
+                            )
                         },
                     )
                 },
@@ -242,6 +305,103 @@ private fun TabContent(
                     )
                 } else {
                     PushedPlaceholder(route.inspectionId, "screen.inspection.${route.inspectionId}.sign", onBack)
+                }
+            }
+
+            is AppRoute.InspectionCheck -> {
+                val measure = data.measureChecks[route]
+                val panel = data.panelChecks[route]
+                val smoke = data.smokeChecks[route]
+                val pressure = data.pressureChecks[route]
+                val flatness = data.flatnessChecks[route]
+                val readiness = data.readinessChecks[route]
+                val onStep = { action: CheckStepAction ->
+                    when (action) {
+                        is CheckStepAction.Open -> onStateChange(state.open(action.route))
+                    }
+                }
+                if (measure != null) {
+                    RohbauMasseScreen(
+                        model = measure,
+                        onBack = onBack,
+                        onAction = { action ->
+                            when (action) {
+                                is MeasureAction.Open -> onStateChange(state.open(action.route))
+                            }
+                        },
+                    )
+                } else if (panel != null) {
+                    ElVerteilerScreen(model = panel, onClose = onBack, onAction = onStep)
+                } else if (smoke != null) {
+                    ElRauchmelderScreen(model = smoke, onBack = onBack, onAction = onStep)
+                } else if (pressure != null) {
+                    SanDruckScreen(model = pressure, onClose = onBack)
+                } else if (flatness != null) {
+                    EsEbenheitScreen(
+                        model = flatness,
+                        onClose = onBack,
+                        onAction = { action ->
+                            when (action) {
+                                is FlatnessAction.Open -> onStateChange(state.open(action.route))
+                            }
+                        },
+                    )
+                } else if (readiness != null) {
+                    EsBelegreifeScreen(model = readiness, onBack = onBack)
+                } else {
+                    PushedPlaceholder(route.check, "screen.inspection.${route.tradeId}.${route.check}", onBack)
+                }
+            }
+
+            is AppRoute.InspectionRoom -> {
+                val room = data.roomChecks[route]
+                val objects = data.objectChecks[route]
+                val tiles = data.tileChecks[route]
+                val paint = data.paintChecks[route]
+                val onStep = { action: CheckStepAction ->
+                    when (action) {
+                        is CheckStepAction.Open -> onStateChange(state.open(action.route))
+                    }
+                }
+                if (room != null) {
+                    ElRaumScreen(
+                        model = room,
+                        onClose = onBack,
+                        onAction = { action ->
+                            when (action) {
+                                is CheckStepAction.Open -> onStateChange(state.open(action.route))
+                            }
+                        },
+                    )
+                } else if (objects != null) {
+                    SanBadScreen(model = objects, onClose = onBack)
+                } else if (tiles != null) {
+                    FlBadScreen(model = tiles, onClose = onBack, onAction = onStep)
+                } else if (paint != null) {
+                    MaRaumScreen(model = paint, onClose = onBack, onAction = onStep)
+                } else {
+                    PushedPlaceholder(route.roomId, "screen.inspection.${route.tradeId}.room.${route.roomId}", onBack)
+                }
+            }
+
+            is AppRoute.InspectionCheckItem -> {
+                val slope = data.slopeChecks[route]
+                if (slope != null) {
+                    SanGefaelleScreen(
+                        model = slope,
+                        onClose = onBack,
+                        onAction = { action ->
+                            when (action) {
+                                is SlopeAction.Open -> onStateChange(state.open(action.route))
+                            }
+                        },
+                    )
+                } else {
+                    PushedPlaceholder(
+                        route.item,
+                        "screen.inspection.${route.tradeId}.${route.check}.${route.item}",
+                        onBack,
+                    )
                 }
             }
 
@@ -321,4 +481,10 @@ private fun PushedPlaceholder(title: String, tag: String, onBack: () -> Unit) {
         presentation = PlaceholderPresentation.Pushed(onBack = onBack),
         modifier = Modifier.testTag(tag),
     )
+}
+
+@Composable
+private fun InspectionPlaceholder(data: AppData, tradeId: String, onBack: () -> Unit) {
+    val title = data.inspections.rows.firstOrNull { it.tradeId == tradeId }?.name ?: tradeId
+    PushedPlaceholder(title, "screen.inspection.$tradeId", onBack)
 }

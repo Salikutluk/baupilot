@@ -134,12 +134,526 @@ struct SignatureCheck: Decodable, Sendable, Equatable {
     let note: String
 }
 
+/// `inspections.byTrade.<earthworks|shell|carpentry>`: a protocol of an accepted or reserved trade.
+struct TradeProtocolDto: Decodable, Sendable, Equatable {
+    struct Banner: Decodable, Sendable, Equatable {
+        let title: String
+        let text: String
+        let documentLabel: String?
+    }
+
+    struct Row: Decodable, Sendable, Equatable {
+        let label: PlatformText
+        let meta: String
+        let route: String?
+    }
+
+    struct Group: Decodable, Sendable, Equatable {
+        let title: String
+        let rows: [Row]
+    }
+
+    let title: String
+    let subtitle: PlatformText
+    let banner: Banner
+    let groups: [Group]
+    /// Raw: every check is decoded on its own at `byTrade.<t>.checks.<key>`.
+    let checks: JSONValue?
+}
+
+/// `inspections.byTrade.electrical`.
+struct ElectricalOverviewDto: Decodable, Sendable, Equatable {
+    struct Phase: Decodable, Sendable, Equatable {
+        let title: String
+        let statusLabel: PlatformText?
+        let dateLabel: PlatformText?
+        let progressLabel: String?
+    }
+
+    struct Row: Decodable, Sendable, Equatable {
+        let name: String
+        let sub: String
+        let route: String?
+        let statusLabel: String
+    }
+
+    struct Group: Decodable, Sendable, Equatable {
+        let title: PlatformText
+        let more: PlatformText?
+        let rows: [Row]
+    }
+
+    let title: String
+    let subtitle: PlatformText
+    let phases: [Phase]
+    let groups: [Group]
+    /// Raw: every check is decoded on its own at `byTrade.electrical.checks.<key>`.
+    let checks: JSONValue
+}
+
+/// `inspections.byTrade.shell.checks.measure`.
+struct MeasureCheckDto: Decodable, Sendable, Equatable {
+    let screen: String
+    let kind: String
+    let measurementKey: String
+    let counter: PlatformText
+    let title: String
+}
+
+/// `measurements.shellOpening`.
+struct ShellOpeningDto: Decodable, Sendable, Equatable {
+    struct Parameter: Decodable, Sendable, Equatable {
+        let key: String
+        let `default`: Int
+        let min: Int
+        let max: Int
+        let unit: String
+    }
+
+    struct Size: Decodable, Sendable, Equatable {
+        let w: Int
+        let h: Int
+    }
+
+    struct DimLabels: Decodable, Sendable, Equatable {
+        let w: String
+        let h: String
+    }
+
+    struct Labels: Decodable, Sendable, Equatable {
+        let within: String
+        let outside: String
+    }
+
+    let parameter: Parameter
+    let target: Size
+    let actual: Size
+    let stepperDelta: Int
+    let dimLabels: DimLabels
+    let measured: [String]
+    let labels: Labels
+}
+
+/// `inspections.byTrade.electrical.checks.kitchen`. Every `n` is a JSON string.
+struct RoomCheckDto: Decodable, Sendable, Equatable {
+    struct Done: Decodable, Sendable, Equatable {
+        let label: String
+        let meta: PlatformText
+    }
+
+    struct Current: Decodable, Sendable, Equatable {
+        let n: String
+        let title: String
+        let text: String
+    }
+
+    struct Next: Decodable, Sendable, Equatable {
+        let n: String
+        let label: PlatformText
+    }
+
+    struct Socket: Decodable, Sendable, Equatable {
+        let id: String
+        let label: String
+        let status: String
+        let aria: String
+    }
+
+    let screen: String
+    let kind: String
+    let counter: PlatformText
+    let title: String
+    let subtitle: PlatformText
+    let done: [Done]
+    let current: Current
+    let next: [Next]
+    let sockets: [Socket]
+    let progress: PlatformText
+    let defectNote: String
+    let okNote: String
+}
+
+/// `inspections.byTrade.electrical.checks.panel`. Every `n` is a JSON string.
+struct PanelCheckDto: Decodable, Sendable, Equatable {
+    struct Done: Decodable, Sendable, Equatable {
+        let label: String
+        let meta: String
+    }
+
+    struct Current: Decodable, Sendable, Equatable {
+        let n: String
+        let title: String
+        let text: String
+        let steps: [String]
+        let outcomes: [String]
+    }
+
+    struct Next: Decodable, Sendable, Equatable {
+        let n: String
+        let label: String
+        let tag: String?
+    }
+
+    struct Fi: Decodable, Sendable, Equatable {
+        let name: String
+        let sub: String
+        let statusLabel: String
+    }
+
+    let screen: String
+    let kind: String
+    let counter: PlatformText
+    let title: String
+    let subtitle: String
+    let done: [Done]
+    let current: Current
+    let next: [Next]
+    let fis: [Fi]
+}
+
+/// `inspections.byTrade.electrical.checks.smoke`.
+struct SmokeCheckDto: Decodable, Sendable, Equatable {
+    struct Room: Decodable, Sendable, Equatable {
+        let name: String
+        let statusLabel: String
+    }
+
+    struct Check: Decodable, Sendable, Equatable {
+        let label: String
+        let hint: String
+    }
+
+    struct Current: Decodable, Sendable, Equatable {
+        let room: String
+        let title: String
+        let outcomes: [String]
+    }
+
+    let screen: String
+    let kind: String
+    let counter: PlatformText
+    let title: String
+    let subtitle: String
+    let rooms: [Room]
+    let checks: [Check]
+    let current: Current
+    let reminder: String
+    let battery: String
+}
+
+/// `inspections.byTrade.<plumbing|screed|tiles|painting>`: the overview of an M6 trade. Exactly one of `phases` and
+/// `facts` is present.
+struct TradeOverviewDto: Decodable, Sendable, Equatable {
+    struct Banner: Decodable, Sendable, Equatable {
+        let text: String
+    }
+
+    struct Phase: Decodable, Sendable, Equatable {
+        let title: String
+        let statusLabel: PlatformText?
+        let dateLabel: PlatformText?
+        let progressLabel: String?
+    }
+
+    struct Fact: Decodable, Sendable, Equatable {
+        let label: String
+        let value: String
+    }
+
+    struct Row: Decodable, Sendable, Equatable {
+        let name: String
+        let sub: PlatformText
+        let route: String?
+        let statusLabel: String
+    }
+
+    struct Group: Decodable, Sendable, Equatable {
+        let title: String
+        let rows: [Row]
+    }
+
+    let title: String
+    let subtitle: PlatformText
+    let banner: Banner?
+    let phases: [Phase]?
+    let facts: [Fact]?
+    let groups: [Group]
+    /// Raw: every check is decoded on its own at `byTrade.<t>.checks.<key>`.
+    let checks: JSONValue?
+}
+
+/// `inspections.byTrade.plumbing.checks.slope`.
+struct SlopeCheckDto: Decodable, Sendable, Equatable {
+    let screen: String
+    let kind: String
+    let measurementKey: String
+    let counter: PlatformText
+    let title: String
+    let subtitle: String
+    let hint: String
+    let warning: String
+}
+
+/// `measurements.drainSlope`.
+struct DrainSlopeDto: Decodable, Sendable, Equatable {
+    struct Parameter: Decodable, Sendable, Equatable {
+        let key: String
+        let `default`: Double
+        let min: Double
+        let max: Double
+        let unit: String
+        let step: Double
+    }
+
+    struct Range: Decodable, Sendable, Equatable {
+        let min: Int
+        let max: Int
+        let step: Int
+    }
+
+    struct Section: Decodable, Sendable, Equatable {
+        let id: String
+        let label: String
+    }
+
+    struct Labels: Decodable, Sendable, Equatable {
+        let sufficient: String
+        let tooFlat: String
+        let sollPrefix: String
+    }
+
+    let parameter: Parameter
+    let lengthDm: Int
+    let dropMm: Int
+    let lengthRange: Range
+    let dropRange: Range
+    let sections: [Section]
+    let labels: Labels
+}
+
+/// `inspections.byTrade.plumbing.checks.pressure`. Every `n` is a JSON string.
+struct PressureCheckDto: Decodable, Sendable, Equatable {
+    struct Done: Decodable, Sendable, Equatable {
+        let label: String
+        let meta: String
+    }
+
+    struct Current: Decodable, Sendable, Equatable {
+        let n: String
+        let title: String
+    }
+
+    struct Reading: Decodable, Sendable, Equatable {
+        let label: String
+        let value: String
+    }
+
+    struct Timer: Decodable, Sendable, Equatable {
+        let progressLabel: String
+        let remaining: String
+        let remainingLabel: String
+        let note: String
+        let start: Reading
+        let end: Reading
+    }
+
+    struct Next: Decodable, Sendable, Equatable {
+        let n: String
+        let label: String
+        let tag: String?
+    }
+
+    let screen: String
+    let kind: String
+    let counter: PlatformText
+    let title: String
+    let subtitle: PlatformText
+    let done: [Done]
+    let current: Current
+    let timer: Timer
+    let next: [Next]
+}
+
+/// `inspections.byTrade.plumbing.checks.bathUpper`.
+struct ObjectCheckDto: Decodable, Sendable, Equatable {
+    struct Object: Decodable, Sendable, Equatable {
+        let name: String
+        let done: Bool
+        let selected: Bool
+    }
+
+    struct Check: Decodable, Sendable, Equatable {
+        let label: String
+        let hint: PlatformText
+        let ok: Bool
+    }
+
+    let screen: String
+    let kind: String
+    let counter: PlatformText
+    let title: String
+    let subtitle: PlatformText
+    let objects: [Object]
+    let checks: [Check]
+    let nextHint: String
+}
+
+/// `inspections.byTrade.screed.checks.flatness`.
+struct FlatnessCheckDto: Decodable, Sendable, Equatable {
+    let screen: String
+    let kind: String
+    let measurementKey: String
+    let counter: PlatformText
+    let title: String
+}
+
+/// `measurements.screedFlatness`.
+struct ScreedFlatnessDto: Decodable, Sendable, Equatable {
+    struct Parameter: Decodable, Sendable, Equatable {
+        let key: String
+        let `default`: Int
+        let min: Int
+        let max: Int
+        let unit: String
+    }
+
+    struct Labels: Decodable, Sendable, Equatable {
+        let within: String
+        let outside: String
+        let none: String
+        let point: String
+        let pluralSuffix: String
+        let overLimit: String
+    }
+
+    let parameter: Parameter
+    let gap: Int
+    let points: [Int]
+    let gapMin: Int
+    let gapMax: Int
+    let gapStep: Int
+    let labels: Labels
+}
+
+/// `inspections.byTrade.screed.checks.readiness`.
+struct ReadinessCheckDto: Decodable, Sendable, Equatable {
+    struct Chart: Decodable, Sendable, Equatable {
+        let label: String
+        let start: String
+        let max: String
+        let end: String
+        let today: String
+        let plan: String
+        let action: String
+    }
+
+    struct Cm: Decodable, Sendable, Equatable {
+        let label: String
+        let meta: String
+        let done: Bool
+    }
+
+    let screen: String
+    let kind: String
+    let counter: String
+    let title: String
+    let subtitle: String
+    let measurementKey: String
+    let chart: Chart
+    let cmTitle: String
+    let cmTag: String
+    let cmText: String
+    let cmNote: String
+    let cm: [Cm]
+}
+
+/// `measurements.screedHeating`.
+struct ScreedHeatingDto: Decodable, Sendable, Equatable {
+    let planCelsius: [Int]
+    let recordedDays: Int
+    let todayDay: Int
+}
+
+/// `inspections.byTrade.tiles.checks.bath`. Every `n` is a JSON string.
+struct TileCheckDto: Decodable, Sendable, Equatable {
+    struct Done: Decodable, Sendable, Equatable {
+        let label: String
+    }
+
+    struct Current: Decodable, Sendable, Equatable {
+        let n: String
+        let title: String
+        let text: String
+    }
+
+    struct Next: Decodable, Sendable, Equatable {
+        let n: String
+        let label: String
+    }
+
+    struct Tile: Decodable, Sendable, Equatable {
+        let id: String
+        let status: String
+        let label: String?
+        let aria: String
+    }
+
+    let screen: String
+    let kind: String
+    let counter: PlatformText
+    let title: String
+    let subtitle: PlatformText
+    let done: [Done]
+    let current: Current
+    let next: [Next]
+    let tiles: [Tile]
+    let wallLabel: String
+    let markHint: String
+    let gridAria: String
+    let result: String
+}
+
+/// `inspections.byTrade.painting.checks.living`. Every `n` is a JSON string.
+struct PaintCheckDto: Decodable, Sendable, Equatable {
+    struct Done: Decodable, Sendable, Equatable {
+        let label: String
+    }
+
+    struct Current: Decodable, Sendable, Equatable {
+        let n: String
+        let title: String
+        let text: String
+    }
+
+    struct Next: Decodable, Sendable, Equatable {
+        let n: String
+        let label: String
+    }
+
+    struct Wall: Decodable, Sendable, Equatable {
+        let name: String
+        let selected: Bool
+    }
+
+    let screen: String
+    let kind: String
+    let counter: PlatformText
+    let title: String
+    let subtitle: PlatformText
+    let done: [Done]
+    let current: Current
+    let next: [Next]
+    let walls: [Wall]
+}
+
 extension BackendRepository {
-    /// Decodes one slice of `inspections()` (a path below its root, e.g. `["overview"]`). A missing member is
-    /// `fixtureMissing`, a shape error `decoding` with exactly the slice root (D17).
-    func inspectionSlice<T: Decodable & Sendable>(_ type: T.Type, at path: [String]) async throws -> T {
-        let location = (["inspections"] + path).joined(separator: ".")
-        var node = try await inspections()
+    /// Decodes one slice of a JSON tree (a path below `root`, named `rootName` in errors). A missing member is
+    /// `fixtureMissing`, a shape error `decoding`, both with exactly the slice location (D17).
+    private func decodeSlice<T: Decodable & Sendable>(
+        _ type: T.Type, from root: JSONValue, rootName: String, at path: [String]
+    ) throws -> T {
+        let location = ([rootName] + path).joined(separator: ".")
+        var node = root
         for key in path {
             guard case let .object(members) = node, let child = members[key] else {
                 throw RepositoryError.fixtureMissing(location)
@@ -155,8 +669,28 @@ extension BackendRepository {
         }
     }
 
+    /// Decodes one slice of `inspections()` (a path below its root, e.g. `["overview"]`).
+    func inspectionSlice<T: Decodable & Sendable>(_ type: T.Type, at path: [String]) async throws -> T {
+        try decodeSlice(type, from: try await inspections(), rootName: "inspections", at: path)
+    }
+
+    /// Decodes `measurements.<key>`.
+    func measurementSlice<T: Decodable & Sendable>(_ type: T.Type, key: String) async throws -> T {
+        try decodeSlice(type, from: try await measurements(), rootName: "measurements", at: [key])
+    }
+
+    /// A trade of the inspections: `inspections.byTrade.<tradeId>`.
+    func tradeSlice<T: Decodable & Sendable>(_ type: T.Type, tradeId: String) async throws -> T {
+        try await inspectionSlice(type, at: ["byTrade", tradeId])
+    }
+
+    /// A check of a trade: `inspections.byTrade.<tradeId>.checks.<key>`.
+    func tradeCheck<T: Decodable & Sendable>(_ tradeId: String, _ key: String, as type: T.Type) async throws -> T {
+        try await inspectionSlice(type, at: ["byTrade", tradeId, "checks", key])
+    }
+
     /// A check of the windows inspection: `inspections.byTrade.windows.checks.<key>`.
     func windowsCheck<T: Decodable & Sendable>(_ key: String, as type: T.Type) async throws -> T {
-        try await inspectionSlice(type, at: ["byTrade", "windows", "checks", key])
+        try await tradeCheck("windows", key, as: type)
     }
 }

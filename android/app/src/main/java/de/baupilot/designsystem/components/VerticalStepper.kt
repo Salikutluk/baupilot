@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.baupilot.designsystem.BaupilotIcon
@@ -31,19 +32,26 @@ enum class StepState { Done, Current, Open }
 
 enum class StepperVariant { Rail, Compact }
 
-/** One stepper entry. [body] is only drawn for the current step. */
+/**
+ * One stepper entry. [body] is only drawn for the current step; [trailing] ends a compact done or open row (the MaRaum colour swatch).
+ * [body] stays the LAST parameter so a trailing lambda `Step(…) { … }` keeps binding to it.
+ */
 data class Step(
     val number: Int,
     val title: String,
     val state: StepState,
     val meta: String? = null,
     val tag: String? = null,
+    val metaColor: ColorToken = Tokens.muted,
+    val metaWeight: Int = 400,
+    val trailing: (@Composable () -> Unit)? = null,
     val body: (@Composable () -> Unit)? = null,
 )
 
 /**
  * Vertical stepper. Rail (AndAbnPruefung): numbered circles joined by a 1 `outlineVariant` line.
- * Compact (AndElVerteiler): no line; the current step sits in a `surfaceContainer` card.
+ * Compact (AndElVerteiler): no line; the current step sits in a `surfaceContainer` card whose rows are
+ * [currentSpacing] apart (SanDruck: 14), and open rows are at least [openMinHeight] tall.
  */
 @Composable
 fun BaupilotVerticalStepper(
@@ -52,6 +60,8 @@ fun BaupilotVerticalStepper(
     modifier: Modifier = Modifier,
     lineColor: ColorToken = Tokens.outlineVariant,
     tagColor: ColorToken = Tokens.err,
+    currentSpacing: Dp = 12.dp,
+    openMinHeight: Dp = 44.dp,
 ) {
     baupilotVerticalStepperMeasured(
         steps = steps,
@@ -59,6 +69,8 @@ fun BaupilotVerticalStepper(
         modifier = modifier,
         lineColor = lineColor,
         tagColor = tagColor,
+        currentSpacing = currentSpacing,
+        openMinHeight = openMinHeight,
     )
 }
 
@@ -71,12 +83,14 @@ internal fun baupilotVerticalStepperMeasured(
     circleModifier: Modifier = Modifier,
     lineColor: ColorToken = Tokens.outlineVariant,
     tagColor: ColorToken = Tokens.err,
+    currentSpacing: Dp = 12.dp,
+    openMinHeight: Dp = 44.dp,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         steps.forEachIndexed { index, step ->
             when (variant) {
                 StepperVariant.Rail -> RailStep(step, isLast = index == steps.lastIndex, circleModifier, lineColor)
-                StepperVariant.Compact -> CompactStep(step, circleModifier, tagColor)
+                StepperVariant.Compact -> CompactStep(step, circleModifier, tagColor, currentSpacing, openMinHeight)
             }
         }
     }
@@ -128,7 +142,7 @@ private fun RailStep(step: Step, isLast: Boolean, circleModifier: Modifier, line
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 BaupilotText(text = step.title, size = 15.sp, color = Tokens.text)
-                step.meta?.let { BaupilotText(text = it, size = 13.sp, color = Tokens.muted) }
+                step.meta?.let { BaupilotText(text = it, size = 13.sp, weight = step.metaWeight, color = step.metaColor) }
             }
             StepState.Current -> Column(
                 modifier = Modifier.weight(1f).padding(bottom = 16.dp),
@@ -154,10 +168,16 @@ private fun RailStep(step: Step, isLast: Boolean, circleModifier: Modifier, line
 }
 
 @Composable
-private fun CompactStep(step: Step, circleModifier: Modifier, tagColor: ColorToken) {
+private fun CompactStep(
+    step: Step,
+    circleModifier: Modifier,
+    tagColor: ColorToken,
+    currentSpacing: Dp,
+    openMinHeight: Dp,
+) {
     if (step.state == StepState.Current) {
-        BaupilotCard {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        BaupilotCard(modifier = Modifier.fillMaxWidth()) {
+            Column(verticalArrangement = Arrangement.spacedBy(currentSpacing)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     StepCircle(step, circleModifier)
                     BaupilotText(text = step.title, size = 18.sp, weight = 500, color = Tokens.text)
@@ -167,8 +187,9 @@ private fun CompactStep(step: Step, circleModifier: Modifier, tagColor: ColorTok
         }
         return
     }
+    val minHeight = if (step.state == StepState.Open) openMinHeight else 44.dp
     Row(
-        modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = minHeight),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -179,7 +200,8 @@ private fun CompactStep(step: Step, circleModifier: Modifier, tagColor: ColorTok
             color = if (step.state == StepState.Open) Tokens.muted else Tokens.text,
             modifier = Modifier.weight(1f),
         )
-        step.meta?.let { BaupilotText(text = it, size = 13.sp, color = Tokens.muted) }
+        step.meta?.let { BaupilotText(text = it, size = 13.sp, weight = step.metaWeight, color = step.metaColor) }
         step.tag?.let { BaupilotText(text = it, size = 12.sp, weight = 500, color = tagColor) }
+        step.trailing?.invoke()
     }
 }

@@ -298,6 +298,25 @@ struct AppData: Sendable {
     let defectForm: DefectFormModel
     /// Sign-off screen by trade id (only `windows` has one).
     let signOffs: [String: SignOffModel]
+    /// Protocol screen by trade id (earthworks, shell, carpentry).
+    let tradeProtocols: [String: TradeProtocolModel]
+    /// Electrical overview by trade id (only `electrical`).
+    let electricalOverviews: [String: ElectricalOverviewModel]
+    /// Check screens by their route.
+    let measureChecks: [AppRoute: MeasureCheckModel]
+    let roomChecks: [AppRoute: RoomCheckModel]
+    let panelChecks: [AppRoute: PanelCheckModel]
+    let smokeChecks: [AppRoute: SmokeCheckModel]
+    /// M6 overviews by trade id (plumbing, screed, tiles, painting).
+    let tradeOverviews: [String: TradeOverviewModel]
+    /// M6 check screens by their route.
+    let slopeChecks: [AppRoute: SlopeCheckModel]
+    let pressureChecks: [AppRoute: PressureCheckModel]
+    let flatnessChecks: [AppRoute: FlatnessCheckModel]
+    let readinessChecks: [AppRoute: ReadinessCheckModel]
+    let objectChecks: [AppRoute: ObjectCheckModel]
+    let tileChecks: [AppRoute: TileCheckModel]
+    let paintChecks: [AppRoute: PaintCheckModel]
 
     /// Fixed iOS content width of the schedule chart (not measured).
     private static let chartWidth: CGFloat = 350
@@ -331,6 +350,12 @@ struct AppData: Sendable {
         for name in ["AbnElemente", "AbnPruefung", "AbnMangel", "AbnSignatur"] {
             _ = try await repo.screenText(name, as: EmptyScreenText.self)
         }
+        for name in earlyTradeScreens {
+            _ = try await repo.screenText(name, as: EmptyScreenText.self)
+        }
+        for name in laterTradeScreens {
+            _ = try await repo.screenText(name, as: EmptyScreenText.self)
+        }
         let overview = try await repo.inspectionSlice(InspectionOverview.self, at: ["overview"])
         let elementsCheck = try await repo.windowsCheck("elements", as: ElementsCheck.self)
         let stepCheck = try await repo.windowsCheck("stepF8", as: StepCheck.self)
@@ -356,6 +381,8 @@ struct AppData: Sendable {
         let step = try stepModel(stepCheck, route: stepRoute, statusLabels: overview.statusLabels)
         let form = try defectFormModel(formCheck, now: now)
         let signOff = try signOffModel(signatureCheck)
+        let early = try await earlyTrades(repo, overview: overview)
+        let later = try await laterTrades(repo, overview: overview, earlyRoutes: Set(early.checkTitles.keys))
 
         let homeTabs = try tabItems(homeText.tabs, in: "Home")
         let routeTitles = RouteTitles(
@@ -369,7 +396,12 @@ struct AppData: Sendable {
                 overview.rows.map { ($0.tradeId, $0.name) }, uniquingKeysWith: { first, _ in first }),
             stepTitles: [stepRoute: step.title],
             newDefectTitle: ScreenCopy.AbnMangel.title,
-            signOffTitles: [signOff.inspectionId: signOff.title])
+            signOffTitles: [signOff.inspectionId: signOff.title],
+            checkTitles: early.checkTitles.merging(later.checkTitles) { first, _ in first },
+            inspectionBackLabels: Dictionary(
+                uniqueKeysWithValues: ScreenCopy.TradeOverview.backLabels.map {
+                    (AppRoute.inspection(tradeId: $0.key), $0.value)
+                }))
 
         return AppData(
             login: LoginModel(
@@ -439,7 +471,21 @@ struct AppData: Sendable {
             inspectionElements: [elements.tradeId: elements],
             inspectionSteps: [stepRoute: step],
             defectForm: form,
-            signOffs: [signOff.inspectionId: signOff])
+            signOffs: [signOff.inspectionId: signOff],
+            tradeProtocols: early.protocols,
+            electricalOverviews: early.electrical,
+            measureChecks: early.measure,
+            roomChecks: early.room,
+            panelChecks: early.panel,
+            smokeChecks: early.smoke,
+            tradeOverviews: later.overviews,
+            slopeChecks: later.slope,
+            pressureChecks: later.pressure,
+            flatnessChecks: later.flatness,
+            readinessChecks: later.readiness,
+            objectChecks: later.object,
+            tileChecks: later.tile,
+            paintChecks: later.paint)
     }
 
     // MARK: - M4 inspection models
@@ -655,6 +701,729 @@ struct AppData: Sendable {
             signatureLabel: ScreenCopy.AbnSignatur.signatureLabel,
             finishLabel: ScreenCopy.AbnSignatur.finishLabel,
             note: check.note)
+    }
+
+    // MARK: - M5 early trades
+
+    /// The screens of the M5 trades; their `ios` text is `{}` and loading it proves the screen exists.
+    private nonisolated static let earlyTradeScreens = [
+        "Erd", "Rohbau", "RohbauMasse", "Zimmerer", "ElUebersicht", "ElRaum", "ElVerteiler", "ElRauchmelder",
+    ]
+    private nonisolated static let electricalId = "electrical"
+
+    private struct EarlyTrades: Sendable {
+        var protocols: [String: TradeProtocolModel] = [:]
+        var electrical: [String: ElectricalOverviewModel] = [:]
+        var measure: [AppRoute: MeasureCheckModel] = [:]
+        var room: [AppRoute: RoomCheckModel] = [:]
+        var panel: [AppRoute: PanelCheckModel] = [:]
+        var smoke: [AppRoute: SmokeCheckModel] = [:]
+        var checkTitles: [AppRoute: String] = [:]
+    }
+
+    private nonisolated static func tradePath(_ tradeId: String) -> String { "inspections.byTrade.\(tradeId)" }
+
+    private nonisolated static func earlyTrades(
+        _ repo: BackendRepository, overview: InspectionOverview
+    ) async throws -> EarlyTrades {
+        var result = EarlyTrades()
+        var protocolDtos: [String: TradeProtocolDto] = [:]
+        for tradeId in ScreenCopy.ProtocolCopy.protocolTrades {
+            let dto = try await repo.tradeSlice(TradeProtocolDto.self, tradeId: tradeId)
+            protocolDtos[tradeId] = dto
+            try await loadChecks(dto.checks, tradeId: tradeId, repo: repo, overview: overview, into: &result)
+        }
+        let electricalDto = try await repo.tradeSlice(ElectricalOverviewDto.self, tradeId: electricalId)
+        try await loadChecks(
+            electricalDto.checks, tradeId: electricalId, repo: repo, overview: overview, into: &result)
+
+        let routes = Set(result.checkTitles.keys)
+        for tradeId in ScreenCopy.ProtocolCopy.protocolTrades {
+            if let dto = protocolDtos[tradeId] {
+                result.protocols[tradeId] = try protocolModel(
+                    dto, tradeId: tradeId, overview: overview, routes: routes)
+            }
+        }
+        result.electrical[electricalId] = try electricalModel(
+            electricalDto, tradeId: electricalId, routes: routes)
+        return result
+    }
+
+    /// Builds every check of a trade by the fixture `screen` value of the check.
+    private nonisolated static func loadChecks(
+        _ raw: JSONValue?, tradeId: String, repo: BackendRepository, overview: InspectionOverview,
+        into result: inout EarlyTrades
+    ) async throws {
+        guard let raw else { return }
+        let path = "\(tradePath(tradeId)).checks"
+        guard case let .object(checks) = raw else { throw RepositoryError.decoding(path) }
+        for key in checks.keys.sorted() {
+            let checkPath = "\(path).\(key)"
+            guard case let .object(members) = checks[key], case let .string(screen)? = members["screen"] else {
+                throw RepositoryError.decoding("\(checkPath).screen")
+            }
+            switch screen {
+            case "RohbauMasse":
+                let dto = try await repo.tradeCheck(tradeId, key, as: MeasureCheckDto.self)
+                let opening = try await repo.measurementSlice(ShellOpeningDto.self, key: dto.measurementKey)
+                let route = AppRoute.inspectionCheck(tradeId: tradeId, check: key)
+                let model = try measureModel(dto, opening: opening, route: route, overview: overview, path: checkPath)
+                result.measure[route] = model
+                result.checkTitles[route] = model.title
+            case "ElRaum":
+                let dto = try await repo.tradeCheck(tradeId, key, as: RoomCheckDto.self)
+                let route = AppRoute.inspectionRoom(tradeId: tradeId, roomId: key)
+                let model = try roomModel(dto, route: route, overview: overview, path: checkPath)
+                result.room[route] = model
+                result.checkTitles[route] = model.title
+            case "ElVerteiler":
+                let dto = try await repo.tradeCheck(tradeId, key, as: PanelCheckDto.self)
+                let route = AppRoute.inspectionCheck(tradeId: tradeId, check: key)
+                let model = try panelModel(dto, route: route, path: checkPath)
+                result.panel[route] = model
+                result.checkTitles[route] = model.title
+            case "ElRauchmelder":
+                let dto = try await repo.tradeCheck(tradeId, key, as: SmokeCheckDto.self)
+                let route = AppRoute.inspectionCheck(tradeId: tradeId, check: key)
+                let model = try smokeModel(dto, route: route, path: checkPath)
+                result.smoke[route] = model
+                result.checkTitles[route] = model.title
+            default:
+                throw RepositoryError.decoding("\(checkPath).screen")
+            }
+        }
+    }
+
+    /// A check, room or check-item route read in M5 or M6 must resolve to a loaded check (D9, M6 D2).
+    private nonisolated static func requireCheck(_ route: AppRoute, in routes: Set<AppRoute>, path: String) throws {
+        switch route {
+        case .inspectionCheck, .inspectionRoom:
+            guard routes.contains(route) else { throw RepositoryError.decoding(path) }
+        case .inspectionCheckItem:
+            guard routes.contains(route) else { throw RepositoryError.decoding(path) }
+        default:
+            break
+        }
+    }
+
+    private nonisolated static func protocolModel(
+        _ dto: TradeProtocolDto, tradeId: String, overview: InspectionOverview, routes: Set<AppRoute>
+    ) throws -> TradeProtocolModel {
+        let path = tradePath(tradeId)
+        guard let status = overview.rows.first(where: { $0.tradeId == tradeId })?.status,
+            let tone = ScreenCopy.ProtocolCopy.bannerTone(overviewStatus: status)
+        else { throw RepositoryError.decoding("\(path).banner") }
+        let defectLabel = try statusLabel("defect", in: overview.statusLabels)
+        let rowPath = "\(path).groups.rows"
+        return TradeProtocolModel(
+            tradeId: tradeId,
+            title: dto.title,
+            subtitle: try iosText(dto.subtitle, "\(path).subtitle"),
+            banner: TradeProtocolModel.Banner(
+                tone: tone, title: dto.banner.title, text: dto.banner.text,
+                documentLabel: dto.banner.documentLabel, target: tone == .warn ? .defects : nil),
+            groups: try dto.groups.map { group in
+                TradeProtocolModel.Group(
+                    title: group.title,
+                    rows: try group.rows.map { row in
+                        var target: NavigationTarget?
+                        if let raw = row.route {
+                            let link = try RouteParser.inspectionLink(raw, field: "\(rowPath).route")
+                            if case let .push(route) = link {
+                                try requireCheck(route, in: routes, path: "\(rowPath).route")
+                            }
+                            target = link
+                        }
+                        return TradeProtocolModel.Row(
+                            label: try iosText(row.label, "\(rowPath).label"), meta: row.meta,
+                            mark: ScreenCopy.ProtocolCopy.mark(meta: row.meta, defectLabel: defectLabel),
+                            target: target)
+                    })
+            })
+    }
+
+    private nonisolated static func electricalModel(
+        _ dto: ElectricalOverviewDto, tradeId: String, routes: Set<AppRoute>
+    ) throws -> ElectricalOverviewModel {
+        let path = tradePath(tradeId)
+        let phases = try dto.phases.map { phase -> PhaseModel in
+            switch (phase.statusLabel, phase.progressLabel) {
+            case let (status?, nil):
+                return PhaseModel(
+                    title: phase.title,
+                    kind: .done(
+                        status: try iosText(status, "\(path).phases.statusLabel"),
+                        date: try phase.dateLabel.map { try iosText($0, "\(path).phases.dateLabel") }))
+            case let (nil, progress?):
+                return PhaseModel(
+                    title: phase.title,
+                    kind: .active(progressLabel: progress, fraction: ScreenCopy.ElUebersicht.activePhaseFraction))
+            default:
+                throw RepositoryError.decoding("\(path).phases")
+            }
+        }
+        let rowPath = "\(path).groups.rows"
+        let groups = try dto.groups.enumerated().map { groupIndex, group in
+            ElectricalOverviewModel.Group(
+                title: try iosText(group.title, "\(path).groups.title"),
+                moreLabel: try group.more.map { try iosText($0, "\(path).groups.more") },
+                rows: try group.rows.enumerated().map { rowIndex, row in
+                    guard let icon = ScreenCopy.ElUebersicht.icon(group: groupIndex, row: rowIndex) else {
+                        throw RepositoryError.decoding(rowPath)
+                    }
+                    guard let tone = ScreenCopy.ElUebersicht.tone(statusLabel: row.statusLabel) else {
+                        throw RepositoryError.decoding("\(rowPath).statusLabel")
+                    }
+                    let target = try RouteParser.route(row.route, field: "\(rowPath).route")
+                    if let target { try requireCheck(target, in: routes, path: "\(rowPath).route") }
+                    return ElectricalOverviewModel.Row(
+                        name: row.name, sub: row.sub, icon: icon, statusLabel: row.statusLabel, tone: tone,
+                        target: target)
+                })
+        }
+        return ElectricalOverviewModel(
+            tradeId: tradeId, title: dto.title, subtitle: try iosText(dto.subtitle, "\(path).subtitle"),
+            phases: phases, groups: groups)
+    }
+
+    private nonisolated static func measureModel(
+        _ dto: MeasureCheckDto, opening: ShellOpeningDto, route: AppRoute, overview: InspectionOverview, path: String
+    ) throws -> MeasureCheckModel {
+        MeasureCheckModel(
+            route: route,
+            counter: try iosText(dto.counter, "\(path).counter"),
+            title: dto.title,
+            instruction: ScreenCopy.RohbauMasse.instruction,
+            measuredHeading: ScreenCopy.RohbauMasse.measuredHeading,
+            plumbTitle: ScreenCopy.RohbauMasse.plumbTitle,
+            plumbSubtitle: ScreenCopy.RohbauMasse.plumbSubtitle,
+            plumbValue: ScreenCopy.RohbauMasse.plumbValue,
+            saveLabel: ScreenCopy.RohbauMasse.saveLabel,
+            photoLabel: ScreenCopy.RohbauMasse.photoLabel,
+            defectLabel: try statusLabel("defect", in: overview.statusLabels),
+            withinLabel: opening.labels.within,
+            outsideLabel: opening.labels.outside,
+            dimensions: [
+                MeasureCheckModel.Dimension(key: .width, label: opening.dimLabels.w),
+                MeasureCheckModel.Dimension(key: .height, label: opening.dimLabels.h),
+            ],
+            measured: opening.measured,
+            initial: MeasureViewModel(
+                target: .init(width: opening.target.w, height: opening.target.h),
+                actual: .init(width: opening.actual.w, height: opening.actual.h),
+                step: opening.stepperDelta,
+                toleranceDefault: opening.parameter.default, toleranceMin: opening.parameter.min,
+                toleranceMax: opening.parameter.max, unit: opening.parameter.unit))
+    }
+
+    private nonisolated static func roomModel(
+        _ dto: RoomCheckDto, route: AppRoute, overview: InspectionOverview, path: String
+    ) throws -> RoomCheckModel {
+        guard let current = positiveNumber(dto.current.n) else { throw RepositoryError.decoding("\(path).current") }
+        return RoomCheckModel(
+            route: route,
+            counter: try iosText(dto.counter, "\(path).counter"),
+            title: dto.title,
+            subtitle: try iosText(dto.subtitle, "\(path).subtitle"),
+            done: try dto.done.map {
+                RoomCheckModel.Done(label: $0.label, meta: try iosText($0.meta, "\(path).done.meta"))
+            },
+            current: RoomCheckModel.Current(n: current, title: dto.current.title, text: dto.current.text),
+            sockets: try dto.sockets.map { socket in
+                guard let status = SocketStatus(rawValue: socket.status) else {
+                    throw RepositoryError.decoding("\(path).sockets")
+                }
+                return RoomCheckModel.Socket(
+                    id: socket.id, label: socket.label, status: status, accessibilityLabel: socket.aria)
+            },
+            progressLabel: try iosText(dto.progress, "\(path).progress"),
+            defectNote: dto.defectNote,
+            okNote: dto.okNote,
+            defectLabel: try statusLabel("defect", in: overview.statusLabels),
+            next: try dto.next.map { entry in
+                guard let number = positiveNumber(entry.n) else { throw RepositoryError.decoding("\(path).next") }
+                return RoomCheckModel.Next(n: number, label: try iosText(entry.label, "\(path).next.label"))
+            })
+    }
+
+    private nonisolated static func panelModel(_ dto: PanelCheckDto, route: AppRoute, path: String) throws -> PanelCheckModel {
+        guard let current = positiveNumber(dto.current.n) else { throw RepositoryError.decoding("\(path).current") }
+        guard dto.current.outcomes.count == 2 else { throw RepositoryError.decoding("\(path).current.outcomes") }
+        return PanelCheckModel(
+            route: route,
+            counter: try iosText(dto.counter, "\(path).counter"),
+            title: dto.title,
+            callout: dto.subtitle,
+            done: dto.done.map { PanelCheckModel.Done(label: $0.label, meta: $0.meta) },
+            current: PanelCheckModel.Current(
+                n: current, title: dto.current.title, steps: [dto.current.text] + dto.current.steps),
+            fis: try dto.fis.map { fi in
+                guard let tone = ScreenCopy.ElVerteiler.tone(statusLabel: fi.statusLabel) else {
+                    throw RepositoryError.decoding("\(path).fis")
+                }
+                return PanelCheckModel.Fi(name: fi.name, sub: fi.sub, statusLabel: fi.statusLabel, tone: tone)
+            },
+            outcomes: dto.current.outcomes,
+            next: try dto.next.map { entry in
+                guard let number = positiveNumber(entry.n) else { throw RepositoryError.decoding("\(path).next") }
+                return PanelCheckModel.Next(n: number, label: entry.label, tag: entry.tag)
+            })
+    }
+
+    private nonisolated static func smokeModel(_ dto: SmokeCheckDto, route: AppRoute, path: String) throws -> SmokeCheckModel {
+        let rooms = try dto.rooms.map { room in
+            guard let status = ScreenCopy.ElRauchmelder.status(roomLabel: room.statusLabel) else {
+                throw RepositoryError.decoding("\(path).rooms")
+            }
+            return SmokeCheckModel.Room(name: room.name, statusLabel: room.statusLabel, status: status)
+        }
+        let now = rooms.filter { $0.status == .now }
+        guard now.count == 1, now[0].name == dto.current.room else {
+            throw RepositoryError.decoding("\(path).current.room")
+        }
+        guard dto.current.outcomes.count == 2 else { throw RepositoryError.decoding("\(path).current.outcomes") }
+        return SmokeCheckModel(
+            route: route,
+            counter: try iosText(dto.counter, "\(path).counter"),
+            title: dto.title,
+            subtitle: dto.subtitle,
+            room: dto.current.room,
+            nowLabel: dto.current.title,
+            checks: dto.checks.enumerated().map { index, check in
+                SmokeCheckModel.Check(label: check.label, hint: check.hint, done: index < ScreenCopy.ElRauchmelder.checksDone)
+            },
+            outcomes: dto.current.outcomes,
+            rooms: rooms,
+            reminder: dto.reminder,
+            battery: dto.battery)
+    }
+
+    // MARK: - M6 later trades
+
+    /// The screens of the M6 trades; their `ios` text is `{}` and loading it proves the screen exists.
+    private nonisolated static let laterTradeScreens = [
+        "SanUebersicht", "SanGefaelle", "SanDruck", "SanBad", "EsUebersicht", "EsEbenheit", "EsBelegreife",
+        "FlUebersicht", "FlBad", "MaUebersicht", "MaRaum",
+    ]
+    private nonisolated static let drainSlopeKey = "drainSlope"
+    private nonisolated static let screedFlatnessKey = "screedFlatness"
+    private nonisolated static let screedHeatingKey = "screedHeating"
+    private nonisolated static let tickSuffix = " ✓"
+
+    private struct LaterTrades: Sendable {
+        var overviews: [String: TradeOverviewModel] = [:]
+        var slope: [AppRoute: SlopeCheckModel] = [:]
+        var pressure: [AppRoute: PressureCheckModel] = [:]
+        var flatness: [AppRoute: FlatnessCheckModel] = [:]
+        var readiness: [AppRoute: ReadinessCheckModel] = [:]
+        var object: [AppRoute: ObjectCheckModel] = [:]
+        var tile: [AppRoute: TileCheckModel] = [:]
+        var paint: [AppRoute: PaintCheckModel] = [:]
+        var checkTitles: [AppRoute: String] = [:]
+    }
+
+    /// Loads the four M6 overviews and their checks. A row route must resolve to a check of M5 or M6 (D2, I3).
+    private nonisolated static func laterTrades(
+        _ repo: BackendRepository, overview: InspectionOverview, earlyRoutes: Set<AppRoute>
+    ) async throws -> LaterTrades {
+        var result = LaterTrades()
+        var dtos: [String: TradeOverviewDto] = [:]
+        for tradeId in ScreenCopy.TradeOverview.trades {
+            let dto = try await repo.tradeSlice(TradeOverviewDto.self, tradeId: tradeId)
+            dtos[tradeId] = dto
+            try await loadLaterChecks(dto.checks, tradeId: tradeId, repo: repo, overview: overview, into: &result)
+        }
+        let routes = earlyRoutes.union(result.checkTitles.keys)
+        for tradeId in ScreenCopy.TradeOverview.trades {
+            if let dto = dtos[tradeId] {
+                result.overviews[tradeId] = try tradeOverviewModel(
+                    dto, tradeId: tradeId, overview: overview, routes: routes)
+            }
+        }
+        return result
+    }
+
+    /// Builds every check of an M6 trade by the fixture `screen` value of the check (D2).
+    private nonisolated static func loadLaterChecks(
+        _ raw: JSONValue?, tradeId: String, repo: BackendRepository, overview: InspectionOverview,
+        into result: inout LaterTrades
+    ) async throws {
+        guard let raw else { return }
+        let path = "\(tradePath(tradeId)).checks"
+        guard case let .object(checks) = raw else { throw RepositoryError.decoding(path) }
+        for key in checks.keys.sorted() {
+            let checkPath = "\(path).\(key)"
+            guard case let .object(members) = checks[key], case let .string(screen)? = members["screen"] else {
+                throw RepositoryError.decoding("\(checkPath).screen")
+            }
+            switch screen {
+            case "SanGefaelle":
+                let dto = try await repo.tradeCheck(tradeId, key, as: SlopeCheckDto.self)
+                guard dto.measurementKey == drainSlopeKey else {
+                    throw RepositoryError.decoding("\(checkPath).measurementKey")
+                }
+                let drain = try await repo.measurementSlice(DrainSlopeDto.self, key: dto.measurementKey)
+                let model = try slopeModel(
+                    dto, drain: drain, tradeId: tradeId, key: key, overview: overview, path: checkPath)
+                result.slope[model.route] = model
+                result.checkTitles[model.route] = model.title
+            case "SanDruck":
+                let dto = try await repo.tradeCheck(tradeId, key, as: PressureCheckDto.self)
+                let model = try pressureModel(
+                    dto, route: .inspectionCheck(tradeId: tradeId, check: key), path: checkPath)
+                result.pressure[model.route] = model
+                result.checkTitles[model.route] = model.title
+            case "SanBad":
+                let dto = try await repo.tradeCheck(tradeId, key, as: ObjectCheckDto.self)
+                let model = try objectModel(
+                    dto, route: .inspectionRoom(tradeId: tradeId, roomId: key), path: checkPath)
+                result.object[model.route] = model
+                result.checkTitles[model.route] = model.title
+            case "EsEbenheit":
+                let dto = try await repo.tradeCheck(tradeId, key, as: FlatnessCheckDto.self)
+                guard dto.measurementKey == screedFlatnessKey else {
+                    throw RepositoryError.decoding("\(checkPath).measurementKey")
+                }
+                let flatness = try await repo.measurementSlice(ScreedFlatnessDto.self, key: dto.measurementKey)
+                let model = try flatnessModel(
+                    dto, flatness: flatness, route: .inspectionCheck(tradeId: tradeId, check: key), path: checkPath)
+                result.flatness[model.route] = model
+                result.checkTitles[model.route] = model.title
+            case "EsBelegreife":
+                let dto = try await repo.tradeCheck(tradeId, key, as: ReadinessCheckDto.self)
+                guard dto.measurementKey == screedHeatingKey else {
+                    throw RepositoryError.decoding("\(checkPath).measurementKey")
+                }
+                let heating = try await repo.measurementSlice(ScreedHeatingDto.self, key: dto.measurementKey)
+                let model = try readinessModel(
+                    dto, heating: heating, route: .inspectionCheck(tradeId: tradeId, check: key))
+                result.readiness[model.route] = model
+                result.checkTitles[model.route] = model.screenTitle
+            case "FlBad":
+                let dto = try await repo.tradeCheck(tradeId, key, as: TileCheckDto.self)
+                let model = try tileModel(dto, route: .inspectionRoom(tradeId: tradeId, roomId: key), path: checkPath)
+                result.tile[model.route] = model
+                result.checkTitles[model.route] = model.title
+            case "MaRaum":
+                let dto = try await repo.tradeCheck(tradeId, key, as: PaintCheckDto.self)
+                let model = try paintModel(
+                    dto, route: .inspectionRoom(tradeId: tradeId, roomId: key), overview: overview, path: checkPath)
+                result.paint[model.route] = model
+                result.checkTitles[model.route] = model.title
+            default:
+                throw RepositoryError.decoding("\(checkPath).screen")
+            }
+        }
+    }
+
+    /// The integers of a text, in order ("Abschnitt 3 von 4" gives [3, 4]).
+    private nonisolated static func digitRuns(_ text: String) -> [Int] {
+        text.split { !("0"..."9").contains($0) }.compactMap { Int($0) }
+    }
+
+    /// The step numbers of a step screen: `current.n` follows the done rows and `next` continues it (M5 D7 rule).
+    private nonisolated static func stepNumbers(
+        current: String, next: [String], doneCount: Int, path: String
+    ) throws -> (current: Int, next: [Int]) {
+        guard let currentNumber = positiveNumber(current) else { throw RepositoryError.decoding("\(path).current") }
+        let nextNumbers = try next.map { text -> Int in
+            guard let number = positiveNumber(text) else { throw RepositoryError.decoding("\(path).next") }
+            return number
+        }
+        guard currentNumber == doneCount + 1,
+            nextNumbers == (0..<nextNumbers.count).map({ currentNumber + 1 + $0 })
+        else { throw RepositoryError.decoding("\(path).next") }
+        return (currentNumber, nextNumbers)
+    }
+
+    /// A slope section label as tenths of a percent: `^\d+,\d %$`.
+    private nonisolated static func percentTenths(_ label: String) -> Int? {
+        guard label.hasSuffix(" %") else { return nil }
+        let parts = label.dropLast(2).split(separator: ",", omittingEmptySubsequences: false)
+        guard parts.count == 2, !parts[0].isEmpty, parts[1].count == 1,
+            parts.allSatisfy({ $0.allSatisfy { ("0"..."9").contains($0) } }),
+            let whole = Int(parts[0]), let tenth = Int(parts[1])
+        else { return nil }
+        return whole * 10 + tenth
+    }
+
+    private nonisolated static func slopeModel(
+        _ dto: SlopeCheckDto, drain: DrainSlopeDto, tradeId: String, key: String, overview: InspectionOverview,
+        path: String
+    ) throws -> SlopeCheckModel {
+        let counter = try iosText(dto.counter, "\(path).counter")
+        let initial = SlopeViewModel(
+            sollDefault: drain.parameter.default, sollMin: drain.parameter.min, sollMax: drain.parameter.max,
+            lenDm: drain.lengthDm, dropMm: drain.dropMm,
+            lengthRange: .init(min: drain.lengthRange.min, max: drain.lengthRange.max, step: drain.lengthRange.step),
+            dropRange: .init(min: drain.dropRange.min, max: drain.dropRange.max, step: drain.dropRange.step),
+            labels: .init(
+                sufficient: drain.labels.sufficient, tooFlat: drain.labels.tooFlat,
+                sollPrefix: drain.labels.sollPrefix))
+        let sections = try drain.sections.map { section -> SlopeCheckModel.Section in
+            let status: SectionStatus
+            switch section.label {
+            case ScreenCopy.SanGefaelle.nowLabel: status = .now
+            case ScreenCopy.SanGefaelle.openLabel: status = .open
+            default:
+                guard let tenths = percentTenths(section.label) else {
+                    throw RepositoryError.decoding("measurements.\(drainSlopeKey).sections")
+                }
+                status = tenths >= initial.sollTenths ? .ok : .defect
+            }
+            return SlopeCheckModel.Section(id: section.id, label: section.label, status: status)
+        }
+        let now = sections.enumerated().filter { $0.element.status == .now }
+        guard now.count == 1, let current = now.first,
+            dto.subtitle.components(separatedBy: " · ").first == current.element.id,
+            digitRuns(counter) == [current.offset + 1, sections.count]
+        else { throw RepositoryError.decoding(path) }
+        return SlopeCheckModel(
+            route: .inspectionCheckItem(tradeId: tradeId, check: key, item: current.element.id),
+            counter: counter,
+            title: dto.title,
+            subtitle: dto.subtitle,
+            hint: dto.hint,
+            warning: dto.warning,
+            sections: sections,
+            initial: initial,
+            defectLabel: try statusLabel("defect", in: overview.statusLabels))
+    }
+
+    private nonisolated static func pressureModel(
+        _ dto: PressureCheckDto, route: AppRoute, path: String
+    ) throws -> PressureCheckModel {
+        let steps = try stepNumbers(
+            current: dto.current.n, next: dto.next.map(\.n), doneCount: dto.done.count, path: path)
+        return PressureCheckModel(
+            route: route,
+            counter: try iosText(dto.counter, "\(path).counter"),
+            title: dto.title,
+            subtitle: try iosText(dto.subtitle, "\(path).subtitle"),
+            done: dto.done.map { PressureCheckModel.Done(label: $0.label, meta: $0.meta) },
+            current: PressureCheckModel.Current(n: steps.current, title: dto.current.title),
+            timer: PressureCheckModel.Timer(
+                fraction: ScreenCopy.SanDruck.ringFraction,
+                remaining: dto.timer.remaining,
+                accessibilityLabel: dto.timer.progressLabel,
+                remainingLabel: dto.timer.remainingLabel,
+                note: dto.timer.note,
+                startLabel: dto.timer.start.label,
+                startValue: dto.timer.start.value,
+                endLabel: dto.timer.end.label,
+                endPlaceholder: dto.timer.end.value),
+            next: zip(dto.next, steps.next).map { PressureCheckModel.Next(n: $1, label: $0.label, tag: $0.tag) })
+    }
+
+    private nonisolated static func objectModel(
+        _ dto: ObjectCheckDto, route: AppRoute, path: String
+    ) throws -> ObjectCheckModel {
+        let objects = try dto.objects.map { object -> ObjectCheckModel.Object in
+            guard !(object.done && object.selected) else { throw RepositoryError.decoding("\(path).objects") }
+            return ObjectCheckModel.Object(
+                name: object.name, state: object.selected ? .now : object.done ? .done : .open)
+        }
+        let selected = objects.filter { $0.state == .now }
+        guard selected.count == 1 else { throw RepositoryError.decoding("\(path).objects") }
+        return ObjectCheckModel(
+            route: route,
+            trailing: try iosText(dto.subtitle, "\(path).subtitle"),
+            counter: try iosText(dto.counter, "\(path).counter"),
+            title: dto.title,
+            objects: objects,
+            heading: selected[0].name,
+            checks: try dto.checks.map {
+                ObjectCheckModel.Check(label: $0.label, hint: try iosText($0.hint, "\(path).checks.hint"), ok: $0.ok)
+            },
+            nextHint: dto.nextHint)
+    }
+
+    private nonisolated static func flatnessModel(
+        _ dto: FlatnessCheckDto, flatness: ScreedFlatnessDto, route: AppRoute, path: String
+    ) throws -> FlatnessCheckModel {
+        FlatnessCheckModel(
+            route: route,
+            counter: try iosText(dto.counter, "\(path).counter"),
+            title: dto.title,
+            initial: FlatnessViewModel(
+                limitDefault: flatness.parameter.default, limitMin: flatness.parameter.min,
+                limitMax: flatness.parameter.max, gap: flatness.gap, points: flatness.points,
+                gapMin: flatness.gapMin, gapMax: flatness.gapMax, gapStep: flatness.gapStep,
+                labels: .init(
+                    within: flatness.labels.within, outside: flatness.labels.outside, none: flatness.labels.none,
+                    point: flatness.labels.point, pluralSuffix: flatness.labels.pluralSuffix,
+                    overLimit: flatness.labels.overLimit)))
+    }
+
+    private nonisolated static func readinessModel(
+        _ dto: ReadinessCheckDto, heating: ScreedHeatingDto, route: AppRoute
+    ) throws -> ReadinessCheckModel {
+        let count = heating.planCelsius.count
+        guard heating.todayDay >= 1, heating.todayDay <= count,
+            heating.recordedDays >= 0, heating.recordedDays < heating.todayDay
+        else { throw RepositoryError.decoding("measurements.\(screedHeatingKey)") }
+        let bars = heating.planCelsius.enumerated().map { index, value -> ReadinessCheckModel.Bar in
+            let height = Int(
+                (Double(value) / Double(ScreenCopy.EsBelegreife.barScaleValue)
+                    * Double(ScreenCopy.EsBelegreife.barScaleHeight)).rounded())
+            let kind: HeatingBarKind =
+                index < heating.recordedDays ? .recorded : index == heating.todayDay - 1 ? .today : .planned
+            return ReadinessCheckModel.Bar(height: height, kind: kind)
+        }
+        return ReadinessCheckModel(
+            route: route,
+            cardTitle: dto.title,
+            counter: dto.counter,
+            text: dto.subtitle,
+            chart: ReadinessCheckModel.Chart(
+                bars: bars, accessibilityLabel: dto.chart.label, start: dto.chart.start, max: dto.chart.max,
+                end: dto.chart.end, today: dto.chart.today, plan: dto.chart.plan, action: dto.chart.action),
+            cm: ReadinessCheckModel.Cm(
+                title: dto.cmTitle, tag: dto.cmTag, text: dto.cmText,
+                rows: dto.cm.map { ReadinessCheckModel.CmRow(label: $0.label, meta: $0.meta, done: $0.done) },
+                note: dto.cmNote))
+    }
+
+    private nonisolated static func tileModel(
+        _ dto: TileCheckDto, route: AppRoute, path: String
+    ) throws -> TileCheckModel {
+        guard dto.tiles.count == ScreenCopy.FlBad.columns * ScreenCopy.FlBad.rows else {
+            throw RepositoryError.decoding("\(path).tiles")
+        }
+        let tiles = try dto.tiles.map { tile -> TileCheckModel.Tile in
+            switch tile.status {
+            case "ok":
+                return TileCheckModel.Tile(
+                    id: tile.id, hollow: false, label: nil, accessibilityLabel: tile.aria)
+            case "defect":
+                return TileCheckModel.Tile(
+                    id: tile.id, hollow: true, label: tile.label, accessibilityLabel: tile.aria)
+            default:
+                throw RepositoryError.decoding("\(path).tiles")
+            }
+        }
+        let steps = try stepNumbers(
+            current: dto.current.n, next: dto.next.map(\.n), doneCount: dto.done.count, path: path)
+        return TileCheckModel(
+            route: route,
+            counter: try iosText(dto.counter, "\(path).counter"),
+            subtitle: try iosText(dto.subtitle, "\(path).subtitle"),
+            title: dto.title,
+            done: dto.done.map(\.label),
+            current: TileCheckModel.Current(n: steps.current, title: dto.current.title, text: dto.current.text),
+            next: zip(dto.next, steps.next).map { TileCheckModel.Next(n: $1, label: $0.label) },
+            tiles: tiles,
+            wallLabel: dto.wallLabel,
+            markHint: dto.markHint,
+            gridAccessibilityLabel: dto.gridAria,
+            result: dto.result)
+    }
+
+    private nonisolated static func paintModel(
+        _ dto: PaintCheckDto, route: AppRoute, overview: InspectionOverview, path: String
+    ) throws -> PaintCheckModel {
+        let selected = dto.walls.filter(\.selected)
+        guard selected.count == 1, !selected[0].name.hasSuffix(tickSuffix) else {
+            throw RepositoryError.decoding("\(path).walls")
+        }
+        let steps = try stepNumbers(
+            current: dto.current.n, next: dto.next.map(\.n), doneCount: dto.done.count, path: path)
+        return PaintCheckModel(
+            route: route,
+            counter: try iosText(dto.counter, "\(path).counter"),
+            subtitle: try iosText(dto.subtitle, "\(path).subtitle"),
+            title: dto.title,
+            done: dto.done.map(\.label),
+            current: PaintCheckModel.Current(n: steps.current, title: dto.current.title, text: dto.current.text),
+            walls: dto.walls.map { wall in
+                PaintCheckModel.Wall(
+                    name: wall.name,
+                    state: wall.selected ? .now : wall.name.hasSuffix(tickSuffix) ? .done : .open)
+            },
+            next: zip(dto.next, steps.next).map { PaintCheckModel.Next(n: $1, label: $0.label) },
+            defectLabel: try statusLabel("defect", in: overview.statusLabels),
+            okLabel: try statusLabel("ok", in: overview.statusLabels))
+    }
+
+    private nonisolated static func tradeOverviewModel(
+        _ dto: TradeOverviewDto, tradeId: String, overview: InspectionOverview, routes: Set<AppRoute>
+    ) throws -> TradeOverviewModel {
+        let path = tradePath(tradeId)
+        let header: OverviewHeader
+        switch (dto.phases, dto.facts) {
+        case let (phases?, nil):
+            header = .phases(try phases.map { try laterPhase($0, tradeId: tradeId, overview: overview) })
+        case let (nil, facts?):
+            header = .facts(facts.map { FactModel(label: $0.label, value: $0.value) })
+        default:
+            throw RepositoryError.decoding(path)
+        }
+        if tradeId == "plumbing",
+            dto.groups.map({ $0.rows.count }) != ScreenCopy.TradeOverview.plumbingIcons.map(\.count)
+        {
+            throw RepositoryError.decoding("\(path).groups")
+        }
+        let rowPath = "\(path).groups.rows"
+        let groups = try dto.groups.enumerated().map { groupIndex, group in
+            TradeOverviewModel.Group(
+                title: group.title,
+                rows: try group.rows.enumerated().map { rowIndex, row in
+                    let sub = try iosText(row.sub, "\(rowPath).sub")
+                    guard let tone = ScreenCopy.TradeOverview.tone(statusLabel: row.statusLabel) else {
+                        throw RepositoryError.decoding("\(rowPath).statusLabel")
+                    }
+                    let leading: OverviewLeading
+                    switch tradeId {
+                    case "plumbing":
+                        leading = .icon(ScreenCopy.TradeOverview.plumbingIcons[groupIndex][rowIndex])
+                    case "painting":
+                        let word = sub.split(separator: " ").first.map {
+                            $0.trimmingCharacters(in: CharacterSet(charactersIn: ",·"))
+                        }
+                        guard let swatch = word.flatMap(ScreenCopy.MaUebersicht.swatch(word:)) else {
+                            throw RepositoryError.decoding("\(rowPath).sub")
+                        }
+                        leading = .swatch(swatch)
+                    default:
+                        leading = .none
+                    }
+                    let target = try RouteParser.route(row.route, field: "\(rowPath).route")
+                    if let target { try requireCheck(target, in: routes, path: "\(rowPath).route") }
+                    return TradeOverviewModel.Row(
+                        name: row.name, sub: sub, statusLabel: row.statusLabel, tone: tone, leading: leading,
+                        target: target)
+                })
+        }
+        return TradeOverviewModel(
+            tradeId: tradeId, title: dto.title, subtitle: try iosText(dto.subtitle, "\(path).subtitle"),
+            header: header, notice: dto.banner?.text, groups: groups)
+    }
+
+    /// A phase of an M6 overview: `progressLabel` is the active one, a status label starting with the "accepted"
+    /// label is done, any other status label is planned (D7).
+    private nonisolated static func laterPhase(
+        _ phase: TradeOverviewDto.Phase, tradeId: String, overview: InspectionOverview
+    ) throws -> PhaseModel {
+        let path = tradePath(tradeId)
+        switch (phase.statusLabel, phase.progressLabel) {
+        case let (status?, nil):
+            let text = try iosText(status, "\(path).phases.statusLabel")
+            guard text.hasPrefix(try statusLabel("accepted", in: overview.statusLabels)) else {
+                return PhaseModel(title: phase.title, kind: .planned(status: text))
+            }
+            return PhaseModel(
+                title: phase.title,
+                kind: .done(
+                    status: text,
+                    date: try phase.dateLabel.map { try iosText($0, "\(path).phases.dateLabel") }))
+        case let (nil, progress?):
+            guard let fraction = ScreenCopy.TradeOverview.activePhaseFraction[tradeId] else {
+                throw RepositoryError.decoding("\(path).phases")
+            }
+            return PhaseModel(title: phase.title, kind: .active(progressLabel: progress, fraction: fraction))
+        default:
+            throw RepositoryError.decoding("\(path).phases")
+        }
     }
 
     private nonisolated static func gewerkModels(

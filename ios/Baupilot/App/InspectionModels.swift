@@ -192,3 +192,67 @@ struct SignOffModel: Sendable, Equatable {
     let note: String
     let finishTarget: NavigationTarget = .defects
 }
+
+enum ProtocolTone: Sendable, Equatable { case ok, warn }
+
+enum ProtocolMark: Sendable, Equatable { case ok, defect }
+
+/// Earthworks, shell and carpentry protocol screens.
+struct TradeProtocolModel: Sendable, Equatable {
+    struct Banner: Sendable, Equatable {
+        let tone: ProtocolTone
+        let title: String
+        let text: String
+        /// The label of the PDF button; nil without one.
+        let documentLabel: String?
+        let target: NavigationTarget?
+    }
+
+    struct Row: Sendable, Equatable {
+        let label: String
+        let meta: String
+        let mark: ProtocolMark
+        let target: NavigationTarget?
+    }
+
+    struct Group: Sendable, Equatable {
+        let title: String
+        let rows: [Row]
+    }
+
+    let tradeId: String
+    let title: String
+    let subtitle: String
+    let banner: Banner
+    let groups: [Group]
+}
+
+/// Rohbau "Maße & Lot".
+struct MeasureCheckModel: Sendable, Equatable {
+    struct Dimension: Sendable, Equatable {
+        let key: MeasureViewModel.Dimension
+        let label: String
+    }
+
+    let route: AppRoute
+    let counter: String
+    let title: String
+    let instruction: String
+    let measuredHeading: String
+    let plumbTitle: String
+    let plumbSubtitle: String
+    let plumbValue: String
+    let saveLabel: String
+    let photoLabel: String
+    let defectLabel: String
+    let withinLabel: String
+    let outsideLabel: String
+    let dimensions: [Dimension]
+    let measured: [String]
+    let initial: MeasureViewModel
+    let defectTarget: AppRoute = .newDefect
+
+    func subtitle(tolerance: Int) -> String {
+        String(format: ScreenCopy.RohbauMasse.subtitleFormat, tolerance)
+    }
+}

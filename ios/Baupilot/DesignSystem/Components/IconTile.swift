@@ -60,7 +60,22 @@ final class TopAlignedLabel: UILabel {
 /// Multi-line text that breaks like Chrome: greedily, with no last-word push-down. SwiftUI `Text`
 /// moves a lone last word up ("welcher / Handwerker kommt"), `UILabel` with an empty line-break
 /// strategy does not. `lineHeight` is the CSS line height; the label is exactly n line boxes tall.
-struct GreedyLabel: UIViewRepresentable {
+struct GreedyLabel: View {
+    let text: String
+    let size: CGFloat
+    let weight: InterWeight
+    let color: ColorToken
+    let lineHeight: LineHeight
+
+    /// The label is never interactive: without `allowsHitTesting(false)` the representable swallows taps
+    /// that belong to the `Button` it sits in (list rows, text links).
+    var body: some View {
+        GreedyLabelRepresentable(text: text, size: size, weight: weight, color: color, lineHeight: lineHeight)
+            .allowsHitTesting(false)
+    }
+}
+
+private struct GreedyLabelRepresentable: UIViewRepresentable {
     let text: String
     let size: CGFloat
     let weight: InterWeight

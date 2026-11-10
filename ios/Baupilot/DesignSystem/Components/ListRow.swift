@@ -3,7 +3,8 @@ import SwiftUI
 /// Row used in the iOS lists. Place rows inside a `Card(padding: EdgeInsets())`; the divider
 /// sits on top of every row that is not the first. An optional `background` is painted under the whole
 /// row, divider included. `subtitleLines: .block` lets a long subtitle wrap inside the flex column (CSS
-/// `min-width: 0`) instead of truncating.
+/// `min-width: 0`) instead of truncating; `.greedy` wraps it through `GreedyLabel` (Chrome's breaks). `titleLines`
+/// does the same for the title, and `textGap` replaces the density's gap between title and subtitle.
 public struct ListRow: View {
     public enum TitleSize {
         case regular
@@ -57,6 +58,8 @@ public struct ListRow: View {
             BaupilotIcon, size: TileSize = .s38, bg: ColorToken = Tokens.chip.core,
             fg: ColorToken = Tokens.muted)
         case textTile(String, TextTileSize, chip: ColorToken = Tokens.chip.core)
+        /// A paint swatch: `side` fill plus a 1 pt border outside it (CSS content-box), so 16 outer for 14.
+        case swatch(ColorToken, side: CGFloat, radius: CGFloat, border: ColorToken)
     }
 
     public enum ChevronSize {
@@ -99,6 +102,11 @@ public struct ListRow: View {
                     .background(
                         chip.color,
                         in: RoundedRectangle(cornerRadius: size.radius))
+            case .swatch(let fill, let side, let radius, let border):
+                RoundedRectangle(cornerRadius: radius)
+                    .fill(fill.color)
+                    .overlay { RoundedRectangle(cornerRadius: radius).strokeBorder(border.color, lineWidth: 1) }
+                    .frame(width: side + 2, height: side + 2)
             }
         }
     }
@@ -113,6 +121,8 @@ public struct ListRow: View {
     let dividerColor: ColorToken
     let background: ColorToken?
     let subtitleLines: TextLines
+    let textGap: CGFloat?
+    let titleLines: TextLines
     private let action: (() -> Void)?
 
     public init(
@@ -126,6 +136,8 @@ public struct ListRow: View {
         dividerColor: ColorToken = Tokens.border.core,
         background: ColorToken? = nil,
         subtitleLines: TextLines = .single,
+        textGap: CGFloat? = nil,
+        titleLines: TextLines = .single,
         action: (() -> Void)?
     ) {
         self.title = title
@@ -138,6 +150,8 @@ public struct ListRow: View {
         self.dividerColor = dividerColor
         self.background = background
         self.subtitleLines = subtitleLines
+        self.textGap = textGap
+        self.titleLines = titleLines
         self.action = action
     }
 
@@ -147,7 +161,7 @@ public struct ListRow: View {
                 Rectangle().fill(dividerColor.color).frame(height: 1)
             }
             if let action {
-                Button(action: action) { row }.buttonStyle(.plain)
+                Button(action: action) { row.contentShape(Rectangle()) }.buttonStyle(.plain)
             } else {
                 row
             }
@@ -160,14 +174,10 @@ public struct ListRow: View {
     private var row: some View {
         let content = HStack(spacing: 12) {
             LeadingView(leading: leading)
-            VStack(alignment: .leading, spacing: density.textGap) {
-                Text(title)
-                    .interText(titleSize.fontSize, .semibold)
-                    .foregroundStyle(Tokens.text.color)
+            VStack(alignment: .leading, spacing: textGap ?? density.textGap) {
+                titleView
                 if let subtitle {
-                    Text(subtitle)
-                        .interText(13, .regular, lines: subtitleLines)
-                        .foregroundStyle(Tokens.muted.color)
+                    subtitleView(subtitle)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -179,6 +189,30 @@ public struct ListRow: View {
             content.padding(.vertical, v)
         case .minHeight(let h):
             content.frame(minHeight: h)
+        }
+    }
+
+    /// A `.greedy` subtitle breaks like Chrome through `GreedyLabel`; the other modes go through `interText`.
+    @ViewBuilder
+    private func subtitleView(_ text: String) -> some View {
+        if subtitleLines == .greedy {
+            GreedyLabel(text: text, size: 13, weight: .regular, color: Tokens.muted, lineHeight: .normal)
+        } else {
+            Text(text)
+                .interText(13, .regular, lines: subtitleLines)
+                .foregroundStyle(Tokens.muted.color)
+        }
+    }
+
+    @ViewBuilder
+    private var titleView: some View {
+        if titleLines == .greedy {
+            GreedyLabel(
+                text: title, size: titleSize.fontSize, weight: .semibold, color: Tokens.text, lineHeight: .normal)
+        } else {
+            Text(title)
+                .interText(titleSize.fontSize, .semibold, lines: titleLines)
+                .foregroundStyle(Tokens.text.color)
         }
     }
 

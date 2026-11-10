@@ -233,4 +233,289 @@ final class ScreenSnapshotTests: XCTestCase {
     func testMitteilungenDark() async throws {
         try await verify("Mitteilungen", mode: .dark, navigation: mitteilungen)
     }
+
+    /// D10: logged in, Abnahmen tab, Erdarbeiten opened (back label "Abnahmen").
+    private var erd: AppNavigation {
+        var navigation = abnGewerke
+        navigation.open(.inspection(tradeId: "earthworks"))
+        return navigation
+    }
+
+    func testErdLight() async throws {
+        try await verify("Erd", mode: .light, navigation: erd)
+    }
+
+    func testErdDark() async throws {
+        try await verify("Erd", mode: .dark, navigation: erd)
+    }
+
+    /// D10: logged in, Abnahmen tab, Rohbau opened (back label "Abnahmen").
+    private var rohbau: AppNavigation {
+        var navigation = abnGewerke
+        navigation.open(.inspection(tradeId: "shell"))
+        return navigation
+    }
+
+    func testRohbauLight() async throws {
+        try await verify("Rohbau", mode: .light, navigation: rohbau)
+    }
+
+    func testRohbauDark() async throws {
+        try await verify("Rohbau", mode: .dark, navigation: rohbau)
+    }
+
+    /// D10: Rohbau opened, then Maße & Lot (back label "Rohbau"); initial ViewModel state.
+    private var rohbauMasse: AppNavigation {
+        var navigation = rohbau
+        navigation.open(.inspectionCheck(tradeId: "shell", check: "measure"))
+        return navigation
+    }
+
+    func testRohbauMasseLight() async throws {
+        try await verify("RohbauMasse", mode: .light, navigation: rohbauMasse)
+    }
+
+    func testRohbauMasseDark() async throws {
+        try await verify("RohbauMasse", mode: .dark, navigation: rohbauMasse)
+    }
+
+    /// D10: logged in, Abnahmen tab, Zimmerer opened (back label "Abnahmen").
+    private var zimmerer: AppNavigation {
+        var navigation = abnGewerke
+        navigation.open(.inspection(tradeId: "carpentry"))
+        return navigation
+    }
+
+    func testZimmererLight() async throws {
+        try await verify("Zimmerer", mode: .light, navigation: zimmerer)
+    }
+
+    func testZimmererDark() async throws {
+        try await verify("Zimmerer", mode: .dark, navigation: zimmerer)
+    }
+
+    /// D10: logged in, Abnahmen tab, Elektro opened (back label "Abnahmen").
+    private var elUebersicht: AppNavigation {
+        var navigation = abnGewerke
+        navigation.open(.inspection(tradeId: "electrical"))
+        return navigation
+    }
+
+    func testElUebersichtLight() async throws {
+        try await verify("ElUebersicht", mode: .light, navigation: elUebersicht)
+    }
+
+    func testElUebersichtDark() async throws {
+        try await verify("ElUebersicht", mode: .dark, navigation: elUebersicht)
+    }
+
+    /// D10: Elektro opened, then Raumprüfung Küche (back label "Elektro").
+    private var elRaum: AppNavigation {
+        var navigation = elUebersicht
+        navigation.open(.inspectionRoom(tradeId: "electrical", roomId: "kitchen"))
+        return navigation
+    }
+
+    func testElRaumLight() async throws {
+        try await verify("ElRaum", mode: .light, navigation: elRaum)
+    }
+
+    func testElRaumDark() async throws {
+        try await verify("ElRaum", mode: .dark, navigation: elRaum)
+    }
+
+    /// D10: Elektro opened, then Zählerschrank & FI-Test (back label "Elektro").
+    private var elVerteiler: AppNavigation {
+        var navigation = elUebersicht
+        navigation.open(.inspectionCheck(tradeId: "electrical", check: "panel"))
+        return navigation
+    }
+
+    func testElVerteilerLight() async throws {
+        try await verify("ElVerteiler", mode: .light, navigation: elVerteiler)
+    }
+
+    func testElVerteilerDark() async throws {
+        try await verify("ElVerteiler", mode: .dark, navigation: elVerteiler)
+    }
+
+    /// D10: Elektro opened, then Rauchwarnmelder (back label "Elektro").
+    private var elRauchmelder: AppNavigation {
+        var navigation = elUebersicht
+        navigation.open(.inspectionCheck(tradeId: "electrical", check: "smoke"))
+        return navigation
+    }
+
+    func testElRauchmelderLight() async throws {
+        try await verify("ElRauchmelder", mode: .light, navigation: elRauchmelder)
+    }
+
+    func testElRauchmelderDark() async throws {
+        try await verify("ElRauchmelder", mode: .dark, navigation: elRauchmelder)
+    }
+
+    /// D10: logged in, Abnahmen tab, Sanitär & Heizung opened (back label "Abnahmen").
+    private var sanUebersicht: AppNavigation {
+        var navigation = abnGewerke
+        navigation.open(.inspection(tradeId: "plumbing"))
+        return navigation
+    }
+
+    func testSanUebersichtLight() async throws {
+        try await verify("SanUebersicht", mode: .light, navigation: sanUebersicht)
+    }
+
+    func testSanUebersichtDark() async throws {
+        try await verify("SanUebersicht", mode: .dark, navigation: sanUebersicht)
+    }
+
+    /// D10: Sanitär & Heizung opened, then Gefälle Abwasser A3 (back label "Sanitär"), calculator in its initial state.
+    private var sanGefaelle: AppNavigation {
+        var navigation = sanUebersicht
+        navigation.open(.inspectionCheckItem(tradeId: "plumbing", check: "slope", item: "A3"))
+        return navigation
+    }
+
+    func testSanGefaelleLight() async throws {
+        try await verify("SanGefaelle", mode: .light, navigation: sanGefaelle)
+    }
+
+    func testSanGefaelleDark() async throws {
+        try await verify("SanGefaelle", mode: .dark, navigation: sanGefaelle)
+    }
+
+    /// D10: Sanitär & Heizung opened, then Druckprobe (back label "Sanitär"), the end field empty.
+    private var sanDruck: AppNavigation {
+        var navigation = sanUebersicht
+        navigation.open(.inspectionCheck(tradeId: "plumbing", check: "pressure"))
+        return navigation
+    }
+
+    func testSanDruckLight() async throws {
+        try await verify("SanDruck", mode: .light, navigation: sanDruck)
+    }
+
+    func testSanDruckDark() async throws {
+        try await verify("SanDruck", mode: .dark, navigation: sanDruck)
+    }
+
+    /// D10: Sanitär & Heizung opened, then Bad OG (back label "Sanitär").
+    private var sanBad: AppNavigation {
+        var navigation = sanUebersicht
+        navigation.open(.inspectionRoom(tradeId: "plumbing", roomId: "bathUpper"))
+        return navigation
+    }
+
+    func testSanBadLight() async throws {
+        try await verify("SanBad", mode: .light, navigation: sanBad)
+    }
+
+    func testSanBadDark() async throws {
+        try await verify("SanBad", mode: .dark, navigation: sanBad)
+    }
+
+    /// D10: logged in, Abnahmen tab, Estrich opened (back label "Abnahmen").
+    private var esUebersicht: AppNavigation {
+        var navigation = abnGewerke
+        navigation.open(.inspection(tradeId: "screed"))
+        return navigation
+    }
+
+    func testEsUebersichtLight() async throws {
+        try await verify("EsUebersicht", mode: .light, navigation: esUebersicht)
+    }
+
+    func testEsUebersichtDark() async throws {
+        try await verify("EsUebersicht", mode: .dark, navigation: esUebersicht)
+    }
+
+    /// D10: logged in, Abnahmen tab, Fliesen opened (back label "Abnahmen").
+    private var flUebersicht: AppNavigation {
+        var navigation = abnGewerke
+        navigation.open(.inspection(tradeId: "tiles"))
+        return navigation
+    }
+
+    func testFlUebersichtLight() async throws {
+        try await verify("FlUebersicht", mode: .light, navigation: flUebersicht)
+    }
+
+    func testFlUebersichtDark() async throws {
+        try await verify("FlUebersicht", mode: .dark, navigation: flUebersicht)
+    }
+
+    /// D10: Estrich opened from Abnahmen, then Ebenheit (back label "Estrich").
+    private var esEbenheit: AppNavigation {
+        var navigation = esUebersicht
+        navigation.open(.inspectionCheck(tradeId: "screed", check: "flatness"))
+        return navigation
+    }
+
+    func testEsEbenheitLight() async throws {
+        try await verify("EsEbenheit", mode: .light, navigation: esEbenheit)
+    }
+
+    func testEsEbenheitDark() async throws {
+        try await verify("EsEbenheit", mode: .dark, navigation: esEbenheit)
+    }
+
+    /// D10: Estrich opened from Abnahmen, then Aufheizen & Belegreife (back label "Estrich").
+    private var esBelegreife: AppNavigation {
+        var navigation = esUebersicht
+        navigation.open(.inspectionCheck(tradeId: "screed", check: "readiness"))
+        return navigation
+    }
+
+    func testEsBelegreifeLight() async throws {
+        try await verify("EsBelegreife", mode: .light, navigation: esBelegreife)
+    }
+
+    func testEsBelegreifeDark() async throws {
+        try await verify("EsBelegreife", mode: .dark, navigation: esBelegreife)
+    }
+
+    /// D10: Fliesen opened from Abnahmen, then Bad OG (back label "Fliesen").
+    private var flBad: AppNavigation {
+        var navigation = flUebersicht
+        navigation.open(.inspectionRoom(tradeId: "tiles", roomId: "bath"))
+        return navigation
+    }
+
+    func testFlBadLight() async throws {
+        try await verify("FlBad", mode: .light, navigation: flBad)
+    }
+
+    func testFlBadDark() async throws {
+        try await verify("FlBad", mode: .dark, navigation: flBad)
+    }
+
+    /// D10: logged in, Abnahmen tab, Maler opened (back label "Abnahmen").
+    private var maUebersicht: AppNavigation {
+        var navigation = abnGewerke
+        navigation.open(.inspection(tradeId: "painting"))
+        return navigation
+    }
+
+    func testMaUebersichtLight() async throws {
+        try await verify("MaUebersicht", mode: .light, navigation: maUebersicht)
+    }
+
+    func testMaUebersichtDark() async throws {
+        try await verify("MaUebersicht", mode: .dark, navigation: maUebersicht)
+    }
+
+    /// D10: Maler opened from Abnahmen, then Wohnen / Essen (back label "Maler").
+    private var maRaum: AppNavigation {
+        var navigation = maUebersicht
+        navigation.open(.inspectionRoom(tradeId: "painting", roomId: "living"))
+        return navigation
+    }
+
+    func testMaRaumLight() async throws {
+        try await verify("MaRaum", mode: .light, navigation: maRaum)
+    }
+
+    func testMaRaumDark() async throws {
+        try await verify("MaRaum", mode: .dark, navigation: maRaum)
+    }
 }

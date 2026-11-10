@@ -4,6 +4,8 @@ import de.baupilot.data.MockRepository
 import de.baupilot.data.RepositoryException
 import de.baupilot.designsystem.BaupilotIcon
 import de.baupilot.designsystem.components.StatusChipColors
+import de.baupilot.inspection.MeasureDimension
+import de.baupilot.inspection.MeasureViewModel
 import java.io.File
 import java.time.LocalDate
 import kotlinx.coroutines.runBlocking
@@ -15,6 +17,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -460,14 +463,14 @@ class AppDataTest {
 
     private val checksPath = "inspections.byTrade.windows.checks"
 
-    /** The fixture with [edit] applied to `inspections.byTrade.windows.checks.<key>`. */
-    private fun editCheck(key: String, edit: (JsonObject) -> JsonObject): MockRepository = edited { root ->
+    /** The fixture with [edit] applied to `inspections.byTrade.<tradeId>.checks.<key>`. */
+    private fun editCheck(key: String, tradeId: String = "windows", edit: (JsonObject) -> JsonObject): MockRepository =
+        editTrade(tradeId) { trade -> trade.editObject("checks") { checks -> checks.editObject(key, edit) } }
+
+    /** The fixture with [edit] applied to `inspections.byTrade.<tradeId>`. */
+    private fun editTrade(tradeId: String, edit: (JsonObject) -> JsonObject): MockRepository = edited { root ->
         root.editObject("inspections") { inspections ->
-            inspections.editObject("byTrade") { byTrade ->
-                byTrade.editObject("windows") { windows ->
-                    windows.editObject("checks") { checks -> checks.editObject(key, edit) }
-                }
-            }
+            inspections.editObject("byTrade") { byTrade -> byTrade.editObject(tradeId, edit) }
         }
     }
 
@@ -806,5 +809,887 @@ class AppDataTest {
             }
         }
         assertEquals("inspections.overview", failure { AppData.load(badOverview) }.detail)
+    }
+
+    // --- M5: early trades and electrical (step 3) ---
+
+    private val m5Checks = "inspections.byTrade.electrical.checks"
+
+    private val measureRoute = AppRoute.InspectionCheck("shell", "measure")
+    private val kitchenRoute = AppRoute.InspectionRoom("electrical", "kitchen")
+    private val panelRoute = AppRoute.InspectionCheck("electrical", "panel")
+    private val smokeRoute = AppRoute.InspectionCheck("electrical", "smoke")
+
+    /** The fixture with [edit] applied to `measurements.<key>`. */
+    private fun editMeasurement(key: String, edit: (JsonObject) -> JsonObject): MockRepository = edited { root ->
+        root.editObject("measurements") { it.editObject(key, edit) }
+    }
+
+    /** [edit] applied to every row of every group of `inspections.byTrade.<tradeId>`. */
+    private fun editRows(tradeId: String, edit: (Int, Int, JsonObject) -> JsonObject): MockRepository =
+        editTrade(tradeId) { trade ->
+            trade.mapArray("groups") { gi, group -> group.mapArray("rows") { ri, row -> edit(gi, ri, row) } }
+        }
+
+    @Test
+    fun loadsTradeProtocols() = runTest {
+        val data = AppData.load(repository)
+        assertEquals(setOf("earthworks", "shell", "carpentry"), data.tradeProtocols.keys)
+
+        val earth = data.tradeProtocols.getValue("earthworks")
+        assertEquals("Erdarbeiten", earth.title)
+        assertEquals("Tiefbau Schäfer · Baugrube & Gründung", earth.subtitle)
+        assertEquals(
+            ProtocolBanner(BannerTone.Ok, "Abgenommen am 14.04.2026", "Unterschrieben · keine Mängel", "PDF", null),
+            earth.banner,
+        )
+        assertEquals(listOf("Absteckung", "Baugrube", "Leitungen & Verfüllung"), earth.groups.map { it.title })
+        assertEquals(listOf(2, 4, 3), earth.groups.map { it.rows.size })
+        assertEquals("Mutterboden gesichert", earth.groups[2].rows[2].label)
+        assertEquals("1 Foto", earth.groups[2].rows[2].meta)
+        val earthRows = earth.groups.flatMap { it.rows }
+        assertTrue(earthRows.all { it.mark == RowMark.Ok && it.target == null })
+
+        val shell = data.tradeProtocols.getValue("shell")
+        assertEquals("Bauunternehmung Keller · Keller, EG, OG", shell.subtitle)
+        assertEquals(
+            ProtocolBanner(
+                BannerTone.Warn,
+                "Abgenommen mit Vorbehalt",
+                "1 Mangel offen · Frist 15.12.2026",
+                null,
+                NavigationTarget.Defects,
+            ),
+            shell.banner,
+        )
+        val shellRows = shell.groups.flatMap { it.rows }
+        assertEquals(9, shellRows.size)
+        val defect = shellRows.single { it.mark == RowMark.Defect }
+        assertEquals("Kellerwand Nord ohne Risse", defect.label)
+        assertEquals(NavigationTarget.Defects, defect.target)
+        val measure = shellRows.single { it.target is NavigationTarget.Push }
+        assertEquals("Maße & Lot, Öffnungen", measure.label)
+        assertEquals("12 Öffnungen", measure.meta)
+        assertEquals(NavigationTarget.Push(measureRoute), measure.target)
+        assertEquals(RowMark.Ok, measure.mark)
+        assertEquals(7, shellRows.count { it.mark == RowMark.Ok && it.target == null })
+        assertEquals("Aussparungen Leitungen & Treppe", shell.groups[1].rows[2].label)
+        assertEquals("Bewehrungsabnahme Statiker", shell.groups[2].rows[0].label)
+
+        val carpentry = data.tradeProtocols.getValue("carpentry")
+        assertEquals("Holzbau Becker · Satteldach 38°", carpentry.subtitle)
+        assertEquals(BannerTone.Ok, carpentry.banner.tone)
+        assertEquals("PDF", carpentry.banner.documentLabel)
+        assertEquals(8, carpentry.groups.sumOf { it.rows.size })
+    }
+
+    @Test
+    fun loadsElectricalOverview() = runTest {
+        val data = AppData.load(repository)
+        assertEquals(setOf("electrical"), data.electricalOverviews.keys)
+        val el = data.electricalOverviews.getValue("electrical")
+        assertEquals("Elektro", el.title)
+        assertEquals("Elektro Schmitt GmbH · 26.04.2027", el.subtitle)
+        assertEquals(
+            listOf(
+                PhaseModel("1 · Rohinstallation", PhaseKind.Done("Abgenommen 29.01.", null)),
+                PhaseModel("2 · Fertiginstallation", PhaseKind.Active("4 von 11 geprüft", 0.36f)),
+            ),
+            el.phases,
+        )
+        assertEquals(listOf("Haustechnik", "Räume (9)", "Dokumente vom Elektriker"), el.groups.map { it.title })
+        assertEquals(listOf(null, null, null), el.groups.map { it.moreLabel })
+        val rows = el.groups.flatMap { it.rows }
+        assertEquals(
+            listOf(
+                "Zählerschrank & FI-Test", "Rauchwarnmelder", "Küche", "Wohnen / Essen", "Bad",
+                "Prüfprotokoll VDE 0100-600", "Verteilerplan & Stromkreisliste",
+            ),
+            rows.map { it.name },
+        )
+        assertEquals("5 Prüfschritte", rows[0].sub)
+        assertEquals("Pflicht vor Abnahme · anfordern", rows[5].sub)
+        assertEquals(listOf("Offen", "Läuft", "Läuft", "In Ordnung", "Offen", "Fehlt", "Vorhanden"), rows.map { it.statusLabel })
+        assertEquals(
+            listOf(
+                ElectricalTone.Open, ElectricalTone.Running, ElectricalTone.Running, ElectricalTone.Ok,
+                ElectricalTone.Open, ElectricalTone.Missing, ElectricalTone.Ok,
+            ),
+            rows.map { it.tone },
+        )
+        assertEquals(
+            listOf(
+                BaupilotIcon.MeterCabinet, BaupilotIcon.SmokeAlarm, BaupilotIcon.Home, BaupilotIcon.Home,
+                BaupilotIcon.Home, BaupilotIcon.Document, BaupilotIcon.Document,
+            ),
+            rows.map { it.icon },
+        )
+        assertEquals(listOf(panelRoute, smokeRoute, kitchenRoute, null, null, null, null), rows.map { it.target })
+    }
+
+    @Test
+    fun loadsMeasureCheck() = runTest {
+        val m = AppData.load(repository).measureChecks.getValue(measureRoute)
+        assertEquals(measureRoute, m.route)
+        assertEquals("8 / 12", m.counter)
+        assertEquals("Fensteröffnung F8", m.title)
+        assertEquals("OG Schlafen · Toleranz ± 12 mm", m.subtitle(12))
+        assertEquals(listOf(MeasureDimension.WIDTH to "Breite", MeasureDimension.HEIGHT to "Höhe"), m.dimensions.map { it.key to it.label })
+        assertEquals(listOf("F1", "F2", "F3", "F4", "F5", "F6", "F7"), m.measured)
+        assertEquals("Mangel", m.defectLabel)
+        assertEquals(AppRoute.NewDefect, m.defectTarget)
+        assertEquals(MeasureViewModel.of(1010 to 1385, 1005 to 1395, 5, 12, 1, 30, "mm"), m.initial)
+        assertEquals("Innerhalb der Toleranz", m.withinLabel)
+        assertEquals("Außerhalb der Toleranz – Mangel erfassen", m.outsideLabel)
+        assertEquals("Bereits gemessen", m.measuredHeading)
+        assertEquals("Wände im Lot", m.plumbTitle)
+        assertEquals("2-m-Wasserwaage an allen Außenecken", m.plumbSubtitle)
+        assertEquals("8 / 8", m.plumbValue)
+        assertEquals("Speichern", m.saveLabel)
+        assertEquals("Foto aufnehmen", m.photoLabel)
+        assertTrue(m.instruction.startsWith("Zollstock oben, mittig und unten anlegen. Den kleinsten Wert eintragen – "))
+    }
+
+    @Test
+    fun loadsRoomCheck() = runTest {
+        val r = AppData.load(repository).roomChecks.getValue(kitchenRoute)
+        assertEquals(kitchenRoute, r.route)
+        assertEquals("2 / 5", r.counter)
+        assertEquals("Küche", r.title)
+        assertEquals("EG · Plan: 8 Steckdosen, 3 Auslässe", r.subtitle)
+        assertEquals(listOf(StepDoneRow("Anzahl & Position laut Plan", "8 von 8 Steckdosen vorhanden")), r.done)
+        assertEquals(2, r.current.n)
+        assertEquals("Jede Steckdose testen", r.current.title)
+        assertTrue(r.current.text.startsWith("Steckdosentester einstecken. Zeigt er „korrekt“"))
+        assertEquals(
+            listOf(
+                StepNextRow("3", "Schalter schalten das richtige Licht"),
+                StepNextRow("4", "Herd, Spülmaschine & Dunstabzug"),
+                StepNextRow("5", "Abdeckungen gerade, keine offenen Dosen"),
+            ),
+            r.next,
+        )
+        assertEquals((1..8).map { "S$it" }, r.sockets.map { it.id })
+        assertEquals(
+            listOf(
+                SocketStatus.Ok, SocketStatus.Ok, SocketStatus.Ok, SocketStatus.Defect,
+                SocketStatus.Ok, SocketStatus.Now, SocketStatus.Open, SocketStatus.Open,
+            ),
+            r.sockets.map { it.status },
+        )
+        assertEquals(listOf("korrekt", "korrekt", "korrekt", "Fehler", "korrekt", "jetzt", "offen", "offen"), r.sockets.map { it.label })
+        assertEquals("Steckdose S4: Fehler", r.sockets[3].accessibilityLabel)
+        assertEquals("5 von 8 getestet ·", r.progressLabel)
+        assertEquals("S4: Mangel erfasst", r.defectNote)
+        assertEquals("S6 in Ordnung", r.okNote)
+        assertEquals("Mangel", r.defectLabel)
+        assertEquals(AppRoute.NewDefect, r.defectTarget)
+        assertEquals(0.30f, r.progress, 0.0001f)
+    }
+
+    @Test
+    fun loadsPanelCheck() = runTest {
+        val p = AppData.load(repository).panelChecks.getValue(panelRoute)
+        assertEquals(panelRoute, p.route)
+        assertEquals("3 / 5", p.counter)
+        assertEquals("Zählerschrank", p.title)
+        assertEquals("Nur von außen prüfen. Keine Abdeckungen abschrauben – das macht der Elektriker.", p.callout)
+        assertEquals(
+            listOf(StepDoneRow("Abdeckungen vollständig", "1 Foto"), StepDoneRow("Jede Sicherung beschriftet", "2 Fotos")),
+            p.done,
+        )
+        assertEquals(3, p.current.n)
+        assertEquals("FI-Schutzschalter testen", p.current.title)
+        assertEquals("Prüftaste „T“ am FI-Schalter drücken.", p.current.text)
+        assertEquals(
+            listOf("Der Hebel muss sofort nach unten springen.", "Hebel wieder nach oben – Strom ist zurück."),
+            p.current.steps,
+        )
+        assertEquals(listOf("Löst nicht aus", "FI 2 ausgelöst"), p.outcomes)
+        assertEquals(
+            listOf(
+                PanelNextRow("4", "Überspannungsschutz vorhanden", null),
+                PanelNextRow("5", "Prüfprotokoll VDE 0100-600 erhalten", "Pflicht"),
+            ),
+            p.next,
+        )
+        assertEquals(
+            listOf(
+                FiRow("FI 1 · Erdgeschoss", "Küche, Wohnen, Gäste-WC, Außen", "Ausgelöst", FiTone.Ok),
+                FiRow("FI 2 · Obergeschoss", "Schlafen, Kinder, Bad", "Jetzt testen", FiTone.Open),
+            ),
+            p.fis,
+        )
+        assertEquals(AppRoute.NewDefect, p.defectTarget)
+        assertEquals(0.50f, p.progress, 0.0001f)
+    }
+
+    @Test
+    fun loadsSmokeCheck() = runTest {
+        val s = AppData.load(repository).smokeChecks.getValue(smokeRoute)
+        assertEquals(smokeRoute, s.route)
+        assertEquals("3 / 5", s.counter)
+        assertEquals("Rauchwarnmelder", s.title)
+        assertEquals("Pflicht in Schlaf- und Kinderzimmern und in Fluren, die als Fluchtweg dienen.", s.subtitle)
+        assertEquals("Flur OG", s.room)
+        assertEquals("Jetzt prüfen", s.nowLabel)
+        assertEquals(
+            listOf(
+                SmokeCheckRow("Melder an der Decke montiert", "Mittig im Flur, mind. 50 cm Abstand zu Wand und Lampe.", true),
+                SmokeCheckRow("Testknopf drücken", "Ca. 3 Sekunden halten – der Melder muss laut piepen.", false),
+            ),
+            s.checks,
+        )
+        assertEquals(listOf("Kein Piepton", "Piept – OK"), s.outcomes)
+        assertEquals(
+            listOf(
+                SmokeRoom("Schlafen", "Getestet", SmokeRoomStatus.Ok),
+                SmokeRoom("Kind 1", "Getestet", SmokeRoomStatus.Ok),
+                SmokeRoom("Kind 2", "Getestet", SmokeRoomStatus.Ok),
+                SmokeRoom("Flur OG", "Jetzt", SmokeRoomStatus.Now),
+                SmokeRoom("Flur EG", "Offen", SmokeRoomStatus.Open),
+            ),
+            s.rooms,
+        )
+        assertEquals("Jährlich an Test erinnern", s.reminder)
+        assertEquals("Batterien laut Hersteller bis 2037", s.battery)
+        assertTrue(s.reminderInitiallyOn)
+        assertEquals(AppRoute.NewDefect, s.defectTarget)
+    }
+
+    @Test
+    fun loadsAllM5ScreenTexts() = runTest {
+        val names = listOf("Erd", "Rohbau", "RohbauMasse", "Zimmerer", "ElUebersicht", "ElRaum", "ElVerteiler", "ElRauchmelder")
+        for (name in names) {
+            val broken = edited { root ->
+                root.editObject("screens") { screens ->
+                    JsonObject(screens + (name to JsonObject(screens.getValue(name).jsonObject - "android")))
+                }
+            }
+            val error = runCatching { AppData.load(broken) }.exceptionOrNull()
+            assertTrue(name, error is RepositoryException.FixtureMissing)
+            assertEquals("screens.$name.android", (error as RepositoryException.FixtureMissing).path)
+        }
+        assertNotNull(AppData.load(repository))
+    }
+
+    @Test
+    fun loadsAllM5Routes() = runTest {
+        val data = AppData.load(repository)
+        val shellTargets = data.tradeProtocols.getValue("shell").groups.flatMap { it.rows }.mapNotNull { it.target }
+        assertEquals(listOf(NavigationTarget.Defects, NavigationTarget.Push(measureRoute)), shellTargets)
+        val electricalTargets = data.electricalOverviews.getValue("electrical").groups.flatMap { it.rows }.mapNotNull { it.target }
+        assertEquals(listOf<AppRoute>(panelRoute, smokeRoute, kitchenRoute), electricalTargets)
+        assertEquals(setOf<AppRoute>(measureRoute), data.measureChecks.keys)
+        assertEquals(setOf<AppRoute>(kitchenRoute), data.roomChecks.keys)
+        assertEquals(setOf<AppRoute>(panelRoute), data.panelChecks.keys)
+        assertEquals(setOf<AppRoute>(smokeRoute), data.smokeChecks.keys)
+        // D9: every check or room route read in M5 resolves to a loaded check.
+        val resolvable = data.measureChecks.keys + data.roomChecks.keys + data.panelChecks.keys + data.smokeChecks.keys
+        val routes = shellTargets.filterIsInstance<NavigationTarget.Push>().map { it.route } + electricalTargets
+        assertTrue(routes.filter { it is AppRoute.InspectionCheck || it is AppRoute.InspectionRoom }.all { it in resolvable })
+    }
+
+    @Test
+    fun androidNeverReadsMore() = runTest {
+        val data = AppData.load(repository)
+        assertTrue(data.electricalOverviews.getValue("electrical").groups.all { it.moreLabel == null })
+        // Even a `more` value on the Android side is never read (D16): the load must not fail on either shape.
+        val withMore = editTrade("electrical") { trade ->
+            trade.mapArray("groups") { gi, group ->
+                if (gi == 1) group.with("more", platform("Alle 9", "Alle 9")) else group
+            }
+        }
+        assertTrue(AppData.load(withMore).electricalOverviews.getValue("electrical").groups.all { it.moreLabel == null })
+        val withDate = editTrade("electrical") { trade ->
+            trade.mapArray("phases") { pi, phase ->
+                if (pi == 0) phase.with("dateLabel", platform("am 29.01.2027", "29.01.2027")) else phase
+            }
+        }
+        val phase = AppData.load(withDate).electricalOverviews.getValue("electrical").phases[0]
+        assertEquals(PhaseKind.Done("Abgenommen 29.01.", null), phase.kind)
+    }
+
+    @Test
+    fun missingOptionalKeysLoad() = runTest {
+        val noDocument = editTrade("earthworks") { trade ->
+            trade.editObject("banner") { JsonObject(it - "documentLabel") }
+        }
+        assertNull(AppData.load(noDocument).tradeProtocols.getValue("earthworks").banner.documentLabel)
+        val noRoute = editRows("shell") { _, _, row -> JsonObject(row - "route") }
+        val shellRows = AppData.load(noRoute).tradeProtocols.getValue("shell").groups.flatMap { it.rows }
+        assertTrue(shellRows.all { it.target == null })
+        val noTag = editCheck("panel", "electrical") { panel ->
+            panel.mapArray("next") { _, next -> JsonObject(next - "tag") }
+        }
+        assertTrue(AppData.load(noTag).panelChecks.getValue(panelRoute).next.all { it.tag == null })
+        val noPhaseLabels = editTrade("electrical") { trade ->
+            trade.mapArray("phases") { _, phase -> JsonObject(phase - "dateLabel") }
+        }
+        assertNotNull(AppData.load(noPhaseLabels))
+        val noChecks = editTrade("earthworks") { JsonObject(it - "checks") }
+        assertNotNull(AppData.load(noChecks))
+    }
+
+    @Test
+    fun unknownSocketStatusFailsLoad() = runTest {
+        val bad = editCheck("kitchen", "electrical") { kitchen ->
+            kitchen.mapArray("sockets") { i, socket -> if (i == 0) socket.with("status", JsonPrimitive("broken")) else socket }
+        }
+        assertEquals("$m5Checks.kitchen.sockets", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun unknownElectricalStatusLabelFailsLoad() = runTest {
+        val bad = editRows("electrical") { gi, ri, row ->
+            if (gi == 0 && ri == 0) row.with("statusLabel", JsonPrimitive("Kaputt")) else row
+        }
+        assertEquals("inspections.byTrade.electrical.groups.rows.statusLabel", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun phaseWithBothOrNeitherLabelFailsLoad() = runTest {
+        val both = editTrade("electrical") { trade ->
+            trade.mapArray("phases") { i, phase -> if (i == 1) phase.with("statusLabel", platform("x", "x")) else phase }
+        }
+        assertEquals("inspections.byTrade.electrical.phases", failure { AppData.load(both) }.detail)
+        val neither = editTrade("electrical") { trade ->
+            trade.mapArray("phases") { i, phase -> if (i == 1) JsonObject(phase - "progressLabel") else phase }
+        }
+        assertEquals("inspections.byTrade.electrical.phases", failure { AppData.load(neither) }.detail)
+    }
+
+    @Test
+    fun unknownBannerStatusFailsLoad() = runTest {
+        val bad = edited { root ->
+            root.editObject("inspections") { inspections ->
+                inspections.editObject("overview") { overview ->
+                    overview.mapArray("rows") { _, row ->
+                        if (row.getValue("tradeId").jsonPrimitive.content == "earthworks") row.with("status", JsonPrimitive("planned")) else row
+                    }
+                }
+            }
+        }
+        assertEquals("inspections.byTrade.earthworks.banner", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun checkRouteWithoutCheckFailsLoad() = runTest {
+        val shell = editRows("shell") { gi, ri, row ->
+            if (gi == 1 && ri == 0) row.with("route", JsonPrimitive("inspection/shell/missing")) else row
+        }
+        assertEquals("inspections.byTrade.shell.groups.rows.route", failure { AppData.load(shell) }.detail)
+        val electrical = editRows("electrical") { gi, ri, row ->
+            if (gi == 1 && ri == 0) row.with("route", JsonPrimitive("inspection/electrical/room/bath")) else row
+        }
+        assertEquals("inspections.byTrade.electrical.groups.rows.route", failure { AppData.load(electrical) }.detail)
+    }
+
+    @Test
+    fun shellRowTabRouteFailsLoad() = runTest {
+        val bad = editRows("shell") { gi, ri, row ->
+            if (gi == 0 && ri == 0) row.with("route", JsonPrimitive("inspections")) else row
+        }
+        assertEquals("inspections.byTrade.shell.groups.rows.route", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun smokeCurrentRoomMismatchFailsLoad() = runTest {
+        val bad = editCheck("smoke", "electrical") { smoke ->
+            smoke.editObject("current") { it.with("room", JsonPrimitive("Flur EG")) }
+        }
+        assertEquals("$m5Checks.smoke.current.room", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun panelWithOneOutcomeFailsLoad() = runTest {
+        val bad = editCheck("panel", "electrical") { panel ->
+            panel.editObject("current") { it.with("outcomes", JsonArray(listOf(JsonPrimitive("Löst nicht aus")))) }
+        }
+        assertEquals("$m5Checks.panel.current.outcomes", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun stepNumbersMustBePositiveIntegers() = runTest {
+        val current = editCheck("kitchen", "electrical") { kitchen ->
+            kitchen.editObject("current") { it.with("n", JsonPrimitive("x")) }
+        }
+        assertEquals("$m5Checks.kitchen.current", failure { AppData.load(current) }.detail)
+        val next = editCheck("kitchen", "electrical") { kitchen ->
+            kitchen.mapArray("next") { i, row -> if (i == 0) row.with("n", JsonPrimitive("0")) else row }
+        }
+        assertEquals("$m5Checks.kitchen.next", failure { AppData.load(next) }.detail)
+    }
+
+    @Test
+    fun m5DecodingErrorIsRepositoryException() = runTest {
+        val wrongType = editMeasurement("shellOpening") { opening ->
+            opening.editObject("target") { it.with("w", JsonPrimitive("viel")) }
+        }
+        assertEquals("measurements.shellOpening", failure { AppData.load(wrongType) }.detail)
+        val missingMember = edited { root ->
+            root.editObject("measurements") { JsonObject(it - "shellOpening") }
+        }
+        assertEquals("measurements.shellOpening", failure { AppData.load(missingMember) }.detail)
+        val unknownKey = editCheck("kitchen", "electrical") { it.with("extra", JsonPrimitive("x")) }
+        assertEquals("$m5Checks.kitchen", failure { AppData.load(unknownKey) }.detail)
+        val missingKey = editCheck("panel", "electrical") { JsonObject(it - "fis") }
+        assertEquals("$m5Checks.panel", failure { AppData.load(missingKey) }.detail)
+        val unknownTradeKey = editTrade("earthworks") { it.with("extra", JsonPrimitive("x")) }
+        assertEquals("inspections.byTrade.earthworks", failure { AppData.load(unknownTradeKey) }.detail)
+        val missingTradeKey = editTrade("electrical") { JsonObject(it - "phases") }
+        assertEquals("inspections.byTrade.electrical", failure { AppData.load(missingTradeKey) }.detail)
+    }
+
+    @Test
+    fun wrongTypeInShellOpeningFailsWithSlicePath() = runTest {
+        val bad = editMeasurement("shellOpening") { it.with("stepperDelta", JsonPrimitive("fünf")) }
+        assertEquals("measurements.shellOpening", failure { AppData.load(bad) }.detail)
+    }
+
+    // --- M6: Sanitär, Estrich, Fliesen, Maler (later trades). Android reads only its side of a PlatformText (D16).
+
+    private val slopeRoute = AppRoute.InspectionCheckItem("plumbing", "slope", "A3")
+    private val pressureRoute = AppRoute.InspectionCheck("plumbing", "pressure")
+    private val bathRoute = AppRoute.InspectionRoom("plumbing", "bathUpper")
+    private val flatnessRoute = AppRoute.InspectionCheck("screed", "flatness")
+    private val readinessRoute = AppRoute.InspectionCheck("screed", "readiness")
+    private val tileRoute = AppRoute.InspectionRoom("tiles", "bath")
+    private val paintRoute = AppRoute.InspectionRoom("painting", "living")
+    private val m6Plumbing = "inspections.byTrade.plumbing"
+
+    private val m6ScreenNames = listOf(
+        "SanUebersicht", "SanGefaelle", "SanDruck", "SanBad", "EsUebersicht", "EsEbenheit", "EsBelegreife",
+        "FlUebersicht", "FlBad", "MaUebersicht", "MaRaum",
+    )
+
+    @Test
+    fun loadsTradeOverviews() = runTest {
+        val overviews = AppData.load(repository).tradeOverviews
+        assertEquals(listOf("plumbing", "screed", "tiles", "painting"), overviews.keys.toList())
+
+        val plumbing = overviews.getValue("plumbing")
+        assertEquals("Sanitär & Heizung", plumbing.title)
+        assertEquals("Haustechnik Becker GmbH · 04.02.2027", plumbing.subtitle)
+        assertNull(plumbing.notice)
+        val phases = (plumbing.header as OverviewHeader.Phases).phases
+        assertEquals(
+            listOf(
+                PhaseModel("1 · Rohinstallation", PhaseKind.Active("3 von 6 geprüft", 0.50f)),
+                PhaseModel("2 · Fertigmontage", PhaseKind.Planned("Geplant KW 14")),
+            ),
+            phases,
+        )
+        val rows = plumbing.groups.flatMap { it.rows }
+        assertEquals(
+            listOf(
+                BaupilotIcon.Pipe, BaupilotIcon.Drop, BaupilotIcon.Pipe, BaupilotIcon.Heat, BaupilotIcon.Heat,
+                BaupilotIcon.Home, BaupilotIcon.Home,
+            ).map { OverviewLeading.Icon(it) },
+            rows.map { it.leading },
+        )
+        assertEquals(
+            listOf(
+                OverviewTone.Defect, OverviewTone.Today, OverviewTone.Ok, OverviewTone.Ok,
+                OverviewTone.Planned, OverviewTone.Planned, OverviewTone.Planned,
+            ),
+            rows.map { it.tone },
+        )
+        assertEquals(listOf<AppRoute?>(slopeRoute, pressureRoute, null, null, null, bathRoute, null), rows.map { it.target })
+        assertEquals("4 Abschnitte · 2 geprüft", rows[0].sub)
+        assertEquals("1 Mangel", rows[0].statusLabel)
+
+        val screed = overviews.getValue("screed")
+        assertEquals("Ohne CM-Messung und Aufheizprotokoll keinen Boden verlegen lassen.", screed.notice)
+        val screedPhases = (screed.header as OverviewHeader.Phases).phases
+        assertEquals(PhaseKind.Active("3 von 4 geprüft", 0.75f), screedPhases[0].kind)
+        assertEquals(PhaseKind.Planned("Aufheizen ab 01.03."), screedPhases[1].kind)
+        val screedRows = screed.groups.flatMap { it.rows }
+        assertEquals(OverviewTone.Required, screedRows.last().tone)
+        assertEquals("Durch den Bodenleger", screedRows.last().sub)
+        assertTrue(screedRows.all { it.leading == OverviewLeading.None })
+        assertEquals(listOf<AppRoute?>(null, null, flatnessRoute, null, readinessRoute, readinessRoute), screedRows.map { it.target })
+
+        val tiles = overviews.getValue("tiles")
+        val tilePhases = (tiles.header as OverviewHeader.Phases).phases
+        assertEquals(PhaseKind.Done("Abgenommen 15.03.", null), tilePhases[0].kind)
+        assertEquals(PhaseKind.Active("2 von 4 Räumen", 0.50f), tilePhases[1].kind)
+        assertEquals(OverviewTone.Running, tiles.groups[1].rows[0].tone)
+        assertEquals(tileRoute, tiles.groups[1].rows[0].target)
+
+        val painting = overviews.getValue("painting")
+        assertEquals(
+            listOf(OverviewFact("Qualität", "Q3"), OverviewFact("Farbtöne", "3 bemustert"), OverviewFact("Räume", "3 von 9")),
+            (painting.header as OverviewHeader.Facts).facts,
+        )
+        assertEquals(
+            listOf(PaintColor.Sand, PaintColor.White, PaintColor.White, PaintColor.Sage, PaintColor.White, PaintColor.White)
+                .map { OverviewLeading.Swatch(it) },
+            painting.groups.flatMap { it.rows }.map { it.leading },
+        )
+        assertEquals("Sand · Schritt 2 von 5", painting.groups[0].rows[0].sub)
+        assertEquals(paintRoute, painting.groups[0].rows[0].target)
+    }
+
+    @Test
+    fun loadsSlopeCheck() = runTest {
+        val data = AppData.load(repository)
+        assertEquals(setOf<AppRoute>(slopeRoute), data.slopeChecks.keys)
+        val slope = data.slopeChecks.getValue(slopeRoute)
+        assertEquals("3 / 4", slope.counter)
+        assertEquals("Gefälle Abwasser", slope.title)
+        assertEquals("A3 · Bad OG → Fallleitung · DN 50", slope.subtitle)
+        assertEquals(
+            listOf(SectionStatus.Ok, SectionStatus.Defect, SectionStatus.Now, SectionStatus.Open),
+            slope.sections.map { it.status },
+        )
+        assertEquals(listOf("A1", "A2", "A3", "A4"), slope.sections.map { it.id })
+        assertEquals(listOf("1,4 %", "0,4 %", "jetzt", "offen"), slope.sections.map { it.label })
+        assertEquals(20, slope.initial.lenDm)
+        assertEquals(25, slope.initial.dropMm)
+        assertEquals(10, slope.initial.sollTenths)
+        assertTrue(slope.initial.isSufficient)
+        assertEquals("Ausreichend · Soll ≥ 1,0 %", slope.initial.verdictText)
+        assertEquals("Mangel", slope.defectLabel)
+        assertEquals(AppRoute.NewDefect, slope.defectTarget)
+        assertEquals("Länge", slope.lengthLabel)
+        assertEquals("Höhenunterschied", slope.dropLabel)
+        assertEquals("Speichern", slope.saveLabel)
+        assertEquals("Foto aufnehmen", slope.photoLabel)
+        assertEquals("waagerecht", slope.schemaLevelLabel)
+        assertEquals("Δh", slope.schemaDeltaLabel)
+    }
+
+    @Test
+    fun loadsPressureCheck() = runTest {
+        val data = AppData.load(repository)
+        assertEquals(setOf<AppRoute>(pressureRoute), data.pressureChecks.keys)
+        val check = data.pressureChecks.getValue(pressureRoute)
+        assertEquals("3 / 5", check.counter)
+        assertEquals("Mit Installateur · vor dem Verschließen", check.subtitle)
+        assertEquals(listOf(StepDoneRow("Leitungen sichtbar & beschriftet", "3 Fotos"), StepDoneRow("Manometer zu Beginn", "10,0 bar")), check.done)
+        assertEquals(3, check.current.n)
+        assertEquals("Manometer am Ende ablesen", check.current.title)
+        assertEquals(0.58f, check.timer.fraction)
+        assertEquals("12:40", check.timer.remaining)
+        assertEquals("Prüfzeit zu 58 Prozent abgelaufen", check.timer.accessibilityLabel)
+        assertEquals("Noch 12:40 Min. Prüfzeit", check.timer.remainingLabel)
+        assertEquals("Prüfdruck und Dauer legt der Installateur fest.", check.timer.note)
+        assertEquals("Start (10:02)", check.timer.startLabel)
+        assertEquals("10,0 bar", check.timer.startValue)
+        assertEquals("Ende", check.timer.endLabel)
+        assertEquals("– bar", check.timer.endPlaceholder)
+        assertEquals(listOf(null, "Pflicht"), check.next.map { it.tag })
+        assertEquals(listOf("4", "5"), check.next.map { it.n })
+        assertEquals("Manometer fotografieren", check.photoLabel)
+        assertEquals(0.50f, check.progress)
+    }
+
+    @Test
+    fun loadsObjectCheck() = runTest {
+        val data = AppData.load(repository)
+        assertEquals(setOf<AppRoute>(bathRoute), data.objectChecks.keys)
+        val check = data.objectChecks.getValue(bathRoute)
+        assertEquals("Fertigmontage · 1 von 5 Objekten", check.counter)
+        assertEquals(
+            listOf(ObjectState.Done, ObjectState.Now, ObjectState.Open, ObjectState.Open, ObjectState.Open),
+            check.objects.map { it.state },
+        )
+        assertEquals("Waschtisch", check.heading)
+        assertEquals(listOf(true, true, false, false, false), check.checks.map { it.ok })
+        assertEquals("Mit Papiertuch unten abwischen.", check.checks[2].hint)
+        assertEquals("Hebel ganz nach links: Wasser wird warm.", check.checks[0].hint)
+        assertEquals("Objekte", check.tabsLabel)
+    }
+
+    @Test
+    fun loadsFlatnessCheck() = runTest {
+        val data = AppData.load(repository)
+        assertEquals(setOf<AppRoute>(flatnessRoute), data.flatnessChecks.keys)
+        val check = data.flatnessChecks.getValue(flatnessRoute)
+        assertEquals("5 / 7", check.counter)
+        assertEquals("Ebenheit · Wohnen", check.title)
+        assertEquals("Grenzwert laut Vertrag: 4 mm unter 2-m-Latte", check.subtitle(check.initial.limitText))
+        assertEquals(4, check.initial.limit)
+        assertEquals(listOf(2, 3, 6), check.initial.points)
+        assertEquals(1, check.initial.overCount)
+        assertEquals("Spalt Messpunkt M", check.stepperLabelPrefix)
+        assertEquals("Spalt", check.stepperAccessibilityNoun)
+        assertEquals("Messpunkt speichern", check.saveLabel)
+        assertEquals("Gemessen (%d)", check.measuredFormat)
+        assertEquals(AppRoute.NewDefect, check.defectTarget)
+    }
+
+    @Test
+    fun loadsReadinessCheck() = runTest {
+        val data = AppData.load(repository)
+        assertEquals(setOf<AppRoute>(readinessRoute), data.readinessChecks.keys)
+        val check = data.readinessChecks.getValue(readinessRoute)
+        assertEquals("Aufheizen & Belegreife", check.screenTitle)
+        assertEquals("Aufheizprotokoll", check.cardTitle)
+        assertEquals("Tag 6 von 21", check.counter)
+        val bars = check.chart.bars
+        assertEquals(21, bars.size)
+        assertEquals(listOf(40, 40, 40, 48, 56, 56, 64, 72), bars.take(8).map { it.height })
+        assertEquals(40, bars.last().height)
+        assertEquals(5, bars.count { it.kind == HeatingBarKind.Recorded })
+        assertEquals(1, bars.count { it.kind == HeatingBarKind.Today })
+        assertEquals(15, bars.count { it.kind == HeatingBarKind.Planned })
+        assertEquals(HeatingBarKind.Today, bars[5].kind)
+        assertEquals("Tag 1", check.chart.start)
+        assertEquals("Max. 45 °C", check.chart.max)
+        assertEquals("Tag 21", check.chart.end)
+        assertEquals("Tag 6 eintragen", check.chart.action)
+        assertEquals("CM-Messung", check.cm.title)
+        assertEquals("Pflicht", check.cm.tag)
+        assertEquals("Bodenbelag erst nach Freigabe", check.cm.note)
+        assertEquals(listOf(true, false, false), check.cm.rows.map { it.done })
+        assertEquals("geplant 19.03.", check.cm.rows[1].meta)
+    }
+
+    @Test
+    fun loadsTileCheck() = runTest {
+        val data = AppData.load(repository)
+        assertEquals(setOf<AppRoute>(tileRoute), data.tileChecks.keys)
+        val check = data.tileChecks.getValue(tileRoute)
+        assertEquals("3 / 6", check.counter)
+        assertEquals("Feinsteinzeug 60×60 · Boden & Wand", check.subtitle)
+        assertEquals(24, check.tiles.size)
+        assertEquals(listOf("tile-3", "tile-4"), check.tiles.filter { it.hollow }.map { it.id })
+        assertEquals("Fliese 3: hohl", check.tiles[2].accessibilityLabel)
+        assertEquals("hohl", check.tiles[2].label)
+        assertNull(check.tiles[0].label)
+        assertEquals(8, check.columns)
+        assertEquals(3, check.current.n)
+        assertEquals(listOf("4", "5", "6"), check.next.map { it.n })
+        assertEquals("Als Mangel", check.defectLabel)
+        assertEquals("Keine Hohlstellen", check.noneLabel)
+        assertEquals(0.42f, check.progress)
+        assertEquals("2 Fliesen klingen hohl (vor der Dusche)", check.result)
+    }
+
+    @Test
+    fun loadsPaintCheck() = runTest {
+        val data = AppData.load(repository)
+        assertEquals(setOf<AppRoute>(paintRoute), data.paintChecks.keys)
+        val check = data.paintChecks.getValue(paintRoute)
+        assertEquals("2 / 5", check.counter)
+        assertEquals("Wände Sand · Decke Weiß · Q3", check.subtitle)
+        assertEquals(
+            listOf(WallState.Done, WallState.Done, WallState.Now, WallState.Open, WallState.Open),
+            check.walls.map { it.state },
+        )
+        assertEquals(listOf("Farbton wie bemustert"), check.done)
+        assertEquals(PaintColor.Sand, check.doneSwatch)
+        assertEquals("Flächen", check.wallsLabel)
+        assertEquals("Mangel", check.defectLabel)
+        assertEquals("In Ordnung", check.okLabel)
+        assertEquals("Foto aufnehmen", check.photoLabel)
+        assertEquals(0.30f, check.progress)
+    }
+
+    @Test
+    fun loadsAllM6ScreenTexts() = runTest {
+        AppData.load(repository)
+        assertEquals(11, m6ScreenNames.size)
+        for (name in m6ScreenNames) {
+            val removed = edited { root ->
+                root.editObject("screens") { screens ->
+                    screens.editObject(name) { JsonObject(it + ("android" to JsonNull)) }
+                }
+            }
+            val error = runCatching { AppData.load(removed) }.exceptionOrNull()
+            assertTrue(name, error is RepositoryException.FixtureMissing)
+            assertEquals("screens.$name.android", (error as RepositoryException.FixtureMissing).path)
+        }
+    }
+
+    @Test
+    fun loadsAllM6Routes() = runTest {
+        val data = AppData.load(repository)
+        val targets = data.tradeOverviews.values.flatMap { it.groups }.flatMap { it.rows }.mapNotNull { it.target }
+        assertEquals(
+            listOf<AppRoute>(slopeRoute, pressureRoute, bathRoute, flatnessRoute, readinessRoute, readinessRoute, tileRoute, paintRoute),
+            targets,
+        )
+        val resolvable = data.slopeChecks.keys + data.pressureChecks.keys + data.flatnessChecks.keys + data.readinessChecks.keys +
+            data.objectChecks.keys + data.tileChecks.keys + data.paintChecks.keys
+        assertTrue(targets.all { it in resolvable })
+    }
+
+    @Test
+    fun unknownOverviewStatusLabelFailsLoad() = runTest {
+        val bad = editRows("plumbing") { gi, ri, row -> if (gi == 0 && ri == 1) row.with("statusLabel", JsonPrimitive("Kaputt")) else row }
+        assertEquals("$m6Plumbing.groups.rows.statusLabel", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun overviewWithPhasesAndFactsFailsLoad() = runTest {
+        val facts = Json.parseToJsonElement("""[{"label":"Qualität","value":"Q3"}]""")
+        assertEquals(m6Plumbing, failure { AppData.load(editTrade("plumbing") { it.with("facts", facts) }) }.detail)
+        val neither = editTrade("painting") { JsonObject(it - "facts") }
+        assertEquals("inspections.byTrade.painting", failure { AppData.load(neither) }.detail)
+    }
+
+    @Test
+    fun unknownPaintWordFailsLoad() = runTest {
+        val bad = editRows("painting") { gi, ri, row -> if (gi == 0 && ri == 1) row.with("sub", JsonPrimitive("Rot, Latex")) else row }
+        assertEquals("inspections.byTrade.painting.groups.rows.sub", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun unparseableSectionLabelFailsLoad() = runTest {
+        val bad = editMeasurement("drainSlope") { slope ->
+            slope.with("sections", Json.parseToJsonElement("""[{"id":"A1","label":"viel"},{"id":"A3","label":"jetzt"}]"""))
+        }
+        assertEquals("measurements.drainSlope.sections", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun slopeCurrentSectionMismatchFailsLoad() = runTest {
+        val bad = editCheck("slope", "plumbing") { it.with("subtitle", JsonPrimitive("A2 · Bad OG → Fallleitung · DN 50")) }
+        assertEquals("$m6Plumbing.checks.slope", failure { AppData.load(bad) }.detail)
+        val counter = editCheck("slope", "plumbing") { it.with("counter", platform("Abschnitt 2 von 4", "2 / 4")) }
+        assertEquals("$m6Plumbing.checks.slope", failure { AppData.load(counter) }.detail)
+    }
+
+    @Test
+    fun wrongSlopeMeasurementKeyFailsLoad() = runTest {
+        val bad = editCheck("slope", "plumbing") { it.with("measurementKey", JsonPrimitive("shellOpening")) }
+        assertEquals("$m6Plumbing.checks.slope.measurementKey", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun unknownCheckItemFailsLoad() = runTest {
+        val bad = editRows("plumbing") { gi, ri, row ->
+            if (gi == 0 && ri == 0) row.with("route", JsonPrimitive("inspection/plumbing/slope/A2")) else row
+        }
+        assertEquals("$m6Plumbing.groups.rows.route", failure { AppData.load(bad) }.detail)
+        val unknownRoom = editRows("tiles") { gi, ri, row ->
+            if (gi == 1 && ri == 0) row.with("route", JsonPrimitive("inspection/tiles/room/attic")) else row
+        }
+        assertEquals("inspections.byTrade.tiles.groups.rows.route", failure { AppData.load(unknownRoom) }.detail)
+    }
+
+    @Test
+    fun unknownM6CheckScreenFailsLoad() = runTest {
+        val bad = editCheck("pressure", "plumbing") { it.with("screen", JsonPrimitive("SanFoo")) }
+        assertEquals("$m6Plumbing.checks.pressure.screen", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun twoSelectedObjectsFailsLoad() = runTest {
+        val bad = editCheck("bathUpper", "plumbing") { check ->
+            check.with(
+                "objects",
+                JsonArray(check.getValue("objects").jsonArray.mapIndexed { i, o -> if (i == 0) o.jsonObject.with("selected", JsonPrimitive(true)) else o }),
+            )
+        }
+        assertEquals("$m6Plumbing.checks.bathUpper.objects", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun selectedWallWithTickFailsLoad() = runTest {
+        val bad = editCheck("living", "painting") { check ->
+            check.with(
+                "walls",
+                JsonArray(
+                    check.getValue("walls").jsonArray.map { w ->
+                        if (w.jsonObject.getValue("selected").jsonPrimitive.content == "true") {
+                            w.jsonObject.with("name", JsonPrimitive("Süd ✓"))
+                        } else {
+                            w
+                        }
+                    },
+                ),
+            )
+        }
+        assertEquals("inspections.byTrade.painting.checks.living.walls", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun unknownTileStatusFailsLoad() = runTest {
+        val bad = editCheck("bath", "tiles") { check ->
+            check.with(
+                "tiles",
+                JsonArray(check.getValue("tiles").jsonArray.mapIndexed { i, t -> if (i == 0) t.jsonObject.with("status", JsonPrimitive("kaputt")) else t }),
+            )
+        }
+        assertEquals("inspections.byTrade.tiles.checks.bath.tiles", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun wrongTileCountFailsLoad() = runTest {
+        val bad = editCheck("bath", "tiles") { check -> check.with("tiles", JsonArray(check.getValue("tiles").jsonArray.dropLast(1))) }
+        assertEquals("inspections.byTrade.tiles.checks.bath.tiles", failure { AppData.load(bad) }.detail)
+    }
+
+    @Test
+    fun brokenStepNumbersFailLoad() = runTest {
+        val bad = editCheck("pressure", "plumbing") { check ->
+            check.with("current", check.getValue("current").jsonObject.with("n", JsonPrimitive("4")))
+        }
+        assertEquals("$m6Plumbing.checks.pressure.next", failure { AppData.load(bad) }.detail)
+        val notANumber = editCheck("living", "painting") { check ->
+            check.with("current", check.getValue("current").jsonObject.with("n", JsonPrimitive("zwei")))
+        }
+        assertEquals("inspections.byTrade.painting.checks.living.current", failure { AppData.load(notANumber) }.detail)
+    }
+
+    @Test
+    fun heatingTodayOutOfRangeFailsLoad() = runTest {
+        val past = editMeasurement("screedHeating") { it.with("todayDay", JsonPrimitive(22)) }
+        assertEquals("measurements.screedHeating", failure { AppData.load(past) }.detail)
+        val recorded = editMeasurement("screedHeating") { it.with("recordedDays", JsonPrimitive(6)) }
+        assertEquals("measurements.screedHeating", failure { AppData.load(recorded) }.detail)
+        val zero = editMeasurement("screedHeating") { it.with("todayDay", JsonPrimitive(0)) }
+        assertEquals("measurements.screedHeating", failure { AppData.load(zero) }.detail)
+    }
+
+    @Test
+    fun unknownM6ScreenFailsLoad() = runTest {
+        val missing = edited { root -> root.editObject("screens") { JsonObject(it - "SanBad") } }
+        val error = runCatching { AppData.load(missing) }.exceptionOrNull()
+        assertTrue(error is RepositoryException.FixtureMissing)
+        assertEquals("screens.SanBad.android", (error as RepositoryException.FixtureMissing).path)
+    }
+
+    @Test
+    fun androidNeverReadsBathSubtitle() = runTest {
+        val base = AppData.load(repository)
+        val changed = editCheck("bathUpper", "plumbing") { it.with("subtitle", platform("Fertigmontage", "nie gelesen")) }
+        assertEquals(base.objectChecks, AppData.load(changed).objectChecks)
+        val noIos = editCheck("bathUpper", "plumbing") { it.with("subtitle", platform(null, null)) }
+        assertEquals(base.objectChecks, AppData.load(noIos).objectChecks)
+        val dateLabel = editTrade("tiles") { trade ->
+            trade.mapArray("phases") { i, phase -> if (i == 0) phase.with("dateLabel", platform("am 15.03.2027", "nie gelesen")) else phase }
+        }
+        assertEquals(base.tradeOverviews, AppData.load(dateLabel).tradeOverviews)
+        val noDate = editTrade("tiles") { trade ->
+            trade.mapArray("phases") { i, phase -> if (i == 0) phase.with("dateLabel", platform(null, null)) else phase }
+        }
+        assertEquals(base.tradeOverviews, AppData.load(noDate).tradeOverviews)
+    }
+
+    @Test
+    fun m6DecodingErrorIsRepositoryException() = runTest {
+        val wrongType = editMeasurement("drainSlope") { it.with("lengthDm", JsonPrimitive("lang")) }
+        assertEquals("measurements.drainSlope", failure { AppData.load(wrongType) }.detail)
+        val missingMember = edited { root -> root.editObject("measurements") { JsonObject(it - "screedHeating") } }
+        assertEquals("measurements.screedHeating", failure { AppData.load(missingMember) }.detail)
+        val unknownKey = editCheck("pressure", "plumbing") { it.with("extra", JsonPrimitive("x")) }
+        assertEquals("$m6Plumbing.checks.pressure", failure { AppData.load(unknownKey) }.detail)
+        val missingKey = editCheck("bath", "tiles") { JsonObject(it - "tiles") }
+        assertEquals("inspections.byTrade.tiles.checks.bath", failure { AppData.load(missingKey) }.detail)
+        val unknownTradeKey = editTrade("screed") { it.with("extra", JsonPrimitive("x")) }
+        assertEquals("inspections.byTrade.screed", failure { AppData.load(unknownTradeKey) }.detail)
+        val wrongRowType = editRows("painting") { gi, ri, row -> if (gi == 0 && ri == 0) row.with("name", JsonPrimitive(7)) else row }
+        assertEquals("inspections.byTrade.painting", failure { AppData.load(wrongRowType) }.detail)
+    }
+
+    @Test
+    fun wrongTypeInDrainSlopeFailsWithSlicePath() = runTest {
+        val bad = editMeasurement("drainSlope") { it.with("dropMm", JsonPrimitive("fünf")) }
+        assertEquals("measurements.drainSlope", failure { AppData.load(bad) }.detail)
     }
 }

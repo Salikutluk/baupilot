@@ -108,6 +108,15 @@ final class InspectionFlowUITests: XCTestCase {
         // A plain-style row only hits on drawn content and this row's subtitle wraps narrow, so tap on the title.
         earthworks.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.2)).tap()
         expectScreen("screen.inspection.earthworks")
+        XCTAssertTrue(element("protocol.banner").waitForExistence(timeout: 5))
+        back(to: "screen.inspections")
+        let plumbing = element("inspections.trade.plumbing")
+        XCTAssertTrue(plumbing.waitForExistence(timeout: 5))
+        if !app.frame.contains(plumbing.frame) { app.swipeUp() }
+        plumbing.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.2)).tap()
+        expectScreen("screen.inspection.plumbing")
+        expectScreen("overview.phase.0")
+        XCTAssertFalse(element("protocol.banner").exists)
         back(to: "screen.inspections")
         tap("inspections.trade.roofing")
         expectScreen("screen.inspections")
