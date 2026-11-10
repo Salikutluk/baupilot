@@ -413,4 +413,19 @@ final class ScreenSnapshotTests: XCTestCase {
     func testSanBadDark() async throws {
         try await verify("SanBad", mode: .dark, navigation: sanBad)
     }
+
+    /// D10: logged in, Abnahmen tab, Estrich opened (back label "Abnahmen").
+    private var esUebersicht: AppNavigation {
+        var navigation = abnGewerke
+        navigation.open(.inspection(tradeId: "screed"))
+        return navigation
+    }
+
+    func testEsUebersichtLight() async throws {
+        try await verify("EsUebersicht", mode: .light, navigation: esUebersicht)
+    }
+
+    func testEsUebersichtDark() async throws {
+        try await verify("EsUebersicht", mode: .dark, navigation: esUebersicht)
+    }
 }
