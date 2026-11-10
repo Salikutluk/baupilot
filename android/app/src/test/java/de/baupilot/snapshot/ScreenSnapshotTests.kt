@@ -788,3 +788,31 @@ class EsEbenheitDarkSnapshotTest {
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
+
+/** Aufheizen & Belegreife (D10: `logIn`, `select(Inspections)`, `open(Inspection("screed"))`, `open(InspectionCheck("screed", "readiness"))`), compared with `design/reference/android/EsBelegreife_light.png`. */
+class EsBelegreifeLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("EsBelegreife", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun esBelegreife() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("screed"))
+            .open(AppRoute.InspectionCheck("screed", "readiness"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Aufheizen & Belegreife (D10, see the light test), compared with `design/reference/android/EsBelegreife_dark.png`. */
+class EsBelegreifeDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("EsBelegreife", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun esBelegreife() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("screed"))
+            .open(AppRoute.InspectionCheck("screed", "readiness"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}

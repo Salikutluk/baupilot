@@ -14,7 +14,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import de.baupilot.app.HeatingBar
+import de.baupilot.app.HeatingBarKind
 import de.baupilot.designsystem.components.BaupilotVerticalStepper
+import de.baupilot.designsystem.components.ButtonSize
+import de.baupilot.designsystem.components.CheckMetaRow
+import de.baupilot.designsystem.components.FilledButton
+import de.baupilot.designsystem.components.FilledContainer
+import de.baupilot.designsystem.components.HeatingBarChart
 import de.baupilot.designsystem.components.ObjectCheckRow
 import de.baupilot.designsystem.components.ObjectChip
 import de.baupilot.designsystem.components.ObjectChipState
@@ -226,6 +233,46 @@ class ComponentMetricsLaterTradesTest {
         }
         assertEquals(44 * 3, heights.getValue("link"))
         assertTrue(widths.getValue("link") > 0)
+    }
+
+    /** AndEsBelegreife:30: the chart is 80 tall and as wide as its card body (326); the bars split it (326 - 60) / 21. */
+    @Test
+    fun heatingBarChartIs80TallAndFillsTheCardBody() {
+        val bars = List(21) { HeatingBar(40, if (it < 5) HeatingBarKind.Recorded else HeatingBarKind.Planned) }
+        paparazzi.snapshot {
+            HeatingBarChart(
+                bars, "Vorlauftemperatur", Tokens.ok, Tokens.primary, Tokens.track.esBelegreife,
+                Modifier.width(326.dp).record("chart"),
+            )
+        }
+        assertEquals(80 * 3, heights.getValue("chart"))
+        assertEquals(326 * 3, widths.getValue("chart"))
+    }
+
+    /** AndEsBelegreife:55: the row is at least 44 tall, an open and a done row alike. */
+    @Test
+    fun checkMetaRowIs44Tall() {
+        paparazzi.snapshot {
+            Column(Modifier.width(326.dp)) {
+                CheckMetaRow("Messstellen markiert", "wegen Fußbodenheizung", true, Modifier.record("done"))
+                CheckMetaRow("Messung durchgeführt", "geplant 19.03.", false, Modifier.record("open"))
+            }
+        }
+        assertEquals(44 * 3, heights.getValue("done"))
+        assertEquals(44 * 3, heights.getValue("open"))
+    }
+
+    /** AndEsBelegreife:44: the compact button is 48 tall; padding 20 makes it 8 wider than the default 16. */
+    @Test
+    fun compactFilledButtonUsesItsHorizontalPadding() {
+        paparazzi.snapshot {
+            Column {
+                FilledButton("Tag 6 eintragen", ButtonSize.Compact, FilledContainer.Primary, Modifier.record("wide"), horizontalPadding = 20.dp)
+                FilledButton("Tag 6 eintragen", ButtonSize.Compact, FilledContainer.Primary, Modifier.record("default"))
+            }
+        }
+        assertEquals(48 * 3, heights.getValue("wide"))
+        assertEquals(widths.getValue("default") + 8 * 3, widths.getValue("wide"))
     }
 }
 

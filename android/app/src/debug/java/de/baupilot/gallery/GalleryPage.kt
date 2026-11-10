@@ -22,7 +22,15 @@ import androidx.compose.ui.unit.sp
 import de.baupilot.designsystem.BaupilotText
 import de.baupilot.designsystem.Tokens
 import de.baupilot.designsystem.BaupilotIcon
+import de.baupilot.app.HeatingBar
+import de.baupilot.app.HeatingBarKind
 import de.baupilot.designsystem.components.BaupilotVerticalStepper
+import de.baupilot.designsystem.components.ButtonSize
+import de.baupilot.designsystem.components.CheckMetaRow
+import de.baupilot.designsystem.components.FilledButton
+import de.baupilot.designsystem.components.FilledContainer
+import de.baupilot.designsystem.components.HeatingBarChart
+import de.baupilot.designsystem.components.InfoCallout
 import de.baupilot.designsystem.components.ObjectCheckRow
 import de.baupilot.designsystem.components.ObjectChip
 import de.baupilot.designsystem.components.ObjectChipState
@@ -221,11 +229,38 @@ internal fun PlumbingStepsPage() {
     }
 }
 
-/** Estrich parts, page: the text link, 44 tall in layout (AndEsEbenheit:56). */
+/** Estrich parts, page: the text link (AndEsEbenheit:56), the heating chart, the check rows, the compact button, the lock note. */
 @Composable
 internal fun ScreedPage() {
     Caption("TextLink · 14 / 500 err, Layout 44, Treffer 48 (AndEsEbenheit:56)")
     TextLink("1 Messpunkt über Grenzwert → Mangel erfassen", Tokens.err)
     Caption("TextLink · Platzhalter ohne Aktion, muted")
     TextLink("Kein Messpunkt über Grenzwert", Tokens.muted)
+    Caption("HeatingBarChart · 80 hoch, Balken Lücke 3, ok / primary / track (AndEsBelegreife:30)")
+    val plan = listOf(25, 25, 25, 30, 35, 35, 40, 45, 45, 45, 45, 45, 45, 40, 35, 30, 25, 25, 25, 25, 25)
+    HeatingBarChart(
+        bars = plan.mapIndexed { i, v ->
+            HeatingBar(
+                (2 * v * 72 + 45) / 90,
+                if (i < 5) HeatingBarKind.Recorded else if (i == 5) HeatingBarKind.Today else HeatingBarKind.Planned,
+            )
+        },
+        accessibilityLabel = "Vorlauftemperatur je Tag, Tag 1 bis 5 erfasst, heute Tag 6",
+        recorded = Tokens.ok,
+        today = Tokens.primary,
+        planned = Tokens.track.esBelegreife,
+    )
+    Caption("CheckMetaRow · min 44, Kasten 20 r4 (AndEsBelegreife:55)")
+    CheckMetaRow("Messstellen markiert", "wegen Fußbodenheizung", true)
+    CheckMetaRow("Messung durchgeführt", "geplant 19.03.", false)
+    Caption("FilledButton · Compact, Rand 20 (AndEsBelegreife:44)")
+    FilledButton("Tag 6 eintragen", ButtonSize.Compact, FilledContainer.Primary, horizontalPadding = 20.dp)
+    Caption("InfoCallout · surfaceContainer / muted, Lock, zentriert (AndEsBelegreife:65)")
+    InfoCallout(
+        "Bodenbelag erst nach Freigabe",
+        icon = BaupilotIcon.Lock,
+        container = Tokens.surfaceContainer,
+        content = Tokens.muted,
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+    )
 }
