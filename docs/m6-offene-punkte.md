@@ -163,3 +163,48 @@ Testmethoden der M6-Suiten, **statisch gezählt, in dieser Phase nicht ausgefüh
 | I9 | `cd scripts && node --test test/`: 114 / 114 grün (T-DS-1 eingeschlossen) |
 | I10 | `scripts/design-freeze --check`, `gen-tokens --check`, `gen-icons --check` und `git status --porcelain -- design fixtures scripts/icons.json` gehören zum Endlauf (Phase 20); diese Phase hat nichts davon geändert |
 | I11 | Die Tests stehen im Baum (`LaterTradesUITests` / `LaterTradesUiTest`, Fliesen-Tap ohne Aktion). In dieser Phase nicht ausgeführt (Phase 20) |
+
+## Verifikation (Phase 20, Plan §12)
+
+Gesamtlauf auf `feat/m6` (HEAD `e41d768`), Befehle wörtlich aus Plan §12: iOS `xcodegen generate` und `xcodebuild test … 'platform=iOS Simulator,name=iPhone 15'`, Release-Build, Android mit JDK 21 aus Android Studio und `ANDROID_HOME=~/Library/Android/sdk`, danach beide `diff-report`-Läufe. Es wurde nichts repariert, keine Referenz neu aufgenommen, keine Toleranz geändert; der einzige geänderte Pfad dieser Phase ist dieser Abschnitt.
+
+| Block | Ergebnis |
+|---|---|
+| `cd scripts && node --test test/` | 114 Tests, 114 grün |
+| `scripts/gen-tokens --check`, `scripts/gen-icons --check` | grün (Exit 0) |
+| `scripts/lint-hex` | `lint-hex: sauber` |
+| `scripts/design-freeze --check` | `design/ matches scripts/design-v1.sha256 (276 files)` |
+| iOS `BaupilotTests` (Unit, Gallery, Metrik, Snapshots) | 492 Tests, 424 grün, **68 rot** (alle 68 `ScreenSnapshotTests`: 46 M2–M5 + 22 M6), sonst 0 rot |
+| iOS `BaupilotUITests` | 38 / 38 grün (`AppNavigationUITests` 7, `EarlyTradesUITests` 5, `InspectionFlowUITests` 9, `LaterTradesUITests` 6, `TradeFlowUITests` 11) |
+| iOS gesamt | 530 Tests, 462 grün, 68 rot (`xcodebuild` Exit 65) |
+| iOS Release-Build (`generic/platform=iOS Simulator`) | `BUILD SUCCEEDED` |
+| Android `:app:testDebugUnitTest` | 483 Tests, 426 grün, **57 rot**, 0 übersprungen, 0 Fehler. Rot: 56 Screen-`*SnapshotTest` (37 M2–M5 + 19 M6) und `GalleryDarkSnapshotTest` (G1). Alle Nicht-Snapshot-Tests grün |
+| Android `:app:compileReleaseKotlin` | grün (Gradle-Gesamtlauf `BUILD FAILED` nur wegen der roten Snapshots, `--continue`) |
+| `scripts/diff-report --platform ios`, `--platform android` | beide Exit 0, je 68 Bilder |
+| `git status --porcelain -- design fixtures scripts/icons.json` | leer |
+
+M6-Suiten (ausgeführt, nicht mehr nur gezählt): iOS `SlopeViewModelTests` 9, `FlatnessViewModelTests` 9, `M6ConsistencyTests` 9, `AppDataTests` 114, `ComponentMetricsLaterTradesTests` 38, `LaterTradesUITests` 6, alle grün; Android `SlopeViewModelTest` 10, `FlatnessViewModelTest` 10, `M6ConsistencyTest` 9, `AppDataTest` 106, `LaterTradesUiTest` 6, `InspectionFlowUiTest` 9, `EarlyTradesUiTest` 5, alle grün. Das ändert die Phase-19-Aussage „nicht ausgeführt“ in der Tabelle „Testzahlen“ oben: sie sind ausgeführt und grün.
+
+Zuwachs gegenüber Step 0: iOS Unit 368 → 492 (+124, davon +22 Snapshots), UI 32 → 38 (+6); Android 372 → 483 (+111; rot 37 → 57, davon +19 M6-Screen-Snapshots und +1 G1; grün 335 → 426).
+
+**Erfüllt gegenüber §12:** alle Skript- und Prüfblöcke, Release-Builds, alle Nicht-Snapshot-Tests beider Plattformen. **Nicht erfüllt, mit Ursache:** (1) AC1: 68 iOS- und 56 Android-Screen-Snapshots rot; 3 von 44 M6-Snapshots grün (Android `FlUebersicht` dunkel, `MaUebersicht` hell und dunkel). Ursache R1 (Glyphen-Raster) und R17 (iOS-Lage-Versatz), unverändert gegenüber Phase 19; Toleranzen und Referenzen unverändert. (2) G1: `GalleryDarkSnapshotTest.allPages` rot, `GalleryElectricalSteps2` weicht um **0,514528 %** ab (erlaubt ≤ 0,5 %), isoliert nicht weiter geklärt (siehe G1 oben), nicht repariert, weil kein triviales Integrationsproblem und die Referenz nicht neu aufgenommen werden darf. `GalleryLightSnapshotTest` und alle iOS-Galerie-Snapshots (`GallerySnapshotTests`) grün.
+
+### I8 gegen Step 0 / M4 / M5 (maschinell verglichen)
+
+- `diff-report` iOS und Android: alle Werte der Tabellen in `docs/m4-offene-punkte.md` (18 M2/M3-Zeilen, 12 M4-Zeilen, je iOS und Android) und `docs/m5-offene-punkte.md` (16 Zeilen, je iOS und Android) stehen unverändert im Endlauf; ebenso alle 22 M6-Zeilen der Tabelle oben. Keine Abweichung.
+- Testwerte: alle 18 iOS-M2/M3-Übereinstimmungen (Step 0), alle roten iOS-M4/M5/M6-Übereinstimmungen und alle 10 + 12 + 15 + 19 = 56 roten Android-Abweichungen aus M2/M3, M4, M5 und M6 stehen unverändert im Endlauf. Die 8 Android-Snapshots, die in M4 grün waren, und `ElUebersicht` dunkel sind weiter grün; kein Android-Screen ist neu rot.
+- Die geänderten Galerie-Goldens `GalleryFinishing_light/dark.png` (Schritt 14, neue Zeilen) sind in dieser Phase nicht neu aufgenommen worden; `GallerySnapshotTests` ist grün.
+- **Ausnahme:** G1 (siehe oben). I8 gilt für alle Screen-Snapshots, für die Galerie nur ohne diese eine Seite.
+
+### Invarianten (Plan §11), Stand Phase 20
+
+| # | Ergebnis |
+|---|---|
+| I1, I2 | grün: iOS `LaterTradesUITests` (6) und `InspectionFlowUITests` (9), `EarlyTradesUITests` (5); Android `LaterTradesUiTest` (6), `InspectionFlowUiTest` (9), `EarlyTradesUiTest` (5) |
+| I3, I4, I5 | grün: `AppDataTests` 114 / `AppDataTest` 106, `M6ConsistencyTests` 9 / `M6ConsistencyTest` 9 |
+| I6 | `git diff a2f1798 --stat` auf `ios/Baupilot/Data/BackendRepository.swift` und `android/app/src/main/java/de/baupilot/data/BackendRepository.kt`: leer |
+| I7 | grün: `SlopeViewModelTests` 9, `FlatnessViewModelTests` 9, `SlopeViewModelTest` 10, `FlatnessViewModelTest` 10 |
+| I8 | siehe oben: gehalten bis auf G1 |
+| I9 | `lint-hex: sauber`, `node --test test/` 114 / 114 |
+| I10 | `design-freeze --check`, `gen-tokens --check`, `gen-icons --check` grün; `git status --porcelain -- design fixtures scripts/icons.json` leer; `git diff a2f1798 -- scripts/tokens-supplement.json` zeigt nur die fünf D6-Schlüssel (`paintWhite`, `paintSand`, `paintSage`, `lampGlow` beide Plattformen, `onDangerFill` iOS) |
+| I11 | grün: Fliesen-Tap und Zeilen ohne Link in `LaterTradesUITests` / `LaterTradesUiTest` |
