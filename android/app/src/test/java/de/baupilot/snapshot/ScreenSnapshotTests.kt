@@ -734,3 +734,29 @@ class SanBadDarkSnapshotTest {
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
+
+/** Abnahmen, Estrich – Übersicht (D10: `logIn`, `select(Inspections)`, `open(Inspection("screed"))`), compared with `design/reference/android/EsUebersicht_light.png`. */
+class EsUebersichtLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("EsUebersicht", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun esUebersicht() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("screed"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Abnahmen, Estrich – Übersicht (D10: `logIn`, `select(Inspections)`, `open(Inspection("screed"))`), compared with `design/reference/android/EsUebersicht_dark.png`. */
+class EsUebersichtDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("EsUebersicht", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun esUebersicht() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("screed"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
