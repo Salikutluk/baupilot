@@ -624,3 +624,29 @@ class ElRauchmelderDarkSnapshotTest {
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
+
+/** Abnahmen, Sanitär – Übersicht (D10: `logIn`, `select(Inspections)`, `open(Inspection("plumbing"))`), compared with `design/reference/android/SanUebersicht_light.png`. */
+class SanUebersichtLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("SanUebersicht", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun sanUebersicht() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("plumbing"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Abnahmen, Sanitär – Übersicht (D10: `logIn`, `select(Inspections)`, `open(Inspection("plumbing"))`), compared with `design/reference/android/SanUebersicht_dark.png`. */
+class SanUebersichtDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("SanUebersicht", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun sanUebersicht() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("plumbing"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
