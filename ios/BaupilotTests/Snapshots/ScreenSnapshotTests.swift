@@ -368,4 +368,19 @@ final class ScreenSnapshotTests: XCTestCase {
     func testSanUebersichtDark() async throws {
         try await verify("SanUebersicht", mode: .dark, navigation: sanUebersicht)
     }
+
+    /// D10: Sanitär & Heizung opened, then Gefälle Abwasser A3 (back label "Sanitär"), calculator in its initial state.
+    private var sanGefaelle: AppNavigation {
+        var navigation = sanUebersicht
+        navigation.open(.inspectionCheckItem(tradeId: "plumbing", check: "slope", item: "A3"))
+        return navigation
+    }
+
+    func testSanGefaelleLight() async throws {
+        try await verify("SanGefaelle", mode: .light, navigation: sanGefaelle)
+    }
+
+    func testSanGefaelleDark() async throws {
+        try await verify("SanGefaelle", mode: .dark, navigation: sanGefaelle)
+    }
 }

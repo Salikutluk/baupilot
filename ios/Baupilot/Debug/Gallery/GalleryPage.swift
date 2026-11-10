@@ -96,7 +96,8 @@ enum GalleryPage: String, CaseIterable {
     }
 }
 
-/// Sanitär parts: the ListRow with a greedy wrapped subtitle (SanUebersicht row 1). The page grows in SanGefaelle.
+/// Sanitär parts: the ListRow with a greedy wrapped subtitle (SanUebersicht row 1) and the slope check's socket tiles,
+/// full-width steppers and result (SanGefaelle).
 struct GalleryPlumbingPage: View {
     var body: some View {
         GalleryGroup("ListRow · greedy subtitle wraps like Chrome, textGap 1, min 52") {
@@ -115,6 +116,42 @@ struct GalleryPlumbingPage: View {
                 }
             }
         }
+        GalleryGroup("SocketGrid · 4 columns, tile 52, gap 8 (ok, defect, now, open)") {
+            SocketGrid(
+                tiles: [
+                    slopeTile("A1", "1,4 %", SocketTile.Style(background: Tokens.oSoft, foreground: Tokens.oFg)),
+                    slopeTile("A2", "0,4 %", SocketTile.Style(background: Tokens.eSoft.core, foreground: Tokens.eFg)),
+                    slopeTile(
+                        "A3", "jetzt",
+                        SocketTile.Style(background: Tokens.aSoft, foreground: Tokens.aFg, border: Tokens.accent)),
+                    slopeTile("A4", "offen", SocketTile.Style(background: Tokens.chip.core, foreground: Tokens.muted)),
+                ], height: 52)
+        }
+        GalleryGroup("ValueStepper · fillsWidth, two columns of 152, gap 10") {
+            HStack(spacing: 10) {
+                ValueStepper(
+                    label: "Länge", value: "2,0 m", fillsWidth: true, onDecrement: nil, onIncrement: nil)
+                ValueStepper(
+                    label: "Höhenunterschied", value: "2,5 cm", fillsWidth: true, onDecrement: nil,
+                    onIncrement: nil)
+            }
+        }
+        GalleryGroup("SlopeResult · sufficient") {
+            SlopeResult(
+                percent: "1,25 %", verdict: "Ausreichend · Soll ≥ 1,0 %", schemaY2: 15.1, levelLabel: "waagerecht",
+                deltaLabel: "Δh", background: Tokens.oSoft, foreground: Tokens.oFg)
+        }
+        GalleryGroup("SlopeResult · too flat") {
+            SlopeResult(
+                percent: "0,25 %", verdict: "Zu flach · Soll ≥ 1,0 %", schemaY2: 14.0, levelLabel: "waagerecht",
+                deltaLabel: "Δh", background: Tokens.eSoft.core, foreground: Tokens.eFg)
+        }
+    }
+
+    private func slopeTile(_ id: String, _ label: String, _ style: SocketTile.Style) -> SocketTile {
+        SocketTile(
+            id: id, label: label, style: style, accessibilityLabel: "Abschnitt \(id): \(label)",
+            identifier: "gallery.slope.\(id)", height: 52)
     }
 }
 #endif

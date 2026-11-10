@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// One socket of the room check: a 56 tall r12 button-like tile with the id (14/700) over a state label (11/600),
+/// One socket of the room check: a 56 tall (`height`, 52 on the slope check) r12 button-like tile with the id (14/700) over a state label (11/600),
 /// gap 2 (IosElRaum:46-49). A `now` tile draws a 2 pt border inside its box. The tile has no action: the screen
 /// only shows the state, so it is a button for accessibility without one.
 public struct SocketTile: View {
@@ -21,8 +21,13 @@ public struct SocketTile: View {
     private let style: Style
     private let accessibilityLabel: String
     private let identifier: String
+    private let height: CGFloat
 
-    public init(id: String, label: String, style: Style, accessibilityLabel: String, identifier: String) {
+    public init(
+        id: String, label: String, style: Style, accessibilityLabel: String, identifier: String,
+        height: CGFloat = 56
+    ) {
+        self.height = height
         self.id = id
         self.label = label
         self.style = style
@@ -38,7 +43,7 @@ public struct SocketTile: View {
         }
         .foregroundStyle(style.foreground.color)
         .frame(maxWidth: .infinity)
-        .frame(height: 56)
+        .frame(height: height)
         .background(style.background.color, in: shape)
         .overlay {
             if let border = style.border {
@@ -58,8 +63,11 @@ public struct SocketGrid: View {
     private let tiles: [SocketTile]
     private let columns: Int
     private let gap: CGFloat
+    private let height: CGFloat
 
-    public init(tiles: [SocketTile], columns: Int = 4, gap: CGFloat = 8) {
+    /// `height` is the tile height; it sizes the filler of a short last row too.
+    public init(tiles: [SocketTile], columns: Int = 4, gap: CGFloat = 8, height: CGFloat = 56) {
+        self.height = height
         self.tiles = tiles
         self.columns = columns
         self.gap = gap
@@ -79,7 +87,7 @@ public struct SocketGrid: View {
                         if column < row.count {
                             tiles[row[column]]
                         } else {
-                            Color.clear.frame(maxWidth: .infinity).frame(height: 56)
+                            Color.clear.frame(maxWidth: .infinity).frame(height: height)
                         }
                     }
                 }
