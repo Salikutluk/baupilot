@@ -147,6 +147,7 @@ class InspectionFlowUiTest {
         awaitScreen("screen.inspections")
         tap("inspections.trade.plumbing")
         awaitScreen("screen.inspection.plumbing")
+        awaitScreen("overview.phase.0")
         assertAbsent("protocol.banner")
         tap("nav.back")
         awaitScreen("screen.inspections")

@@ -41,6 +41,20 @@ import de.baupilot.screens.inspections.InspectionsAction
 import de.baupilot.screens.inspections.InspectionsScreen
 import de.baupilot.screens.inspectionstep.InspectionStepScreen
 import de.baupilot.screens.inspectionstep.StepAction
+import de.baupilot.screens.latertrades.EsBelegreifeScreen
+import de.baupilot.screens.latertrades.EsEbenheitScreen
+import de.baupilot.screens.latertrades.EsUebersichtScreen
+import de.baupilot.screens.latertrades.FlBadScreen
+import de.baupilot.screens.latertrades.FlUebersichtScreen
+import de.baupilot.screens.latertrades.FlatnessAction
+import de.baupilot.screens.latertrades.MaRaumScreen
+import de.baupilot.screens.latertrades.MaUebersichtScreen
+import de.baupilot.screens.latertrades.OverviewAction
+import de.baupilot.screens.latertrades.SanBadScreen
+import de.baupilot.screens.latertrades.SanDruckScreen
+import de.baupilot.screens.latertrades.SanGefaelleScreen
+import de.baupilot.screens.latertrades.SanUebersichtScreen
+import de.baupilot.screens.latertrades.SlopeAction
 import de.baupilot.screens.notifications.NotificationsAction
 import de.baupilot.screens.notifications.NotificationsScreen
 import de.baupilot.screens.placeholder.PlaceholderPresentation
@@ -190,6 +204,7 @@ private fun TabContent(
                 val elements = data.inspectionElements[route.tradeId]
                 val protocol = data.tradeProtocols[route.tradeId]
                 val electrical = data.electricalOverviews[route.tradeId]
+                val overview = data.tradeOverviews[route.tradeId]
                 val onProtocol = { action: ProtocolAction ->
                     when (action) {
                         is ProtocolAction.Open -> onStateChange(state.go(action.target))
@@ -222,6 +237,19 @@ private fun TabContent(
                             }
                         },
                     )
+                } else if (overview != null) {
+                    val onOverview = { action: OverviewAction ->
+                        when (action) {
+                            is OverviewAction.Open -> onStateChange(state.open(action.route))
+                        }
+                    }
+                    when (route.tradeId) {
+                        "plumbing" -> SanUebersichtScreen(model = overview, onBack = onBack, onAction = onOverview)
+                        "screed" -> EsUebersichtScreen(model = overview, onBack = onBack, onAction = onOverview)
+                        "tiles" -> FlUebersichtScreen(model = overview, onBack = onBack, onAction = onOverview)
+                        "painting" -> MaUebersichtScreen(model = overview, onBack = onBack, onAction = onOverview)
+                        else -> InspectionPlaceholder(data, route.tradeId, onBack)
+                    }
                 } else {
                     InspectionPlaceholder(data, route.tradeId, onBack)
                 }
@@ -284,6 +312,9 @@ private fun TabContent(
                 val measure = data.measureChecks[route]
                 val panel = data.panelChecks[route]
                 val smoke = data.smokeChecks[route]
+                val pressure = data.pressureChecks[route]
+                val flatness = data.flatnessChecks[route]
+                val readiness = data.readinessChecks[route]
                 val onStep = { action: CheckStepAction ->
                     when (action) {
                         is CheckStepAction.Open -> onStateChange(state.open(action.route))
@@ -303,6 +334,20 @@ private fun TabContent(
                     ElVerteilerScreen(model = panel, onClose = onBack, onAction = onStep)
                 } else if (smoke != null) {
                     ElRauchmelderScreen(model = smoke, onBack = onBack, onAction = onStep)
+                } else if (pressure != null) {
+                    SanDruckScreen(model = pressure, onClose = onBack)
+                } else if (flatness != null) {
+                    EsEbenheitScreen(
+                        model = flatness,
+                        onClose = onBack,
+                        onAction = { action ->
+                            when (action) {
+                                is FlatnessAction.Open -> onStateChange(state.open(action.route))
+                            }
+                        },
+                    )
+                } else if (readiness != null) {
+                    EsBelegreifeScreen(model = readiness, onBack = onBack)
                 } else {
                     PushedPlaceholder(route.check, "screen.inspection.${route.tradeId}.${route.check}", onBack)
                 }
@@ -310,6 +355,14 @@ private fun TabContent(
 
             is AppRoute.InspectionRoom -> {
                 val room = data.roomChecks[route]
+                val objects = data.objectChecks[route]
+                val tiles = data.tileChecks[route]
+                val paint = data.paintChecks[route]
+                val onStep = { action: CheckStepAction ->
+                    when (action) {
+                        is CheckStepAction.Open -> onStateChange(state.open(action.route))
+                    }
+                }
                 if (room != null) {
                     ElRaumScreen(
                         model = room,
@@ -320,16 +373,37 @@ private fun TabContent(
                             }
                         },
                     )
+                } else if (objects != null) {
+                    SanBadScreen(model = objects, onClose = onBack)
+                } else if (tiles != null) {
+                    FlBadScreen(model = tiles, onClose = onBack, onAction = onStep)
+                } else if (paint != null) {
+                    MaRaumScreen(model = paint, onClose = onBack, onAction = onStep)
                 } else {
                     PushedPlaceholder(route.roomId, "screen.inspection.${route.tradeId}.room.${route.roomId}", onBack)
                 }
             }
 
-            is AppRoute.InspectionCheckItem -> PushedPlaceholder(
-                route.item,
-                "screen.inspection.${route.tradeId}.${route.check}.${route.item}",
-                onBack,
-            )
+            is AppRoute.InspectionCheckItem -> {
+                val slope = data.slopeChecks[route]
+                if (slope != null) {
+                    SanGefaelleScreen(
+                        model = slope,
+                        onClose = onBack,
+                        onAction = { action ->
+                            when (action) {
+                                is SlopeAction.Open -> onStateChange(state.open(action.route))
+                            }
+                        },
+                    )
+                } else {
+                    PushedPlaceholder(
+                        route.item,
+                        "screen.inspection.${route.tradeId}.${route.check}.${route.item}",
+                        onBack,
+                    )
+                }
+            }
 
             AppRoute.Notifications -> NotificationsScreen(
                 model = data.notifications,
