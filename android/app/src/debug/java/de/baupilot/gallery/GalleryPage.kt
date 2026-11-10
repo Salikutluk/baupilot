@@ -21,6 +21,10 @@ import de.baupilot.designsystem.BaupilotText
 import de.baupilot.designsystem.Tokens
 import de.baupilot.designsystem.components.PhaseCard
 import de.baupilot.designsystem.components.PhaseCardState
+import de.baupilot.designsystem.components.SlopeResult
+import de.baupilot.designsystem.components.SocketTile
+import de.baupilot.designsystem.components.SocketTileStyle
+import de.baupilot.designsystem.components.ValueStepper
 
 /** One full-screen gallery page; [goldenName] is the snapshot name. */
 enum class GalleryPage(val goldenName: String) {
@@ -136,4 +140,29 @@ internal fun PlumbingPage() {
             Modifier.weight(1f).fillMaxHeight(),
         )
     }
+    Caption("SocketTile · 52, ok / Mangel / jetzt / offen (AndSanGefaelle:21)")
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        SocketTile("A1", "1,4 %", SocketTileStyle(Tokens.okBg, Tokens.okFg), "A1 1,4 %", Modifier.weight(1f))
+        SocketTile("A2", "0,4 %", SocketTileStyle(Tokens.errBg, Tokens.errFg), "A2 0,4 %", Modifier.weight(1f))
+        SocketTile(
+            "A3", "jetzt", SocketTileStyle(Tokens.primaryContainer, Tokens.onPrimaryContainer, Tokens.primary),
+            "A3 jetzt", Modifier.weight(1f),
+        )
+        SocketTile("A4", "offen", SocketTileStyle(Tokens.openBg, Tokens.muted), "A4 offen", Modifier.weight(1f))
+    }
+    Caption("ValueStepper · fillsWidth, 2 × 158, gap 10 (AndSanGefaelle:44)")
+    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        ValueStepper("Länge", "2,0 m", null, null, Modifier.weight(1f), fillsWidth = true)
+        ValueStepper("Höhenunterschied", "2,5 cm", null, null, Modifier.weight(1f), fillsWidth = true)
+    }
+    Caption("SlopeResult · ausreichend (1,25 %)")
+    SlopeResult(
+        percent = "1,25 %", verdict = "Ausreichend · Soll ≥ 1,0 %", sufficient = true, schemaY2 = 24.5,
+        levelLabel = "waagerecht", deltaLabel = "Δh",
+    )
+    Caption("SlopeResult · zu flach (0,40 %)")
+    SlopeResult(
+        percent = "0,40 %", verdict = "Zu flach · Soll ≥ 1,0 %", sufficient = false, schemaY2 = 16.0,
+        levelLabel = "waagerecht", deltaLabel = "Δh",
+    )
 }

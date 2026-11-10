@@ -650,3 +650,31 @@ class SanUebersichtDarkSnapshotTest {
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
+
+/** Gefälle Abwasser (D10: `logIn`, `select(Inspections)`, `open(Inspection("plumbing"))`, `open(InspectionCheckItem("plumbing", "slope", "A3"))`), compared with `design/reference/android/SanGefaelle_light.png`. */
+class SanGefaelleLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("SanGefaelle", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun sanGefaelle() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("plumbing"))
+            .open(AppRoute.InspectionCheckItem("plumbing", "slope", "A3"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Gefälle Abwasser (D10, see the light test), compared with `design/reference/android/SanGefaelle_dark.png`. */
+class SanGefaelleDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("SanGefaelle", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun sanGefaelle() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("plumbing"))
+            .open(AppRoute.InspectionCheckItem("plumbing", "slope", "A3"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}

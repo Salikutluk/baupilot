@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,6 +22,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.baupilot.designsystem.BaupilotText
@@ -32,7 +34,8 @@ data class StepperTags(val decrement: String, val value: String, val increment: 
 /**
  * Minus / value / plus stepper (AndRohbauMasse:38-42): 48 inner + 1 `outline` border (50 tall, 150 wide with the
  * default [valueMinWidth]), radius 24, padding 0 4, gap 4. The 40 dp buttons are `secondaryContainer` circles with a
- * 20 glyph; the value is 16 / 500.
+ * 20 glyph; the value is 16 / 500 ([valueSize]). With [fillsWidth] the stepper takes the width it is given and
+ * spreads its parts (`justify-content: space-between`, no minimum value width; AndSanGefaelle:44).
  *
  * The buttons stay 40 dp in layout. Compose widens every pointer-input node's hit area to the view configuration's
  * minimum touch target (48 dp) without changing its size, so the touch target is ≥ 48 and the layout is untouched.
@@ -46,24 +49,27 @@ fun ValueStepper(
     modifier: Modifier = Modifier,
     valueMinWidth: Dp = 52.dp,
     tags: StepperTags? = null,
+    fillsWidth: Boolean = false,
+    valueSize: TextUnit = 16.sp,
 ) {
     Row(
         modifier = modifier
+            .then(if (fillsWidth) Modifier.fillMaxWidth() else Modifier)
             .height(50.dp)
             .border(1.dp, Tokens.outline.color(), RoundedCornerShape(24.dp))
             .padding(1.dp)
             .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = if (fillsWidth) Arrangement.SpaceBetween else Arrangement.spacedBy(4.dp),
     ) {
         StepperButton("−", "$label verringern", onDecrement, tags?.decrement)
         Box(
             modifier = Modifier
-                .defaultMinSize(minWidth = valueMinWidth)
+                .then(if (fillsWidth) Modifier else Modifier.defaultMinSize(minWidth = valueMinWidth))
                 .then(if (tags != null) Modifier.testTag(tags.value) else Modifier),
             contentAlignment = Alignment.Center,
         ) {
-            BaupilotText(text = value, size = 16.sp, weight = 500, color = Tokens.text)
+            BaupilotText(text = value, size = valueSize, weight = 500, color = Tokens.text)
         }
         StepperButton("+", "$label erhöhen", onIncrement, tags?.increment)
     }
