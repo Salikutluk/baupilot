@@ -353,4 +353,19 @@ final class ScreenSnapshotTests: XCTestCase {
     func testElRauchmelderDark() async throws {
         try await verify("ElRauchmelder", mode: .dark, navigation: elRauchmelder)
     }
+
+    /// D10: logged in, Abnahmen tab, Sanitär & Heizung opened (back label "Abnahmen").
+    private var sanUebersicht: AppNavigation {
+        var navigation = abnGewerke
+        navigation.open(.inspection(tradeId: "plumbing"))
+        return navigation
+    }
+
+    func testSanUebersichtLight() async throws {
+        try await verify("SanUebersicht", mode: .light, navigation: sanUebersicht)
+    }
+
+    func testSanUebersichtDark() async throws {
+        try await verify("SanUebersicht", mode: .dark, navigation: sanUebersicht)
+    }
 }

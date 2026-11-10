@@ -3,8 +3,8 @@ import SwiftUI
 /// Row used in the iOS lists. Place rows inside a `Card(padding: EdgeInsets())`; the divider
 /// sits on top of every row that is not the first. An optional `background` is painted under the whole
 /// row, divider included. `subtitleLines: .block` lets a long subtitle wrap inside the flex column (CSS
-/// `min-width: 0`) instead of truncating. `titleLines` does the same for the title (`.greedy` breaks like Chrome), and
-/// `textGap` replaces the density's gap between title and subtitle.
+/// `min-width: 0`) instead of truncating; `.greedy` wraps it through `GreedyLabel` (Chrome's breaks). `titleLines`
+/// does the same for the title, and `textGap` replaces the density's gap between title and subtitle.
 public struct ListRow: View {
     public enum TitleSize {
         case regular
@@ -170,9 +170,7 @@ public struct ListRow: View {
             VStack(alignment: .leading, spacing: textGap ?? density.textGap) {
                 titleView
                 if let subtitle {
-                    Text(subtitle)
-                        .interText(13, .regular, lines: subtitleLines)
-                        .foregroundStyle(Tokens.muted.color)
+                    subtitleView(subtitle)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -184,6 +182,18 @@ public struct ListRow: View {
             content.padding(.vertical, v)
         case .minHeight(let h):
             content.frame(minHeight: h)
+        }
+    }
+
+    /// A `.greedy` subtitle breaks like Chrome through `GreedyLabel`; the other modes go through `interText`.
+    @ViewBuilder
+    private func subtitleView(_ text: String) -> some View {
+        if subtitleLines == .greedy {
+            GreedyLabel(text: text, size: 13, weight: .regular, color: Tokens.muted, lineHeight: .normal)
+        } else {
+            Text(text)
+                .interText(13, .regular, lines: subtitleLines)
+                .foregroundStyle(Tokens.muted.color)
         }
     }
 

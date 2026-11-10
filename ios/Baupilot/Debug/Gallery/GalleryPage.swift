@@ -43,7 +43,7 @@ struct GalleryGroup<Content: View>: View {
 
 /// One full-screen page of the component gallery. Each page is one golden pair.
 enum GalleryPage: String, CaseIterable {
-    case structure, containers, statusInput, buttons, bars, steps, tiles, icons, forms, overview, schedule, settings, trade, documents, compare, notifications, inspections, inspectionElements, inspectionStep, defectForm, signOff, `protocol`, measure, electrical, electricalSteps, electricalSteps2
+    case structure, containers, statusInput, buttons, bars, steps, tiles, icons, forms, overview, schedule, settings, trade, documents, compare, notifications, inspections, inspectionElements, inspectionStep, defectForm, signOff, `protocol`, measure, electrical, electricalSteps, electricalSteps2, plumbing
 
     /// ASCII letters only, so the name is a valid file name on every platform.
     var goldenName: String { "Gallery" + rawValue.capitalizedFirst }
@@ -79,6 +79,7 @@ enum GalleryPage: String, CaseIterable {
             case .electrical: GalleryElectricalPage()
             case .electricalSteps: GalleryElectricalStepsPage()
             case .electricalSteps2: GalleryElectricalSteps2Page()
+            case .plumbing: GalleryPlumbingPage()
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -92,6 +93,28 @@ enum GalleryPage: String, CaseIterable {
         content
             .frame(width: 390, height: 844, alignment: .topLeading)
             .background(Tokens.bg.color)
+    }
+}
+
+/// Sanitär parts: the ListRow with a greedy wrapped subtitle (SanUebersicht row 1). The page grows in SanGefaelle.
+struct GalleryPlumbingPage: View {
+    var body: some View {
+        GalleryGroup("ListRow · greedy subtitle wraps like Chrome, textGap 1, min 52") {
+            Card(style: .row, padding: EdgeInsets()) {
+                VStack(spacing: 0) {
+                    ListRow(
+                        title: "Gefälle Abwasser", subtitle: "4 Abschnitte · 2 geprüft, 1 Mangel",
+                        leading: .iconTile(.pipe, size: .s34r9), trailing: .badge(StatusBadge("1 Mangel", tone: .error())),
+                        density: .minHeight(52), showsDivider: false, subtitleLines: .greedy, textGap: 1,
+                        titleLines: .greedy, action: nil)
+                    ListRow(
+                        title: "Dämmung Warmwasser", subtitle: "Sichtprüfung · 2 Fotos",
+                        leading: .iconTile(.pipe, size: .s34r9), trailing: .badge(StatusBadge("In Ordnung", tone: .ok)),
+                        density: .minHeight(52), showsDivider: true, subtitleLines: .greedy, textGap: 1,
+                        titleLines: .greedy, action: nil)
+                }
+            }
+        }
     }
 }
 #endif
