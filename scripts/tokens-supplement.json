@@ -20,7 +20,12 @@
       "docPos": { "light": "#888888", "dark": "#888888", "source": "design/prototype/IosDokViewer.dc.html:50" },
       "docRule": { "light": "#DDDDDD", "dark": "#DDDDDD", "source": "design/prototype/IosDokViewer.dc.html:47" },
       "docRuleLight": { "light": "#EEEEEE", "dark": "#EEEEEE", "source": "design/prototype/IosDokViewer.dc.html:49" },
-      "docShadow": { "light": "#0000002E", "dark": "#0000002E", "source": "design/prototype/IosDokViewer.dc.html:35" }
+      "docShadow": { "light": "#0000002E", "dark": "#0000002E", "source": "design/prototype/IosDokViewer.dc.html:35" },
+      "paintWhite": { "light": "#F7F6F2", "dark": "#F7F6F2", "source": "IosMaUebersicht.dc.html:68" },
+      "paintSand": { "light": "#E6DCC8", "dark": "#E6DCC8", "source": "IosMaUebersicht.dc.html:68" },
+      "paintSage": { "light": "#B9C4B0", "dark": "#B9C4B0", "source": "IosMaUebersicht.dc.html:68" },
+      "lampGlow": { "light": "#FDE68A", "dark": "#FDE68A", "source": "IosMaRaum.dc.html:46" },
+      "onDangerFill": { "light": "#FFFFFF", "dark": "#FFFFFF", "source": "IosFlBad.dc.html:56" }
     }
   },
   "android": {
@@ -42,7 +47,11 @@
       "docPos": { "light": "#888888", "dark": "#888888", "source": "design/prototype/AndDokViewer.dc.html:47" },
       "docRule": { "light": "#DDDDDD", "dark": "#DDDDDD", "source": "design/prototype/AndDokViewer.dc.html:44" },
       "docRuleLight": { "light": "#EEEEEE", "dark": "#EEEEEE", "source": "design/prototype/AndDokViewer.dc.html:46" },
-      "docShadow": { "light": "#0000002E", "dark": "#0000002E", "source": "design/prototype/AndDokViewer.dc.html:32" }
+      "docShadow": { "light": "#0000002E", "dark": "#0000002E", "source": "design/prototype/AndDokViewer.dc.html:32" },
+      "paintWhite": { "light": "#F7F6F2", "dark": "#F7F6F2", "source": "AndMaUebersicht.dc.html:62" },
+      "paintSand": { "light": "#E6DCC8", "dark": "#E6DCC8", "source": "AndMaUebersicht.dc.html:62" },
+      "paintSage": { "light": "#B9C4B0", "dark": "#B9C4B0", "source": "AndMaUebersicht.dc.html:62" },
+      "lampGlow": { "light": "#FDE68A", "dark": "#FDE68A", "source": "AndMaRaum.dc.html:48" }
     }
   }
 }
