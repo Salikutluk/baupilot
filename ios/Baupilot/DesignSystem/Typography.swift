@@ -73,6 +73,10 @@ public enum TextLines {
     case multi
     /// Wrapping text as a CSS block: n line boxes tall, first baseline where Chrome puts it.
     case block
+    /// Wrapping text that breaks greedily like Chrome (no last-word push-down). A modifier cannot read the string,
+    /// so a component that owns it renders `.greedy` through `GreedyLabel`; `interText` itself lays the view out as
+    /// `.block`, the same n-line-box geometry.
+    case greedy
 }
 
 public extension View {
@@ -94,7 +98,7 @@ public extension View {
                 .alignmentGuide(.firstTextBaseline) { _ in baseline }
         case .multi:
             styled.lineSpacing(max(0, box - InterMetrics.naturalHeight(size)))
-        case .block:
+        case .block, .greedy:
             let natural = InterMetrics.naturalHeight(size)
             let leading = max(0, box - natural)
             // iOS puts `lineSpacing` between lines only and rounds a multi-line height up to the pixel grid; a CSS

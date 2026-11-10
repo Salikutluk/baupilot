@@ -8,6 +8,8 @@ object RouteParser {
 
     private val STEP_NUMBER = Regex("^[1-9][0-9]*$")
 
+    private val RESERVED_CHECKS = setOf("sign", "step", "room")
+
     private val tabs: Map<String, AppTab> = AppTab.entries.associateBy { it.route }
 
     fun target(raw: String?, field: String): NavigationTarget? {
@@ -24,6 +26,10 @@ object RouteParser {
             parts.size == 2 && parts[0] == "inspection" && ID.matches(parts[1]) -> AppRoute.Inspection(parts[1])
             parts.size == 3 && parts[0] == "inspection" && parts[2] == "sign" && ID.matches(parts[1]) ->
                 AppRoute.SignOff(parts[1])
+            parts.size == 3 && parts[0] == "inspection" && parts[2] !in RESERVED_CHECKS && ID.matches(parts[1]) &&
+                ID.matches(parts[2]) -> AppRoute.InspectionCheck(parts[1], parts[2])
+            parts.size == 4 && parts[0] == "inspection" && parts[2] == "room" && ID.matches(parts[1]) &&
+                ID.matches(parts[3]) -> AppRoute.InspectionRoom(parts[1], parts[3])
             parts.size == 5 && parts[0] == "inspection" && parts[3] == "step" && ID.matches(parts[1]) &&
                 ID.matches(parts[2]) && STEP_NUMBER.matches(parts[4]) ->
                 AppRoute.InspectionStep(parts[1], parts[2], parts[4].toIntOrNull() ?: throw RepositoryException.Decoding(field))
@@ -32,6 +38,13 @@ object RouteParser {
         }
         return NavigationTarget.Push(route)
     }
+
+    /** An inspection link: a push or the Mängel view; a tab switch is not part of this grammar. */
+    fun inspectionLink(raw: String, field: String): NavigationTarget =
+        when (val target = target(raw, field)) {
+            is NavigationTarget.Push, NavigationTarget.Defects -> target
+            is NavigationTarget.Tab, null -> throw RepositoryException.Decoding(field)
+        }
 
     fun route(raw: String?, field: String): AppRoute? =
         when (val target = target(raw, field)) {

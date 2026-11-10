@@ -36,12 +36,60 @@ final class RouteParserTests: XCTestCase {
 
     func testRejectsMalformedInspectionRoutes() {
         let malformed = [
-            "inspection/", "inspection/a/b", "inspection/a/F8/step", "inspection/a/F8/step/0",
+            "inspection/", "inspection/a/b/c", "inspection/a/room", "inspection/a/F8/step", "inspection/a/F8/step/0",
             "inspection/a/F8/step/03", "inspection/a/F8/step/x", "inspection/a/F8/steps/3",
             "defect/old", "defect/new/x", "inspection/a/sign/x",
         ]
         for raw in malformed {
             XCTAssertThrowsError(try RouteParser.target(raw, field: field), raw) { error in
+                XCTAssertEqual(error as? RepositoryError, .decoding(field), raw)
+            }
+        }
+    }
+
+    func testParsesCheckAndRoomRoutes() throws {
+        XCTAssertEqual(
+            try RouteParser.target("inspection/shell/measure", field: field),
+            .push(.inspectionCheck(tradeId: "shell", check: "measure")))
+        XCTAssertEqual(
+            try RouteParser.target("inspection/electrical/panel", field: field),
+            .push(.inspectionCheck(tradeId: "electrical", check: "panel")))
+        XCTAssertEqual(
+            try RouteParser.target("inspection/electrical/smoke", field: field),
+            .push(.inspectionCheck(tradeId: "electrical", check: "smoke")))
+        XCTAssertEqual(
+            try RouteParser.target("inspection/electrical/room/kitchen", field: field),
+            .push(.inspectionRoom(tradeId: "electrical", roomId: "kitchen")))
+        XCTAssertEqual(
+            try RouteParser.target("inspection/windows/sign", field: field),
+            .push(.signOff(inspectionId: "windows")))
+    }
+
+    func testRejectsMalformedCheckRoutes() {
+        let malformed = [
+            "inspection/a/step", "inspection/a/room", "inspection/a/room/", "inspection/a/room/x/y",
+            "inspection/a/b/c", "inspection/a/-x", "inspection/a/room/-x", "inspection//measure",
+        ]
+        for raw in malformed {
+            XCTAssertThrowsError(try RouteParser.target(raw, field: field), raw) { error in
+                XCTAssertEqual(error as? RepositoryError, .decoding(field), raw)
+            }
+        }
+    }
+
+    func testInspectionLinkAcceptsDefectsAndPush() throws {
+        XCTAssertEqual(try RouteParser.inspectionLink("defects", field: field), .defects)
+        XCTAssertEqual(
+            try RouteParser.inspectionLink("inspection/shell/measure", field: field),
+            .push(.inspectionCheck(tradeId: "shell", check: "measure")))
+        XCTAssertEqual(
+            try RouteParser.inspectionLink("inspection/windows", field: field),
+            .push(.inspection(tradeId: "windows")))
+    }
+
+    func testInspectionLinkRejectsTab() {
+        for raw in ["home", "inspections", "foo"] {
+            XCTAssertThrowsError(try RouteParser.inspectionLink(raw, field: field), raw) { error in
                 XCTAssertEqual(error as? RepositoryError, .decoding(field), raw)
             }
         }

@@ -65,4 +65,30 @@ final class RouteTitlesTests: XCTestCase {
             full.backLabel(path: [inspection, .signOff(inspectionId: "windows")], index: 1, tab: .inspections),
             "Fenster & Türen")
     }
+
+    func testCheckTitlesAndFallbacks() {
+        let check = AppRoute.inspectionCheck(tradeId: "shell", check: "measure")
+        let room = AppRoute.inspectionRoom(tradeId: "electrical", roomId: "kitchen")
+        var full = titles
+        full.checkTitles = [check: "Maße prüfen", room: "Küche"]
+        XCTAssertEqual(full.title(check), "Maße prüfen")
+        XCTAssertEqual(full.title(room), "Küche")
+        XCTAssertEqual(titles.title(check), "measure")
+        XCTAssertEqual(titles.title(room), "kitchen")
+    }
+
+    func testBackLabelsOnM5Paths() {
+        var full = RouteTitles(
+            tabLabels: [.inspections: "Abnahmen"], tradeNames: [:], documentTitles: [:],
+            compareTitle: "Angebote vergleichen", notificationsTitle: "Mitteilungen")
+        full.inspectionTitles = ["shell": "Rohbau", "electrical": "Elektro"]
+        let shell = AppRoute.inspection(tradeId: "shell")
+        let check = AppRoute.inspectionCheck(tradeId: "shell", check: "measure")
+        let electrical = AppRoute.inspection(tradeId: "electrical")
+        let room = AppRoute.inspectionRoom(tradeId: "electrical", roomId: "kitchen")
+        XCTAssertEqual(full.backLabel(path: [shell, check], index: 1, tab: .inspections), "Rohbau")
+        XCTAssertEqual(full.backLabel(path: [electrical, room], index: 1, tab: .inspections), "Elektro")
+        XCTAssertEqual(
+            full.backLabel(path: [.inspection(tradeId: "earthworks")], index: 0, tab: .inspections), "Abnahmen")
+    }
 }

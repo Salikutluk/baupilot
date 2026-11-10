@@ -11,6 +11,8 @@ enum AppRoute: Hashable, Sendable {
     case inspectionStep(tradeId: String, elementId: String, step: Int)
     case newDefect
     case signOff(inspectionId: String)
+    case inspectionCheck(tradeId: String, check: String)
+    case inspectionRoom(tradeId: String, roomId: String)
 }
 
 /// The two views of the Abnahmen tab root (the "Ansicht" tablist of IosAbnGewerke / IosAbnMaengel).
@@ -96,6 +98,25 @@ struct AppNavigation: Equatable, Sendable {
         guard isLoggedIn, var path = paths[selectedTab], !path.isEmpty else { return }
         path.removeLast()
         paths[selectedTab] = path.isEmpty ? nil : path
+    }
+
+    /// Saving the defect form: pops it. Opened from the element list or a step of `formTradeId`, the M4 flow
+    /// continues instead (sign-off above the list when the trade has one, else the list). No-op unless
+    /// `.newDefect` is on top of the selected tab's stack.
+    mutating func saveDefect(formTradeId: String, hasSignOff: Bool) {
+        guard isLoggedIn, let path = paths[selectedTab], path.last == .newDefect else { return }
+        let below = path.count >= 2 ? path[path.count - 2] : nil
+        switch below {
+        case .inspection(formTradeId), .inspectionStep(formTradeId, _, _):
+            let list = AppRoute.inspection(tradeId: formTradeId)
+            if hasSignOff {
+                open(.signOff(inspectionId: formTradeId), above: list)
+            } else {
+                open(list)
+            }
+        default:
+            pop()
+        }
     }
 
     /// `NavigationStack(path:)` binding writes. Logged out: no-op.

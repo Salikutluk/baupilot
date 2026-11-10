@@ -19,6 +19,8 @@ sealed interface AppRoute {
     data object Notifications : AppRoute
     data class Inspection(val tradeId: String) : AppRoute
     data class InspectionStep(val tradeId: String, val elementId: String, val step: Int) : AppRoute
+    data class InspectionCheck(val tradeId: String, val check: String) : AppRoute
+    data class InspectionRoom(val tradeId: String, val roomId: String) : AppRoute
     data object NewDefect : AppRoute
     data class SignOff(val inspectionId: String) : AppRoute
 }
@@ -94,6 +96,28 @@ data class AppNavigationState(
         NavigationTarget.Defects -> showDefects()
     }
 
+    /**
+     * Saving a defect form (D4): from a trade's inspection or step it keeps the M4 flow (sign-off or inspection),
+     * from anywhere else the form was a plain push and the save just closes it. Not on top: nothing changes.
+     */
+    fun saveDefect(formTradeId: String, hasSignOff: Boolean): AppNavigationState {
+        if (!isLoggedIn) return this
+        val path = path(selectedTab)
+        if (path.lastOrNull() != AppRoute.NewDefect) return this
+        val inspection = AppRoute.Inspection(formTradeId)
+        return when (val below = path.getOrNull(path.size - 2)) {
+            is AppRoute.Inspection, is AppRoute.InspectionStep -> {
+                val belongsToForm = below == inspection || (below is AppRoute.InspectionStep && below.tradeId == formTradeId)
+                when {
+                    !belongsToForm -> pop()
+                    hasSignOff -> open(AppRoute.SignOff(formTradeId), above = inspection)
+                    else -> open(inspection)
+                }
+            }
+            else -> pop()
+        }
+    }
+
     fun pop(): AppNavigationState {
         if (!isLoggedIn || !canPop) return this
         val rest = path(selectedTab).dropLast(1)
@@ -136,6 +160,9 @@ data class AppNavigationState(
         private const val STEP_PREFIX = "step:"
         private const val NEW_DEFECT = "defect:new"
         private const val SIGN_PREFIX = "sign:"
+        private const val CHECK_PREFIX = "check:"
+        private const val ROOM_PREFIX = "room:"
+        private val ID = Regex("^[A-Za-z0-9][A-Za-z0-9_-]*$")
         private val STEP_NUMBER = Regex("^[1-9][0-9]*$")
 
         private fun encode(route: AppRoute): String = when (route) {
@@ -147,6 +174,8 @@ data class AppNavigationState(
             is AppRoute.InspectionStep -> "$STEP_PREFIX${route.tradeId}/${route.elementId}/${route.step}"
             AppRoute.NewDefect -> NEW_DEFECT
             is AppRoute.SignOff -> SIGN_PREFIX + route.inspectionId
+            is AppRoute.InspectionCheck -> "$CHECK_PREFIX${route.tradeId}/${route.check}"
+            is AppRoute.InspectionRoom -> "$ROOM_PREFIX${route.tradeId}/${route.roomId}"
         }
 
         /** Throws on an unknown string, so [Saver] restores nothing instead of guessing a route (I7). */
@@ -159,7 +188,16 @@ data class AppNavigationState(
             text.startsWith(INSPECTION_PREFIX) -> AppRoute.Inspection(text.removePrefix(INSPECTION_PREFIX))
             text.startsWith(SIGN_PREFIX) -> AppRoute.SignOff(text.removePrefix(SIGN_PREFIX))
             text.startsWith(STEP_PREFIX) -> decodeStep(text.removePrefix(STEP_PREFIX))
+            text.startsWith(CHECK_PREFIX) -> decodePair(text, CHECK_PREFIX, AppRoute::InspectionCheck)
+            text.startsWith(ROOM_PREFIX) -> decodePair(text, ROOM_PREFIX, AppRoute::InspectionRoom)
             else -> throw IllegalArgumentException("Unknown route: $text")
+        }
+
+        /** `<trade>/<id>`: exactly two parts, each a valid id. */
+        private fun decodePair(text: String, prefix: String, build: (String, String) -> AppRoute): AppRoute {
+            val parts = text.removePrefix(prefix).split("/")
+            require(parts.size == 2 && parts.all { ID.matches(it) }) { "Unknown route: $text" }
+            return build(parts[0], parts[1])
         }
 
         /** `<trade>/<element>/<n>`: exactly three parts, `n` a positive integer without leading zero. */

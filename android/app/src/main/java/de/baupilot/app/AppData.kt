@@ -3,30 +3,44 @@ package de.baupilot.app
 import de.baupilot.data.BackendRepository
 import de.baupilot.data.DefectFormCheck
 import de.baupilot.data.DokumenteScreenText
+import de.baupilot.data.ElectricalOverviewDto
 import de.baupilot.data.ElementsCheck
 import de.baupilot.data.EmptyScreenText
 import de.baupilot.data.Fact
 import de.baupilot.data.GewerkScreenText
 import de.baupilot.data.HomeScreenText
 import de.baupilot.data.LoginScreenText
+import de.baupilot.data.MeasureCheckDto
+import de.baupilot.data.PanelCheckDto
 import de.baupilot.data.PlatformText
 import de.baupilot.data.ProfilScreenText
 import de.baupilot.data.RepositoryException
+import de.baupilot.data.RoomCheckDto
+import de.baupilot.data.ShellOpeningDto
+import de.baupilot.data.SmokeCheckDto
 import de.baupilot.data.SignatureCheck
 import de.baupilot.data.StepCheck
 import de.baupilot.data.TabText
 import de.baupilot.data.TabsScreenText
+import de.baupilot.data.TradeProtocolDto
 import de.baupilot.data.ZeitplanScreenText
 import de.baupilot.data.inspectionCheck
 import de.baupilot.data.inspectionOverview
+import de.baupilot.data.measurementSlice
 import de.baupilot.data.screenText
+import de.baupilot.data.tradeSlice
 import de.baupilot.designsystem.BaupilotIcon
 import de.baupilot.designsystem.components.StatusChipColors
 import de.baupilot.inspection.DeadlineMath
 import de.baupilot.inspection.DeadlineStyle
+import de.baupilot.inspection.MeasureDimension
+import de.baupilot.inspection.MeasureViewModel
 import de.baupilot.schedule.ScheduleLayout
 import de.baupilot.screens.ScreenCopy
 import java.util.Locale
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 
 data class LoginModel(
     val chips: List<String>,
@@ -254,6 +268,12 @@ data class AppData(
     val inspectionSteps: Map<AppRoute, StepModel>,
     val defectForm: DefectFormModel,
     val signOffs: Map<String, SignOffModel>,
+    val tradeProtocols: Map<String, TradeProtocolModel>,
+    val electricalOverviews: Map<String, ElectricalOverviewModel>,
+    val measureChecks: Map<AppRoute, MeasureCheckModel>,
+    val roomChecks: Map<AppRoute, RoomCheckModel>,
+    val panelChecks: Map<AppRoute, PanelCheckModel>,
+    val smokeChecks: Map<AppRoute, SmokeCheckModel>,
 ) {
     companion object {
         /** The one trade with inspection models in M4 (the other trades are M5/M6). */
@@ -264,6 +284,13 @@ data class AppData(
         private const val OVERVIEW = "inspections.overview"
 
         private val STEP_NUMBER = Regex("^[1-9][0-9]*$")
+
+        private const val ELECTRICAL_TRADE = "electrical"
+
+        /** The screens of M5 carry no text of their own; each must still exist for Android (M3 D8). */
+        private val M5_SCREENS = listOf(
+            "Erd", "Rohbau", "RohbauMasse", "Zimmerer", "ElUebersicht", "ElRaum", "ElVerteiler", "ElRauchmelder",
+        )
 
         /** Content width of the Zeitplan chart on the 390 dp screen (AndZeitplan.dc.html), fixed, not measured. */
         private const val CHART_WIDTH = 358f
@@ -499,6 +526,7 @@ data class AppData(
                 unreadCount = notificationGroups.sumOf { group -> group.items.count { it.unread } },
             )
             val inspection = loadInspections(repository)
+            val early = loadEarlyTrades(repository, inspection.inspections.rows)
             return AppData(
                 login = login,
                 home = home,
@@ -516,6 +544,12 @@ data class AppData(
                 inspectionSteps = mapOf<AppRoute, StepModel>(inspection.step.route to inspection.step),
                 defectForm = inspection.defectForm,
                 signOffs = mapOf(INSPECTED_TRADE to inspection.signOff),
+                tradeProtocols = early.tradeProtocols,
+                electricalOverviews = early.electricalOverviews,
+                measureChecks = early.measureChecks,
+                roomChecks = early.roomChecks,
+                panelChecks = early.panelChecks,
+                smokeChecks = early.smokeChecks,
             )
         }
 
@@ -606,6 +640,291 @@ data class AppData(
                 step = step,
                 defectForm = buildDefectForm(formCheck, now),
                 signOff = buildSignOff(signatureCheck),
+            )
+        }
+
+        private class EarlyTradeParts(
+            val tradeProtocols: Map<String, TradeProtocolModel>,
+            val electricalOverviews: Map<String, ElectricalOverviewModel>,
+            val measureChecks: Map<AppRoute, MeasureCheckModel>,
+            val roomChecks: Map<AppRoute, RoomCheckModel>,
+            val panelChecks: Map<AppRoute, PanelCheckModel>,
+            val smokeChecks: Map<AppRoute, SmokeCheckModel>,
+        )
+
+        private fun tradePath(tradeId: String) = "inspections.byTrade.$tradeId"
+
+        /** A step number: a JSON string holding a positive integer; anything else is a decoding error at [field]. */
+        private fun stepNumber(text: String, field: String): Int =
+            text.takeIf { STEP_NUMBER.matches(it) }?.toIntOrNull() ?: throw RepositoryException.Decoding(field)
+
+        /** Earthworks, shell, carpentry and electrical, with every check they link to (M5 D2, D7, D9). */
+        private suspend fun loadEarlyTrades(repository: BackendRepository, rows: List<InspectionTradeRow>): EarlyTradeParts {
+            for (name in M5_SCREENS) repository.screenText(name, EmptyScreenText.serializer())
+            val defectLabel = repository.inspectionOverview().statusLabels["defect"]?.value
+                ?: throw RepositoryException.Decoding("$OVERVIEW.statusLabels")
+            val statusByTrade = rows.associate { it.tradeId to it.status }
+
+            val protocols = ScreenCopy.Protocol.TRADES.associateWith { repository.tradeSlice(it, TradeProtocolDto.serializer()) }
+            val electrical = repository.tradeSlice(ELECTRICAL_TRADE, ElectricalOverviewDto.serializer())
+
+            val measureChecks = LinkedHashMap<AppRoute, MeasureCheckModel>()
+            val roomChecks = LinkedHashMap<AppRoute, RoomCheckModel>()
+            val panelChecks = LinkedHashMap<AppRoute, PanelCheckModel>()
+            val smokeChecks = LinkedHashMap<AppRoute, SmokeCheckModel>()
+            val checkSources = protocols.map { (tradeId, dto) -> tradeId to dto.checks } + (ELECTRICAL_TRADE to electrical.checks)
+            for ((tradeId, checks) in checkSources) {
+                for ((key, node) in checks.orEmpty()) {
+                    val path = "${tradePath(tradeId)}.checks.$key"
+                    // D2: the fixture `screen` value decides which screen a check is built for.
+                    when (((node as? JsonObject)?.get("screen") as? JsonPrimitive)?.contentOrNull) {
+                        "RohbauMasse" -> {
+                            val route = AppRoute.InspectionCheck(tradeId, key)
+                            val check = repository.inspectionCheck(tradeId, key, MeasureCheckDto.serializer())
+                            if (check.measurementKey != "shellOpening") throw RepositoryException.Decoding("$path.measurementKey")
+                            val opening = repository.measurementSlice(check.measurementKey, ShellOpeningDto.serializer())
+                            measureChecks[route] = buildMeasure(route, check, opening, defectLabel, path)
+                        }
+                        "ElRaum" -> {
+                            val route = AppRoute.InspectionRoom(tradeId, key)
+                            roomChecks[route] = buildRoom(
+                                route,
+                                repository.inspectionCheck(tradeId, key, RoomCheckDto.serializer()),
+                                defectLabel,
+                                path,
+                            )
+                        }
+                        "ElVerteiler" -> {
+                            val route = AppRoute.InspectionCheck(tradeId, key)
+                            panelChecks[route] = buildPanel(
+                                route,
+                                repository.inspectionCheck(tradeId, key, PanelCheckDto.serializer()),
+                                path,
+                            )
+                        }
+                        "ElRauchmelder" -> {
+                            val route = AppRoute.InspectionCheck(tradeId, key)
+                            smokeChecks[route] = buildSmoke(
+                                route,
+                                repository.inspectionCheck(tradeId, key, SmokeCheckDto.serializer()),
+                                path,
+                            )
+                        }
+                        else -> throw RepositoryException.Decoding(path)
+                    }
+                }
+            }
+
+            val resolvable: Set<AppRoute> = measureChecks.keys + roomChecks.keys + panelChecks.keys + smokeChecks.keys
+            // D9: a link to a check or room must resolve at load time, never on tap.
+            fun resolve(route: AppRoute?, field: String) {
+                if ((route is AppRoute.InspectionCheck || route is AppRoute.InspectionRoom) && route !in resolvable) {
+                    throw RepositoryException.Decoding(field)
+                }
+            }
+
+            val tradeProtocols = protocols.mapValues { (tradeId, dto) ->
+                val model = buildProtocol(tradeId, dto, statusByTrade[tradeId], defectLabel)
+                model.groups.flatMap { it.rows }.forEach { row ->
+                    resolve((row.target as? NavigationTarget.Push)?.route, "${tradePath(tradeId)}.groups.rows.route")
+                }
+                model
+            }
+            val overview = buildElectrical(electrical)
+            overview.groups.flatMap { it.rows }.forEach { resolve(it.target, "${tradePath(ELECTRICAL_TRADE)}.groups.rows.route") }
+            return EarlyTradeParts(
+                tradeProtocols = tradeProtocols,
+                electricalOverviews = mapOf(ELECTRICAL_TRADE to overview),
+                measureChecks = measureChecks,
+                roomChecks = roomChecks,
+                panelChecks = panelChecks,
+                smokeChecks = smokeChecks,
+            )
+        }
+
+        private fun buildProtocol(tradeId: String, dto: TradeProtocolDto, status: InspectionStatus?, defectLabel: String): TradeProtocolModel {
+            val path = tradePath(tradeId)
+            val tone = status?.let(ScreenCopy.Protocol::bannerTone) ?: throw RepositoryException.Decoding("$path.banner")
+            return TradeProtocolModel(
+                tradeId = tradeId,
+                title = dto.title,
+                subtitle = side(dto.subtitle, "$path.subtitle"),
+                banner = ProtocolBanner(
+                    tone = tone,
+                    title = dto.banner.title,
+                    text = dto.banner.text,
+                    documentLabel = dto.banner.documentLabel,
+                    target = if (tone == BannerTone.Warn) NavigationTarget.Defects else null,
+                ),
+                groups = dto.groups.map { group ->
+                    ProtocolGroup(
+                        group.title,
+                        group.rows.map { row ->
+                            ProtocolRow(
+                                label = side(row.label, "$path.groups.rows.label"),
+                                meta = row.meta,
+                                mark = ScreenCopy.Protocol.rowMark(row.meta, defectLabel),
+                                target = row.route?.let { RouteParser.inspectionLink(it, "$path.groups.rows.route") },
+                            )
+                        },
+                    )
+                },
+            )
+        }
+
+        private fun buildElectrical(dto: ElectricalOverviewDto): ElectricalOverviewModel {
+            val path = tradePath(ELECTRICAL_TRADE)
+            return ElectricalOverviewModel(
+                tradeId = ELECTRICAL_TRADE,
+                title = dto.title,
+                subtitle = side(dto.subtitle, "$path.subtitle"),
+                // D16: Android reads neither `dateLabel` nor `more`; both are null there.
+                phases = dto.phases.map { phase ->
+                    val kind = when {
+                        phase.statusLabel != null && phase.progressLabel == null ->
+                            PhaseKind.Done(side(phase.statusLabel, "$path.phases.statusLabel"), null)
+                        phase.statusLabel == null && phase.progressLabel != null ->
+                            PhaseKind.Active(phase.progressLabel, ScreenCopy.ElUebersicht.ACTIVE_PHASE_FRACTION)
+                        else -> throw RepositoryException.Decoding("$path.phases")
+                    }
+                    PhaseModel(phase.title, kind)
+                },
+                groups = dto.groups.mapIndexed { groupIndex, group ->
+                    ElectricalGroup(
+                        title = side(group.title, "$path.groups.title"),
+                        moreLabel = null,
+                        rows = group.rows.mapIndexed { rowIndex, row ->
+                            ElectricalRow(
+                                name = row.name,
+                                sub = row.sub,
+                                icon = ScreenCopy.ElUebersicht.icon(groupIndex, rowIndex) ?: throw RepositoryException.Decoding("$path.groups"),
+                                statusLabel = row.statusLabel,
+                                tone = ScreenCopy.ElUebersicht.tone(row.statusLabel)
+                                    ?: throw RepositoryException.Decoding("$path.groups.rows.statusLabel"),
+                                target = RouteParser.route(row.route, "$path.groups.rows.route"),
+                            )
+                        },
+                    )
+                },
+            )
+        }
+
+        private fun buildMeasure(
+            route: AppRoute.InspectionCheck,
+            check: MeasureCheckDto,
+            opening: ShellOpeningDto,
+            defectLabel: String,
+            path: String,
+        ): MeasureCheckModel = MeasureCheckModel(
+            route = route,
+            counter = side(check.counter, "$path.counter"),
+            title = check.title,
+            subtitleFormat = ScreenCopy.RohbauMasse.SUBTITLE_FORMAT,
+            instruction = ScreenCopy.RohbauMasse.INSTRUCTION,
+            measuredHeading = ScreenCopy.RohbauMasse.MEASURED_HEADING,
+            plumbTitle = ScreenCopy.RohbauMasse.PLUMB_TITLE,
+            plumbSubtitle = ScreenCopy.RohbauMasse.PLUMB_SUBTITLE,
+            plumbValue = ScreenCopy.RohbauMasse.PLUMB_VALUE,
+            saveLabel = ScreenCopy.RohbauMasse.SAVE,
+            photoLabel = ScreenCopy.RohbauMasse.PHOTO,
+            defectLabel = defectLabel,
+            withinLabel = opening.labels.within,
+            outsideLabel = opening.labels.outside,
+            dimensions = listOf(
+                MeasureDimensionModel(MeasureDimension.WIDTH, opening.dimLabels.w),
+                MeasureDimensionModel(MeasureDimension.HEIGHT, opening.dimLabels.h),
+            ),
+            measured = opening.measured,
+            initial = MeasureViewModel.of(
+                target = opening.target.w to opening.target.h,
+                actual = opening.actual.w to opening.actual.h,
+                step = opening.stepperDelta,
+                toleranceDefault = opening.parameter.default,
+                toleranceMin = opening.parameter.min,
+                toleranceMax = opening.parameter.max,
+                unit = opening.parameter.unit,
+            ),
+            defectTarget = AppRoute.NewDefect,
+        )
+
+        private fun buildRoom(route: AppRoute.InspectionRoom, check: RoomCheckDto, defectLabel: String, path: String): RoomCheckModel =
+            RoomCheckModel(
+                route = route,
+                counter = side(check.counter, "$path.counter"),
+                title = check.title,
+                subtitle = side(check.subtitle, "$path.subtitle"),
+                done = check.done.map { StepDoneRow(it.label, side(it.meta, "$path.done.meta")) },
+                current = RoomCurrent(stepNumber(check.current.n, "$path.current"), check.current.title, check.current.text),
+                sockets = check.sockets.map {
+                    SocketTile(it.id, it.label, SocketStatus.of(it.status, "$path.sockets"), it.aria)
+                },
+                progressLabel = side(check.progress, "$path.progress"),
+                defectNote = check.defectNote,
+                okNote = check.okNote,
+                defectLabel = defectLabel,
+                next = check.next.map {
+                    stepNumber(it.n, "$path.next")
+                    StepNextRow(it.n, side(it.label, "$path.next.label"))
+                },
+                progress = ScreenCopy.ElRaum.PROGRESS,
+                defectTarget = AppRoute.NewDefect,
+            )
+
+        private fun buildPanel(route: AppRoute.InspectionCheck, check: PanelCheckDto, path: String): PanelCheckModel {
+            if (check.current.outcomes.size != 2) throw RepositoryException.Decoding("$path.current.outcomes")
+            return PanelCheckModel(
+                route = route,
+                counter = side(check.counter, "$path.counter"),
+                title = check.title,
+                callout = check.subtitle,
+                done = check.done.map { StepDoneRow(it.label, side(it.meta, "$path.done.meta")) },
+                current = PanelCurrent(
+                    stepNumber(check.current.n, "$path.current"),
+                    check.current.title,
+                    check.current.text,
+                    check.current.steps,
+                ),
+                fis = check.fis.map {
+                    FiRow(it.name, it.sub, it.statusLabel, ScreenCopy.ElVerteiler.tone(it.statusLabel) ?: throw RepositoryException.Decoding("$path.fis"))
+                },
+                outcomes = check.current.outcomes,
+                next = check.next.map {
+                    stepNumber(it.n, "$path.next")
+                    PanelNextRow(it.n, it.label, it.tag)
+                },
+                progress = ScreenCopy.ElVerteiler.PROGRESS,
+                defectTarget = AppRoute.NewDefect,
+            )
+        }
+
+        private fun buildSmoke(route: AppRoute.InspectionCheck, check: SmokeCheckDto, path: String): SmokeCheckModel {
+            val rooms = check.rooms.map {
+                SmokeRoom(
+                    it.name,
+                    it.statusLabel,
+                    ScreenCopy.ElRauchmelder.roomStatus(it.statusLabel) ?: throw RepositoryException.Decoding("$path.rooms"),
+                )
+            }
+            if (rooms.singleOrNull { it.status == SmokeRoomStatus.Now }?.name != check.current.room) {
+                throw RepositoryException.Decoding("$path.current.room")
+            }
+            if (check.current.outcomes.size != 2) throw RepositoryException.Decoding("$path.current.outcomes")
+            val done = ScreenCopy.ElRauchmelder.CHECKS_DONE
+            if (check.checks.size != done.size) throw RepositoryException.Decoding("$path.checks")
+            return SmokeCheckModel(
+                route = route,
+                counter = side(check.counter, "$path.counter"),
+                title = check.title,
+                subtitle = check.subtitle,
+                room = check.current.room,
+                nowLabel = check.current.title,
+                checks = check.checks.mapIndexed { index, step -> SmokeCheckRow(step.label, step.hint, done[index]) },
+                outcomes = check.current.outcomes,
+                rooms = rooms,
+                reminder = check.reminder,
+                battery = check.battery,
+                reminderInitiallyOn = ScreenCopy.ElRauchmelder.REMINDER_INITIALLY_ON,
+                defectTarget = AppRoute.NewDefect,
             )
         }
 

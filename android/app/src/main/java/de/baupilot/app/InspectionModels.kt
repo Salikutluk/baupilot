@@ -2,8 +2,12 @@ package de.baupilot.app
 
 import java.time.LocalDate
 import de.baupilot.data.RepositoryException
+import de.baupilot.designsystem.BaupilotIcon
 import de.baupilot.inspection.DeadlineMath
 import de.baupilot.inspection.DeadlineStyle
+import de.baupilot.inspection.MeasureDimension
+import de.baupilot.inspection.MeasureViewModel
+import java.util.Locale
 
 /** Status of an overview row; the fixture key is `key`. */
 enum class InspectionStatus(val key: String) {
@@ -189,4 +193,173 @@ data class SignOffModel(
     val finishLabel: String,
     val note: String,
     val finishTarget: NavigationTarget,
+)
+
+// --- M5: early trades and electrical ---
+
+/** `defect` for a protocol row whose meta is the defect status label, else `ok` (D7). */
+enum class RowMark { Ok, Defect }
+
+/** `Ok` for an accepted trade, `Warn` for an accepted-with-reservation trade (D7). */
+enum class BannerTone { Ok, Warn }
+
+/** [documentLabel] is the button text of an accepted banner; [target] is the Mängel view of a reserved one. */
+data class ProtocolBanner(
+    val tone: BannerTone,
+    val title: String,
+    val text: String,
+    val documentLabel: String?,
+    val target: NavigationTarget?,
+)
+
+data class ProtocolRow(val label: String, val meta: String, val mark: RowMark, val target: NavigationTarget?)
+
+data class ProtocolGroup(val title: String, val rows: List<ProtocolRow>)
+
+/** Erdarbeiten, Rohbau and Zimmerer share one screen shape (D2). */
+data class TradeProtocolModel(
+    val tradeId: String,
+    val title: String,
+    val subtitle: String,
+    val banner: ProtocolBanner,
+    val groups: List<ProtocolGroup>,
+)
+
+/** Status of an electrical overview row (D7): the screen picks the colours. */
+enum class ElectricalTone { Open, Running, Ok, Missing }
+
+sealed interface PhaseKind {
+    /** [date] is null on Android: the date is part of [status] there (D16). */
+    data class Done(val status: String, val date: String?) : PhaseKind
+
+    data class Active(val progressLabel: String, val fraction: Float) : PhaseKind
+}
+
+data class PhaseModel(val title: String, val kind: PhaseKind)
+
+data class ElectricalRow(
+    val name: String,
+    val sub: String,
+    val icon: BaupilotIcon,
+    val statusLabel: String,
+    val tone: ElectricalTone,
+    val target: AppRoute?,
+)
+
+/** [moreLabel] is read on iOS only; it is always null on Android (D16). */
+data class ElectricalGroup(val title: String, val moreLabel: String?, val rows: List<ElectricalRow>)
+
+data class ElectricalOverviewModel(
+    val tradeId: String,
+    val title: String,
+    val subtitle: String,
+    val phases: List<PhaseModel>,
+    val groups: List<ElectricalGroup>,
+)
+
+data class MeasureDimensionModel(val key: MeasureDimension, val label: String)
+
+/** [initial] is the screen's starting state; the screen keeps the live value itself (D3, D12). */
+data class MeasureCheckModel(
+    val route: AppRoute.InspectionCheck,
+    val counter: String,
+    val title: String,
+    val subtitleFormat: String,
+    val instruction: String,
+    val measuredHeading: String,
+    val plumbTitle: String,
+    val plumbSubtitle: String,
+    val plumbValue: String,
+    val saveLabel: String,
+    val photoLabel: String,
+    val defectLabel: String,
+    val withinLabel: String,
+    val outsideLabel: String,
+    val dimensions: List<MeasureDimensionModel>,
+    val measured: List<String>,
+    val initial: MeasureViewModel,
+    val defectTarget: AppRoute,
+) {
+    /** The header line with the tolerance in mm. */
+    fun subtitle(tolerance: Int): String = String.format(Locale.ROOT, subtitleFormat, tolerance)
+}
+
+enum class SocketStatus(val key: String) {
+    Ok("ok"),
+    Defect("defect"),
+    Now("now"),
+    Open("open"),
+    ;
+
+    companion object {
+        fun of(key: String, field: String): SocketStatus =
+            entries.firstOrNull { it.key == key } ?: throw RepositoryException.Decoding(field)
+    }
+}
+
+data class SocketTile(val id: String, val label: String, val status: SocketStatus, val accessibilityLabel: String)
+
+data class RoomCurrent(val n: Int, val title: String, val text: String)
+
+data class RoomCheckModel(
+    val route: AppRoute.InspectionRoom,
+    val counter: String,
+    val title: String,
+    val subtitle: String,
+    val done: List<StepDoneRow>,
+    val current: RoomCurrent,
+    val sockets: List<SocketTile>,
+    val progressLabel: String,
+    val defectNote: String,
+    val okNote: String,
+    val defectLabel: String,
+    val next: List<StepNextRow>,
+    val progress: Float,
+    val defectTarget: AppRoute,
+)
+
+/** Status of an FI row (D7). */
+enum class FiTone { Ok, Open }
+
+data class FiRow(val name: String, val sub: String, val statusLabel: String, val tone: FiTone)
+
+data class PanelCurrent(val n: Int, val title: String, val text: String, val steps: List<String>)
+
+data class PanelNextRow(val n: String, val label: String, val tag: String?)
+
+data class PanelCheckModel(
+    val route: AppRoute.InspectionCheck,
+    val counter: String,
+    val title: String,
+    val callout: String,
+    val done: List<StepDoneRow>,
+    val current: PanelCurrent,
+    val fis: List<FiRow>,
+    val outcomes: List<String>,
+    val next: List<PanelNextRow>,
+    val progress: Float,
+    val defectTarget: AppRoute,
+)
+
+/** Status of a smoke alarm room (D7). */
+enum class SmokeRoomStatus { Ok, Now, Open }
+
+data class SmokeCheckRow(val label: String, val hint: String, val done: Boolean)
+
+data class SmokeRoom(val name: String, val statusLabel: String, val status: SmokeRoomStatus)
+
+data class SmokeCheckModel(
+    val route: AppRoute.InspectionCheck,
+    val counter: String,
+    val title: String,
+    val subtitle: String,
+    val room: String,
+    val nowLabel: String,
+    val checks: List<SmokeCheckRow>,
+    val outcomes: List<String>,
+    val rooms: List<SmokeRoom>,
+    val reminder: String,
+    val battery: String,
+    val reminderInitiallyOn: Boolean,
+    val defectTarget: AppRoute,
 )

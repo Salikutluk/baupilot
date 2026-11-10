@@ -148,6 +148,47 @@ cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests 'de.bau
 cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests 'de.baupilot.app.InspectionFlowUiTest'
 ```
 
+### Screen snapshots and UI tests (M5)
+
+M5 adds the early trades and the electrical screens (Erdarbeiten, Rohbau, Zimmerer, Elektro) with eight screens. 8 screens × 2 platforms × light/dark = 32 reference snapshot tests against `design/reference/<ios|android>/<Name>_<light|dark>.png`, in `ScreenSnapshotTests` (iOS) and the `*SnapshotTest` classes (Android). The tolerances never change. Measured results, decisions and known gaps: [`docs/m5-offene-punkte.md`](docs/m5-offene-punkte.md).
+
+| Nr. | Screen | Route | Reference name |
+|---|---|---|---|
+| 16 | Erdarbeiten – Protokoll | `inspection/earthworks` | `Erd` |
+| 17 | Rohbau – Übersicht | `inspection/shell` | `Rohbau` |
+| 18 | Rohbau – Maße & Lot | `inspection/shell/measure` | `RohbauMasse` |
+| 19 | Zimmerer – Dachstuhl | `inspection/carpentry` | `Zimmerer` |
+| 20 | Elektro – Übersicht | `inspection/electrical` | `ElUebersicht` |
+| 21 | Raumprüfung Küche | `inspection/electrical/room/{id}` (`kitchen`) | `ElRaum` |
+| 22 | Zählerschrank & FI-Test | `inspection/electrical/panel` | `ElVerteiler` |
+| 23 | Rauchwarnmelder | `inspection/electrical/smoke` | `ElRauchmelder` |
+
+**Defect form from an M5 screen (decision D4):** the buttons "Mangel" (Maße & Lot, Raumprüfung), "Löst nicht aus" (Zählerschrank) and "Kein Piepton" (Rauchwarnmelder) open the one fixture defect form (`defect/new`). "Sichern" from such an M5 opener returns to the opener; from the windows openers (Prüfschritt, Elemente) the M4 flow continues (sign-off above Elemente). Nothing is persisted (M8).
+
+Maße & Lot (`MeasureViewModel`, a pure value type): a ±5 mm stepper for Breite and Höhe, tolerance from `measurements.shellOpening.parameter` (12 mm, range 1–30) and a live result ("Innerhalb der Toleranz"). A decrement below 0 is a no-op.
+
+```sh
+# iOS: screen snapshots (the eight M5 screens are part of ScreenSnapshotTests), then the raw diff report
+cd ios && xcodebuild test -project Baupilot.xcodeproj -scheme Baupilot -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:BaupilotTests/ScreenSnapshotTests
+scripts/diff-report --platform ios   # from the repository root
+
+# iOS: early trades UI tests (M5 links, stepper, defect-form entry points, reminder switch)
+cd ios && xcodebuild test -project Baupilot.xcodeproj -scheme Baupilot -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:BaupilotUITests/EarlyTradesUITests
+
+# iOS: MeasureViewModel unit tests
+cd ios && xcodebuild test -project Baupilot.xcodeproj -scheme Baupilot -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:BaupilotTests/MeasureViewModelTests
+
+# Android: screen snapshots, then the raw diff report
+cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests 'de.baupilot.snapshot.*SnapshotTest'
+scripts/diff-report --platform android   # from the repository root
+
+# Android: early trades UI test (Compose UI test on Robolectric)
+cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests '*EarlyTradesUiTest'
+
+# Android: MeasureViewModel unit tests
+cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests '*MeasureViewModelTest'
+```
+
 ## Font provenance
 
 Fonts are embedded as TTF and also used in the test path.

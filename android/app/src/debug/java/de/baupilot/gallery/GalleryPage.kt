@@ -39,6 +39,11 @@ enum class GalleryPage(val goldenName: String) {
     InspectionStep("GalleryInspectionStep"),
     DefectForm("GalleryDefectForm"),
     SignOff("GallerySignOff"),
+    Protocol("GalleryProtocol"),
+    Measure("GalleryMeasure"),
+    Electrical("GalleryElectrical"),
+    ElectricalSteps("GalleryElectricalSteps"),
+    ElectricalSteps2("GalleryElectricalSteps2"),
 }
 
 @Composable
@@ -70,6 +75,11 @@ fun GalleryPageContent(page: GalleryPage) {
                 GalleryPage.InspectionStep -> InspectionStepPage()
                 GalleryPage.DefectForm -> DefectFormPage()
                 GalleryPage.SignOff -> SignOffPage()
+                GalleryPage.Protocol -> ProtocolPage()
+                GalleryPage.Measure -> MeasurePage()
+                GalleryPage.Electrical -> ElectricalPage()
+                GalleryPage.ElectricalSteps -> ElectricalStepsPage()
+                GalleryPage.ElectricalSteps2 -> ElectricalSteps2Page()
             }
         }
     }

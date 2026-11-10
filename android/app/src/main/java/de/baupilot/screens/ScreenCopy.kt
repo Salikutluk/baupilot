@@ -1,6 +1,12 @@
 package de.baupilot.screens
 
+import de.baupilot.app.BannerTone
+import de.baupilot.app.ElectricalTone
+import de.baupilot.app.FiTone
+import de.baupilot.app.InspectionStatus
 import de.baupilot.app.NotificationKind
+import de.baupilot.app.RowMark
+import de.baupilot.app.SmokeRoomStatus
 import de.baupilot.designsystem.BaupilotIcon
 import de.baupilot.designsystem.ColorToken
 import de.baupilot.designsystem.Tokens
@@ -270,5 +276,126 @@ object ScreenCopy {
 
         /** AndAbnSignatur.dc.html:71 */
         const val FINISH = "Protokoll abschließen"
+    }
+
+    /** Protocol screens Erd, Rohbau and Zimmerer (M5 D2, D7). */
+    object Protocol {
+        /** design/screens.md rows 16, 17 and 19: the trades that open a protocol screen. */
+        val TRADES = listOf("earthworks", "shell", "carpentry")
+
+        /**
+         * Banner tone by the overview status of the trade: accepted is ok with the PDF button (AndErd.dc.html:34),
+         * reserved is warn with a chevron towards the Mängel view (AndRohbau.dc.html:28-35). Any other status has no banner.
+         */
+        fun bannerTone(status: InspectionStatus): BannerTone? = when (status) {
+            InspectionStatus.Accepted -> BannerTone.Ok
+            InspectionStatus.Reserved -> BannerTone.Warn
+            InspectionStatus.Today, InspectionStatus.Planned -> null
+        }
+
+        /** AndRohbau.dc.html:71: a row is a defect row exactly when its meta is the defect status label ("Mangel"). */
+        fun rowMark(meta: String, defectLabel: String): RowMark = if (meta == defectLabel) RowMark.Defect else RowMark.Ok
+    }
+
+    object RohbauMasse {
+        /** AndRohbauMasse.dc.html:24: the tolerance in mm replaces the format argument. */
+        const val SUBTITLE_FORMAT = "OG Schlafen · Toleranz ± %d mm"
+
+        /** AndRohbauMasse.dc.html:31 */
+        const val INSTRUCTION = "Zollstock oben, mittig und unten anlegen. Den kleinsten Wert eintragen – das Fenster muss überall passen."
+
+        /** AndRohbauMasse.dc.html:36: followed by the target, " mm · " and the difference. */
+        const val TARGET_PREFIX = "Soll"
+
+        /** AndRohbauMasse.dc.html:39, the minus sign is U+2212. */
+        const val DECREMENT_GLYPH = "−"
+
+        /** AndRohbauMasse.dc.html:41 */
+        const val INCREMENT_GLYPH = "+"
+
+        /** AndRohbauMasse.dc.html:39: the aria label of the minus button, the dimension label is the argument. */
+        const val DECREMENT_ARIA_FORMAT = "%s verringern"
+
+        /** AndRohbauMasse.dc.html:41: the aria label of the plus button, the dimension label is the argument. */
+        const val INCREMENT_ARIA_FORMAT = "%s erhöhen"
+
+        /** AndRohbauMasse.dc.html:47, the aria label of the photo button (placeholder, no action) */
+        const val PHOTO = "Foto aufnehmen"
+
+        /** AndRohbauMasse.dc.html:51 (placeholder, no action) */
+        const val SAVE = "Speichern"
+
+        /** AndRohbauMasse.dc.html:56 */
+        const val MEASURED_HEADING = "Bereits gemessen"
+
+        /** AndRohbauMasse.dc.html:67 */
+        const val PLUMB_TITLE = "Wände im Lot"
+
+        /** AndRohbauMasse.dc.html:68 */
+        const val PLUMB_SUBTITLE = "2-m-Wasserwaage an allen Außenecken"
+
+        /** AndRohbauMasse.dc.html:70 */
+        const val PLUMB_VALUE = "8 / 8"
+    }
+
+    object ElUebersicht {
+        /** AndElUebersicht.dc.html:36: the active phase bar is hard-coded at 36 percent (4/11 would be 0.3636). */
+        const val ACTIVE_PHASE_FRACTION = 0.36f
+
+        /**
+         * AndElUebersicht.dc.html:66: the status label decides the row tone. Offen is open, Läuft running,
+         * In Ordnung and Vorhanden ok, Fehlt missing; any other label is not in the table.
+         */
+        fun tone(statusLabel: String): ElectricalTone? = when (statusLabel) {
+            "Offen" -> ElectricalTone.Open
+            "Läuft" -> ElectricalTone.Running
+            "In Ordnung", "Vorhanden" -> ElectricalTone.Ok
+            "Fehlt" -> ElectricalTone.Missing
+            else -> null
+        }
+
+        /**
+         * AndElUebersicht.dc.html:72-85: Haustechnik draws the meter cabinet (row 0) and the smoke alarm (row 1),
+         * Räume a house, Dokumente a document. A group or row beyond the table has no icon.
+         */
+        fun icon(group: Int, row: Int): BaupilotIcon? = when (group) {
+            0 -> listOf(BaupilotIcon.MeterCabinet, BaupilotIcon.SmokeAlarm).getOrNull(row)
+            1 -> BaupilotIcon.Home
+            2 -> BaupilotIcon.Document
+            else -> null
+        }
+    }
+
+    object ElRaum {
+        /** AndElRaum.dc.html:29: the progress bar is hard-coded at 30 percent. */
+        const val PROGRESS = 0.30f
+    }
+
+    object ElVerteiler {
+        /** AndElVerteiler.dc.html:26: the progress bar is hard-coded at 50 percent. */
+        const val PROGRESS = 0.50f
+
+        /** AndElVerteiler.dc.html:101-102: Ausgelöst is ok (green), Jetzt testen is open. */
+        fun tone(statusLabel: String): FiTone? = when (statusLabel) {
+            "Ausgelöst" -> FiTone.Ok
+            "Jetzt testen" -> FiTone.Open
+            else -> null
+        }
+    }
+
+    object ElRauchmelder {
+        /** AndElRauchmelder.dc.html:81: Getestet is ok, Jetzt is now, Offen is open. */
+        fun roomStatus(statusLabel: String): SmokeRoomStatus? = when (statusLabel) {
+            "Getestet" -> SmokeRoomStatus.Ok
+            "Jetzt" -> SmokeRoomStatus.Now
+            "Offen" -> SmokeRoomStatus.Open
+            else -> null
+        }
+
+        /** AndElRauchmelder.dc.html:85-86: by position the first check is done, the second open. */
+        val CHECKS_DONE = listOf(true, false)
+
+        /** AndElRauchmelder.dc.html:66: the reminder switch starts on (aria-checked is true). */
+        const val REMINDER_INITIALLY_ON = true
     }
 }

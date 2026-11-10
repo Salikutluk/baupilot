@@ -17,6 +17,8 @@ struct RouteTitles: Sendable, Equatable {
     var newDefectTitle: String = ""
     /// Sign-off titles by inspection id ("Abnahme abschließen").
     var signOffTitles: [String: String] = [:]
+    /// Titles of the check and room screens by their route; a missing one falls back to the check key or room id.
+    var checkTitles: [AppRoute: String] = [:]
 
     /// A missing name falls back to the id, so a title is never empty.
     func title(_ route: AppRoute) -> String {
@@ -29,6 +31,8 @@ struct RouteTitles: Sendable, Equatable {
         case let .inspectionStep(_, elementId, _): return stepTitles[route] ?? elementId
         case .newDefect: return newDefectTitle
         case let .signOff(inspectionId): return signOffTitles[inspectionId] ?? inspectionId
+        case let .inspectionCheck(_, check): return checkTitles[route] ?? check
+        case let .inspectionRoom(_, roomId): return checkTitles[route] ?? roomId
         }
     }
 

@@ -3,7 +3,8 @@ import SwiftUI
 /// Row used in the iOS lists. Place rows inside a `Card(padding: EdgeInsets())`; the divider
 /// sits on top of every row that is not the first. An optional `background` is painted under the whole
 /// row, divider included. `subtitleLines: .block` lets a long subtitle wrap inside the flex column (CSS
-/// `min-width: 0`) instead of truncating.
+/// `min-width: 0`) instead of truncating. `titleLines` does the same for the title (`.greedy` breaks like Chrome), and
+/// `textGap` replaces the density's gap between title and subtitle.
 public struct ListRow: View {
     public enum TitleSize {
         case regular
@@ -113,6 +114,8 @@ public struct ListRow: View {
     let dividerColor: ColorToken
     let background: ColorToken?
     let subtitleLines: TextLines
+    let textGap: CGFloat?
+    let titleLines: TextLines
     private let action: (() -> Void)?
 
     public init(
@@ -126,6 +129,8 @@ public struct ListRow: View {
         dividerColor: ColorToken = Tokens.border.core,
         background: ColorToken? = nil,
         subtitleLines: TextLines = .single,
+        textGap: CGFloat? = nil,
+        titleLines: TextLines = .single,
         action: (() -> Void)?
     ) {
         self.title = title
@@ -138,6 +143,8 @@ public struct ListRow: View {
         self.dividerColor = dividerColor
         self.background = background
         self.subtitleLines = subtitleLines
+        self.textGap = textGap
+        self.titleLines = titleLines
         self.action = action
     }
 
@@ -160,10 +167,8 @@ public struct ListRow: View {
     private var row: some View {
         let content = HStack(spacing: 12) {
             LeadingView(leading: leading)
-            VStack(alignment: .leading, spacing: density.textGap) {
-                Text(title)
-                    .interText(titleSize.fontSize, .semibold)
-                    .foregroundStyle(Tokens.text.color)
+            VStack(alignment: .leading, spacing: textGap ?? density.textGap) {
+                titleView
                 if let subtitle {
                     Text(subtitle)
                         .interText(13, .regular, lines: subtitleLines)
@@ -179,6 +184,18 @@ public struct ListRow: View {
             content.padding(.vertical, v)
         case .minHeight(let h):
             content.frame(minHeight: h)
+        }
+    }
+
+    @ViewBuilder
+    private var titleView: some View {
+        if titleLines == .greedy {
+            GreedyLabel(
+                text: title, size: titleSize.fontSize, weight: .semibold, color: Tokens.text, lineHeight: .normal)
+        } else {
+            Text(title)
+                .interText(titleSize.fontSize, .semibold, lines: titleLines)
+                .foregroundStyle(Tokens.text.color)
         }
     }
 

@@ -60,11 +60,46 @@ class RouteParserTest {
     @Test
     fun malformedInspectionRoutesThrowDecoding() {
         listOf(
-            "inspection/", "inspection", "inspection/a/b", "inspection/a/F8/step", "inspection/a/F8/step/0",
+            "inspection/", "inspection", "inspection/a/b/c", "inspection/a/room", "inspection/a/F8/step", "inspection/a/F8/step/0",
             "inspection/a/F8/step/03", "inspection/a/F8/step/x", "inspection/a/F8/steps/3", "inspection/a/F8/step/-1",
             "inspection/a/F8/step/3/x", "inspection/-a", "inspection/a/-F8/step/3", "defect/old", "defect/new/x",
             "defect/", "defect", "inspection/a/sign/x", "inspection//sign",
+            "inspection/a/step", "inspection/a/room/", "inspection/a/room/x/y", "inspection/a/-x",
+            "inspection/a/room/-x", "inspection//measure",
         ).forEach { raw -> assertDecoding("inspections.overview.rows.route") { RouteParser.target(raw, "inspections.overview.rows.route") } }
+    }
+
+    @Test
+    fun parsesCheckAndRoomRoutes() {
+        assertEquals(
+            NavigationTarget.Push(AppRoute.InspectionCheck("shell", "measure")),
+            RouteParser.target("inspection/shell/measure", "f"),
+        )
+        assertEquals(
+            NavigationTarget.Push(AppRoute.InspectionCheck("windows", "F8-2")),
+            RouteParser.target("inspection/windows/F8-2", "f"),
+        )
+        assertEquals(
+            NavigationTarget.Push(AppRoute.InspectionRoom("electrical", "kitchen")),
+            RouteParser.target("inspection/electrical/room/kitchen", "f"),
+        )
+        assertEquals(AppRoute.InspectionRoom("a", "r_1"), RouteParser.route("inspection/a/room/r_1", "f"))
+        assertEquals(NavigationTarget.Push(AppRoute.SignOff("shell")), RouteParser.target("inspection/shell/sign", "f"))
+    }
+
+    @Test
+    fun inspectionLinkAcceptsDefectsAndPushRejectsTab() {
+        assertEquals(NavigationTarget.Defects, RouteParser.inspectionLink("defects", "f"))
+        assertEquals(
+            NavigationTarget.Push(AppRoute.InspectionCheck("shell", "measure")),
+            RouteParser.inspectionLink("inspection/shell/measure", "f"),
+        )
+        assertEquals(
+            NavigationTarget.Push(AppRoute.Notifications),
+            RouteParser.inspectionLink("notifications", "f"),
+        )
+        assertDecoding("field") { RouteParser.inspectionLink("home", "field") }
+        assertDecoding("field") { RouteParser.inspectionLink("bogus", "field") }
     }
 
     @Test

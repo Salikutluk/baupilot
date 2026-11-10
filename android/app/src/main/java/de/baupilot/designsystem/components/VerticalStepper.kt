@@ -38,6 +38,7 @@ data class Step(
     val state: StepState,
     val meta: String? = null,
     val tag: String? = null,
+    val metaColor: ColorToken = Tokens.muted,
     val body: (@Composable () -> Unit)? = null,
 )
 
@@ -128,7 +129,7 @@ private fun RailStep(step: Step, isLast: Boolean, circleModifier: Modifier, line
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 BaupilotText(text = step.title, size = 15.sp, color = Tokens.text)
-                step.meta?.let { BaupilotText(text = it, size = 13.sp, color = Tokens.muted) }
+                step.meta?.let { BaupilotText(text = it, size = 13.sp, color = step.metaColor) }
             }
             StepState.Current -> Column(
                 modifier = Modifier.weight(1f).padding(bottom = 16.dp),
@@ -156,7 +157,7 @@ private fun RailStep(step: Step, isLast: Boolean, circleModifier: Modifier, line
 @Composable
 private fun CompactStep(step: Step, circleModifier: Modifier, tagColor: ColorToken) {
     if (step.state == StepState.Current) {
-        BaupilotCard {
+        BaupilotCard(modifier = Modifier.fillMaxWidth()) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     StepCircle(step, circleModifier)
@@ -179,7 +180,7 @@ private fun CompactStep(step: Step, circleModifier: Modifier, tagColor: ColorTok
             color = if (step.state == StepState.Open) Tokens.muted else Tokens.text,
             modifier = Modifier.weight(1f),
         )
-        step.meta?.let { BaupilotText(text = it, size = 13.sp, color = Tokens.muted) }
+        step.meta?.let { BaupilotText(text = it, size = 13.sp, color = step.metaColor) }
         step.tag?.let { BaupilotText(text = it, size = 12.sp, weight = 500, color = tagColor) }
     }
 }

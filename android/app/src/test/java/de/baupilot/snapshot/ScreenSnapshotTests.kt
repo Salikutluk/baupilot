@@ -407,3 +407,220 @@ class AbnMaengelDarkSnapshotTest {
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
+
+/** Abnahmen, Erdarbeiten – Protokoll (D10: `logIn`, `select(Inspections)`, `open(Inspection("earthworks"))`), compared with `design/reference/android/Erd_light.png`. */
+class ErdLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("Erd", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun erd() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("earthworks"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Abnahmen, Erdarbeiten – Protokoll (D10: `logIn`, `select(Inspections)`, `open(Inspection("earthworks"))`), compared with `design/reference/android/Erd_dark.png`. */
+class ErdDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("Erd", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun erd() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("earthworks"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Abnahmen, Rohbau – Übersicht (D10: `logIn`, `select(Inspections)`, `open(Inspection("shell"))`), compared with `design/reference/android/Rohbau_light.png`. */
+class RohbauLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("Rohbau", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun rohbau() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("shell"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Abnahmen, Rohbau – Übersicht (D10: `logIn`, `select(Inspections)`, `open(Inspection("shell"))`), compared with `design/reference/android/Rohbau_dark.png`. */
+class RohbauDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("Rohbau", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun rohbau() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("shell"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Rohbau – Maße & Lot (D10: `logIn`, `select(Inspections)`, `open(Inspection("shell"))`, `open(InspectionCheck("shell", "measure"))`), compared with `design/reference/android/RohbauMasse_light.png`. */
+class RohbauMasseLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("RohbauMasse", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun rohbauMasse() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("shell"))
+            .open(AppRoute.InspectionCheck("shell", "measure"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Rohbau – Maße & Lot (D10: `logIn`, `select(Inspections)`, `open(Inspection("shell"))`, `open(InspectionCheck("shell", "measure"))`), compared with `design/reference/android/RohbauMasse_dark.png`. */
+class RohbauMasseDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("RohbauMasse", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun rohbauMasse() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("shell"))
+            .open(AppRoute.InspectionCheck("shell", "measure"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Abnahmen, Zimmerer – Dachstuhl (D10: `logIn`, `select(Inspections)`, `open(Inspection("carpentry"))`), compared with `design/reference/android/Zimmerer_light.png`. */
+class ZimmererLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("Zimmerer", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun zimmerer() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("carpentry"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Abnahmen, Zimmerer – Dachstuhl (D10: `logIn`, `select(Inspections)`, `open(Inspection("carpentry"))`), compared with `design/reference/android/Zimmerer_dark.png`. */
+class ZimmererDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("Zimmerer", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun zimmerer() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("carpentry"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Abnahmen, Elektro – Übersicht (D10: `logIn`, `select(Inspections)`, `open(Inspection("electrical"))`), compared with `design/reference/android/ElUebersicht_light.png`. */
+class ElUebersichtLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("ElUebersicht", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun elUebersicht() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("electrical"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+
+/** Abnahmen, Elektro – Übersicht (D10: `logIn`, `select(Inspections)`, `open(Inspection("electrical"))`), compared with `design/reference/android/ElUebersicht_dark.png`. */
+class ElUebersichtDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("ElUebersicht", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun elUebersicht() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("electrical"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Elektro – Raumprüfung Küche (D10: `logIn`, `select(Inspections)`, `open(Inspection("electrical"))`, `open(InspectionRoom("electrical", "kitchen"))`), compared with `design/reference/android/ElRaum_light.png`. */
+class ElRaumLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("ElRaum", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun elRaum() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("electrical"))
+            .open(AppRoute.InspectionRoom("electrical", "kitchen"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Elektro – Raumprüfung Küche (D10: `logIn`, `select(Inspections)`, `open(Inspection("electrical"))`, `open(InspectionRoom("electrical", "kitchen"))`), compared with `design/reference/android/ElRaum_dark.png`. */
+class ElRaumDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("ElRaum", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun elRaum() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("electrical"))
+            .open(AppRoute.InspectionRoom("electrical", "kitchen"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Elektro – Zählerschrank & FI-Test (D10: `logIn`, `select(Inspections)`, `open(Inspection("electrical"))`, `open(InspectionCheck("electrical", "panel"))`), compared with `design/reference/android/ElVerteiler_light.png`. */
+class ElVerteilerLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("ElVerteiler", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun elVerteiler() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("electrical"))
+            .open(AppRoute.InspectionCheck("electrical", "panel"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Elektro – Zählerschrank & FI-Test (D10: `logIn`, `select(Inspections)`, `open(Inspection("electrical"))`, `open(InspectionCheck("electrical", "panel"))`), compared with `design/reference/android/ElVerteiler_dark.png`. */
+class ElVerteilerDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("ElVerteiler", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun elVerteiler() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("electrical"))
+            .open(AppRoute.InspectionCheck("electrical", "panel"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Elektro – Rauchwarnmelder (D10: `logIn`, `select(Inspections)`, `open(Inspection("electrical"))`, `open(InspectionCheck("electrical", "smoke"))`), compared with `design/reference/android/ElRauchmelder_light.png`. */
+class ElRauchmelderLightSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("ElRauchmelder", SnapshotMode.LIGHT), SnapshotMode.LIGHT)
+
+    @Test
+    fun elRauchmelder() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("electrical"))
+            .open(AppRoute.InspectionCheck("electrical", "smoke"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}
+
+/** Elektro – Rauchwarnmelder (D10: `logIn`, `select(Inspections)`, `open(Inspection("electrical"))`, `open(InspectionCheck("electrical", "smoke"))`), compared with `design/reference/android/ElRauchmelder_dark.png`. */
+class ElRauchmelderDarkSnapshotTest {
+    @get:Rule
+    val paparazzi = baupilotPaparazzi(ReferenceSnapshotHandler("ElRauchmelder", SnapshotMode.DARK), SnapshotMode.DARK)
+
+    @Test
+    fun elRauchmelder() {
+        val data = TestAppData.load()
+        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("electrical"))
+            .open(AppRoute.InspectionCheck("electrical", "smoke"))
+        paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
+    }
+}

@@ -43,7 +43,7 @@ struct GalleryGroup<Content: View>: View {
 
 /// One full-screen page of the component gallery. Each page is one golden pair.
 enum GalleryPage: String, CaseIterable {
-    case structure, containers, statusInput, buttons, bars, steps, tiles, icons, forms, overview, schedule, settings, trade, documents, compare, notifications, inspections, inspectionElements, inspectionStep, defectForm, signOff
+    case structure, containers, statusInput, buttons, bars, steps, tiles, icons, forms, overview, schedule, settings, trade, documents, compare, notifications, inspections, inspectionElements, inspectionStep, defectForm, signOff, `protocol`, measure, electrical, electricalSteps, electricalSteps2
 
     /// ASCII letters only, so the name is a valid file name on every platform.
     var goldenName: String { "Gallery" + rawValue.capitalizedFirst }
@@ -74,6 +74,11 @@ enum GalleryPage: String, CaseIterable {
             case .inspectionStep: GalleryInspectionStepPage()
             case .defectForm: GalleryDefectFormPage()
             case .signOff: GallerySignOffPage()
+            case .`protocol`: GalleryProtocolPage()
+            case .measure: GalleryMeasurePage()
+            case .electrical: GalleryElectricalPage()
+            case .electricalSteps: GalleryElectricalStepsPage()
+            case .electricalSteps2: GalleryElectricalSteps2Page()
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)

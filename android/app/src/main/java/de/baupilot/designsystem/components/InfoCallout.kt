@@ -13,28 +13,36 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.baupilot.designsystem.BaupilotIcon
 import de.baupilot.designsystem.BaupilotText
+import de.baupilot.designsystem.ColorToken
 import de.baupilot.designsystem.Icon
 import de.baupilot.designsystem.Tokens
 
 /**
  * Info callout (AndVergleich:52): `primaryContainer` with `onPrimaryContainer` content, radius 12, padding 12 16,
- * gap 12, a 20 [icon] and 14 text at line height 20.
+ * gap 12, a 20 [icon] and 14 text at line height 20. [container] and [content] recolour it (ElVerteiler: `warnBg` /
+ * `warnFg`).
  */
 @Composable
-fun InfoCallout(text: String, modifier: Modifier = Modifier, icon: BaupilotIcon = BaupilotIcon.Info) {
+fun InfoCallout(
+    text: String,
+    modifier: Modifier = Modifier,
+    icon: BaupilotIcon = BaupilotIcon.Info,
+    container: ColorToken = Tokens.primaryContainer,
+    content: ColorToken = Tokens.onPrimaryContainer,
+) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(Tokens.Radius.listCard))
-            .background(Tokens.primaryContainer.color())
+            .background(container.color())
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Icon(icon, 20.dp, Tokens.onPrimaryContainer.color())
+        Icon(icon, 20.dp, content.color())
         BaupilotText(
             text = text,
             size = 14.sp,
-            color = Tokens.onPrimaryContainer,
+            color = content,
             lineHeight = 20.sp,
             modifier = Modifier.weight(1f),
         )

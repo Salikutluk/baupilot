@@ -210,4 +210,110 @@ enum ScreenCopy {
         /// Tone of the three stat tiles by position: surface, ok, error (renderVals of IosAbnSignatur.dc.html:81-83).
         static let statTones: [CountTone] = [.surface, .ok, .error]
     }
+
+    /// Trades that open the shared protocol screen (design/screens.md rows 16, 17 and 19: Erd, Rohbau, Zimmerer).
+    enum ProtocolCopy {
+        static let protocolTrades = ["earthworks", "shell", "carpentry"]
+
+        /// Banner tone by overview status (IosErd.dc.html:17-54 accepted, IosRohbau.dc.html:30 reserved); nil for any other.
+        static func bannerTone(overviewStatus: String) -> ProtocolTone? {
+            switch overviewStatus {
+            case "accepted": return .ok
+            case "reserved": return .warn
+            default: return nil
+            }
+        }
+
+        /// Row mark: a row whose meta is the "defect" status label shows the defect mark, every other row the ok mark.
+        static func mark(meta: String, defectLabel: String) -> ProtocolMark {
+            meta == defectLabel ? .defect : .ok
+        }
+    }
+
+    enum RohbauMasse {
+        // IosRohbauMasse.dc.html:28 (subtitle, with the tolerance in mm)
+        static let subtitleFormat = "OG Schlafen · Toleranz laut Vertrag ± %d mm"
+        // IosRohbauMasse.dc.html:32
+        static let instruction = "Zollstock oben, mittig und unten anlegen. Den kleinsten Wert eintragen – das Fenster muss überall passen."
+        // IosRohbauMasse.dc.html:37 (prefix of the target line, followed by the diff)
+        static let targetFormat = "Soll %d mm · "
+        // IosRohbauMasse.dc.html:40 (stepper glyph, U+2212)
+        static let decrementGlyph = "−"
+        // IosRohbauMasse.dc.html:42
+        static let incrementGlyph = "+"
+        // IosRohbauMasse.dc.html:40 (aria-label of the decrement button)
+        static let decrementAriaFormat = "%@ verringern"
+        // IosRohbauMasse.dc.html:42 (aria-label of the increment button)
+        static let incrementAriaFormat = "%@ erhöhen"
+        // IosRohbauMasse.dc.html:48 (aria-label of the photo button)
+        static let photoLabel = "Foto aufnehmen"
+        // IosRohbauMasse.dc.html:52
+        static let saveLabel = "Speichern"
+        // IosRohbauMasse.dc.html:57
+        static let measuredHeading = "Bereits gemessen"
+        // IosRohbauMasse.dc.html:70
+        static let plumbTitle = "Wände im Lot"
+        // IosRohbauMasse.dc.html:71
+        static let plumbSubtitle = "2-m-Wasserwaage an allen Außenecken"
+        // IosRohbauMasse.dc.html:73
+        static let plumbValue = "8 / 8"
+    }
+
+    enum ElUebersicht {
+        // IosElUebersicht.dc.html:39 (width of the active phase bar: 36 %, not 4 / 11)
+        static let activePhaseFraction = 0.36
+
+        /// Status label to tone (IosElUebersicht.dc.html:76, map `S`); nil for a label the prototype does not know.
+        static func tone(statusLabel: String) -> ElectricalTone? {
+            switch statusLabel {
+            case "Offen": return .open
+            case "Läuft": return .running
+            case "In Ordnung", "Vorhanden": return .ok
+            case "Fehlt": return .missing
+            default: return nil
+            }
+        }
+
+        /// Row icon by group and row index (IosElUebersicht.dc.html:78-85): Haustechnik by row, Räume, Dokumente.
+        static func icon(group: Int, row: Int) -> ElectricalIcon? {
+            switch (group, row) {
+            case (0, 0): return .meterCabinet
+            case (0, 1): return .smokeAlarm
+            case (1, _): return .home
+            case (2, _): return .document
+            default: return nil
+            }
+        }
+    }
+
+    /// IosElRaum.dc.html carries no platform-specific chrome on iOS (the Android bar fraction is Android only).
+    enum ElRaum {}
+
+    enum ElVerteiler {
+        /// FI status label to tone (IosElVerteiler.dc.html:99-100): Ausgelöst is ok, Jetzt testen is open.
+        static func tone(statusLabel: String) -> FiTone? {
+            switch statusLabel {
+            case "Ausgelöst": return .ok
+            case "Jetzt testen": return .open
+            default: return nil
+            }
+        }
+    }
+
+    enum ElRauchmelder {
+        // IosElRauchmelder.dc.html:88-89 (the first check is done, the second is open)
+        static let checksDone = 1
+        // IosElRauchmelder.dc.html:68 (aria-checked="true" on the reminder switch)
+        static let reminderInitiallyOn = true
+
+        /// Room status label to status (IosElRauchmelder.dc.html:84, map `R`); nil for a label the prototype does not know.
+        static func status(roomLabel: String) -> SmokeRoomStatus? {
+            switch roomLabel {
+            case "Getestet": return .ok
+            case "Jetzt": return .now
+            case "Offen": return .open
+            default: return nil
+            }
+        }
+    }
 }

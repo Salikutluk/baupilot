@@ -404,17 +404,26 @@ final class AppDataTests: XCTestCase {
     // MARK: - M4 inspection models
 
     private func editWindowsCheck(
-        _ object: inout [String: Any], _ key: String, _ edit: (inout [String: Any]) -> Void
+        _ object: inout [String: Any], _ key: String, trade: String = "windows",
+        _ edit: (inout [String: Any]) -> Void
+    ) {
+        editTrade(&object, trade) { tradeObject in
+            var checks = tradeObject["checks"] as? [String: Any] ?? [:]
+            var check = checks[key] as? [String: Any] ?? [:]
+            edit(&check)
+            checks[key] = check
+            tradeObject["checks"] = checks
+        }
+    }
+
+    private func editTrade(
+        _ object: inout [String: Any], _ trade: String, _ edit: (inout [String: Any]) -> Void
     ) {
         var inspections = object["inspections"] as? [String: Any] ?? [:]
         var byTrade = inspections["byTrade"] as? [String: Any] ?? [:]
-        var windows = byTrade["windows"] as? [String: Any] ?? [:]
-        var checks = windows["checks"] as? [String: Any] ?? [:]
-        var check = checks[key] as? [String: Any] ?? [:]
-        edit(&check)
-        checks[key] = check
-        windows["checks"] = checks
-        byTrade["windows"] = windows
+        var tradeObject = byTrade[trade] as? [String: Any] ?? [:]
+        edit(&tradeObject)
+        byTrade[trade] = tradeObject
         inspections["byTrade"] = byTrade
         object["inspections"] = inspections
     }
@@ -810,7 +819,7 @@ final class AppDataTests: XCTestCase {
         try await expectDecoding("inspections.overview.rows.route") { object in
             editOverview(&object) { overview in
                 var rows = overview["rows"] as? [[String: Any]] ?? []
-                rows[0]["route"] = "inspection/a/b"
+                rows[0]["route"] = "inspection/a/b/c"
                 overview["rows"] = rows
             }
         }
@@ -874,6 +883,417 @@ final class AppDataTests: XCTestCase {
             XCTFail("Expected RepositoryError.fixtureMissing")
         } catch {
             XCTAssertEqual(error as? RepositoryError, .fixtureMissing("\(checksPath).defectF2"))
+        }
+    }
+
+    // MARK: - M5 early trades
+
+    private let shellPath = "inspections.byTrade.shell"
+    private let electricalPath = "inspections.byTrade.electrical"
+    private let measureRoute = AppRoute.inspectionCheck(tradeId: "shell", check: "measure")
+    private let kitchenRoute = AppRoute.inspectionRoom(tradeId: "electrical", roomId: "kitchen")
+    private let panelRoute = AppRoute.inspectionCheck(tradeId: "electrical", check: "panel")
+    private let smokeRoute = AppRoute.inspectionCheck(tradeId: "electrical", check: "smoke")
+
+    /// Replaces `list[index][key]` of a list member of a dictionary.
+    private func setListItem(
+        _ object: inout [String: Any], _ list: String, _ index: Int, _ key: String, _ value: Any
+    ) {
+        var items = object[list] as? [[String: Any]] ?? []
+        items[index][key] = value
+        object[list] = items
+    }
+
+    func testLoadsTradeProtocols() async throws {
+        let protocols = try await loaded().tradeProtocols
+        XCTAssertEqual(Set(protocols.keys), ["earthworks", "shell", "carpentry"])
+        let earthworks = try XCTUnwrap(protocols["earthworks"])
+        XCTAssertEqual(earthworks.title, "Erdarbeiten")
+        XCTAssertEqual(earthworks.subtitle, "Tiefbau Schäfer · Baugrube & Gründung")
+        XCTAssertEqual(earthworks.banner.tone, .ok)
+        XCTAssertEqual(earthworks.banner.title, "Abgenommen am 14.04.2026")
+        XCTAssertEqual(earthworks.banner.documentLabel, "PDF")
+        XCTAssertNil(earthworks.banner.target)
+        XCTAssertEqual(earthworks.groups.map(\.title), ["Absteckung", "Baugrube", "Leitungen & Verfüllung"])
+        XCTAssertEqual(earthworks.groups.map(\.rows.count), [2, 4, 3])
+        XCTAssertEqual(earthworks.groups[2].rows[2].label, "Mutterboden gesichert, Aushub abgefahren")
+        XCTAssertTrue(earthworks.groups.flatMap(\.rows).allSatisfy { $0.mark == .ok && $0.target == nil })
+
+        let shell = try XCTUnwrap(protocols["shell"])
+        XCTAssertEqual(shell.banner.tone, .warn)
+        XCTAssertEqual(shell.banner.title, "Abgenommen mit Vorbehalt")
+        XCTAssertNil(shell.banner.documentLabel)
+        XCTAssertEqual(shell.banner.target, .defects)
+        let rows = shell.groups.flatMap(\.rows)
+        XCTAssertEqual(rows.count, 9)
+        let crack = try XCTUnwrap(rows.first { $0.label == "Kellerwand Nord ohne Risse" })
+        XCTAssertEqual(crack.mark, .defect)
+        XCTAssertEqual(crack.target, .defects)
+        let measure = try XCTUnwrap(rows.first { $0.label == "Maße & Lot von Wänden und Öffnungen" })
+        XCTAssertEqual(measure.meta, "12 Öffnungen")
+        XCTAssertEqual(measure.target, .push(measureRoute))
+        let others = rows.filter { $0.label != crack.label && $0.label != measure.label }
+        XCTAssertTrue(others.allSatisfy { $0.mark == .ok && $0.target == nil })
+
+        let carpentry = try XCTUnwrap(protocols["carpentry"])
+        XCTAssertEqual(carpentry.subtitle, "Holzbau Becker · Dachstuhl Satteldach 38°")
+        XCTAssertEqual(carpentry.banner.tone, .ok)
+        XCTAssertEqual(carpentry.groups.flatMap(\.rows).count, 8)
+    }
+
+    func testLoadsElectricalOverview() async throws {
+        let overviews = try await loaded().electricalOverviews
+        XCTAssertEqual(Set(overviews.keys), ["electrical"])
+        let model = try XCTUnwrap(overviews["electrical"])
+        XCTAssertEqual(model.title, "Elektro")
+        XCTAssertEqual(model.subtitle, "Elektro Schmitt GmbH · Mo, 26.04.2027")
+        XCTAssertEqual(model.phases.map(\.title), ["1 · Rohinstallation", "2 · Fertiginstallation"])
+        XCTAssertEqual(model.phases[0].kind, .done(status: "Abgenommen", date: "am 29.01.2027"))
+        XCTAssertEqual(model.phases[1].kind, .active(progressLabel: "4 von 11 geprüft", fraction: 0.36))
+        XCTAssertEqual(model.groups.map(\.title), ["Haustechnik", "Räume", "Dokumente vom Elektriker"])
+        XCTAssertEqual(model.groups.map(\.moreLabel), [nil, "Alle 9", nil])
+        let rows = model.groups.flatMap(\.rows)
+        XCTAssertEqual(rows.map(\.name), [
+            "Zählerschrank & FI-Test", "Rauchwarnmelder", "Küche", "Wohnen / Essen", "Bad",
+            "Prüfprotokoll VDE 0100-600", "Verteilerplan & Stromkreisliste",
+        ])
+        let expectedTargets: [AppRoute?] = [panelRoute, smokeRoute, kitchenRoute, nil, nil, nil, nil]
+        XCTAssertEqual(rows.map(\.target), expectedTargets)
+        XCTAssertEqual(rows.map(\.tone), [.open, .running, .running, .ok, .open, .missing, .ok])
+        XCTAssertEqual(rows.map(\.statusLabel), [
+            "Offen", "Läuft", "Läuft", "In Ordnung", "Offen", "Fehlt", "Vorhanden",
+        ])
+        XCTAssertEqual(rows.map(\.icon), [.meterCabinet, .smokeAlarm, .home, .home, .home, .document, .document])
+    }
+
+    func testLoadsMeasureCheck() async throws {
+        let data = try await loaded()
+        XCTAssertEqual(Set(data.measureChecks.keys), [measureRoute])
+        let check = try XCTUnwrap(data.measureChecks[measureRoute])
+        XCTAssertEqual(check.route, measureRoute)
+        XCTAssertEqual(check.counter, "Öffnung 8 von 12")
+        XCTAssertEqual(check.title, "Fensteröffnung F8")
+        XCTAssertEqual(check.subtitle(tolerance: 12), "OG Schlafen · Toleranz laut Vertrag ± 12 mm")
+        XCTAssertEqual(check.subtitle(tolerance: check.initial.tolerance), "OG Schlafen · Toleranz laut Vertrag ± 12 mm")
+        XCTAssertEqual(check.instruction,
+            "Zollstock oben, mittig und unten anlegen. Den kleinsten Wert eintragen – das Fenster muss überall passen.")
+        XCTAssertEqual(check.measuredHeading, "Bereits gemessen")
+        XCTAssertEqual(check.plumbTitle, "Wände im Lot")
+        XCTAssertEqual(check.plumbSubtitle, "2-m-Wasserwaage an allen Außenecken")
+        XCTAssertEqual(check.plumbValue, "8 / 8")
+        XCTAssertEqual(check.saveLabel, "Speichern")
+        XCTAssertEqual(check.photoLabel, "Foto aufnehmen")
+        XCTAssertEqual(check.defectLabel, "Mangel")
+        XCTAssertEqual(check.withinLabel, "Innerhalb der Toleranz")
+        XCTAssertEqual(check.outsideLabel, "Außerhalb der Toleranz – Mangel erfassen")
+        XCTAssertEqual(check.dimensions.map(\.key), [.width, .height])
+        XCTAssertEqual(check.dimensions.map(\.label), ["Breite", "Höhe"])
+        XCTAssertEqual(check.measured, ["F1", "F2", "F3", "F4", "F5", "F6", "F7"])
+        XCTAssertEqual(check.defectTarget, .newDefect)
+        let initial = check.initial
+        XCTAssertEqual(initial.valueText(.width), "1005")
+        XCTAssertEqual(initial.valueText(.height), "1395")
+        XCTAssertEqual(initial.diffText(.width), "−5 mm")
+        XCTAssertEqual(initial.diffText(.height), "+10 mm")
+        XCTAssertEqual(initial.step, 5)
+        XCTAssertEqual(initial.tolerance, 12)
+        XCTAssertTrue(initial.isWithinTolerance)
+    }
+
+    func testLoadsRoomCheck() async throws {
+        let data = try await loaded()
+        XCTAssertEqual(Set(data.roomChecks.keys), [kitchenRoute])
+        let room = try XCTUnwrap(data.roomChecks[kitchenRoute])
+        XCTAssertEqual(room.counter, "Schritt 2 von 5")
+        XCTAssertEqual(room.title, "Küche")
+        XCTAssertEqual(room.subtitle, "EG · laut Elektroplan: 8 Steckdosen, 3 Auslässe, 3 Geräteanschlüsse")
+        XCTAssertEqual(room.done.map(\.label), ["Anzahl & Position laut Plan"])
+        XCTAssertEqual(room.done.map(\.meta), ["8 / 8"])
+        XCTAssertEqual(room.current.n, 2)
+        XCTAssertEqual(room.current.title, "Jede Steckdose testen")
+        XCTAssertEqual(room.sockets.map(\.id), ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8"])
+        XCTAssertEqual(room.sockets.map(\.status), [.ok, .ok, .ok, .defect, .ok, .now, .open, .open])
+        XCTAssertEqual(room.sockets.map(\.label), [
+            "korrekt", "korrekt", "korrekt", "Fehler", "korrekt", "jetzt", "offen", "offen",
+        ])
+        XCTAssertEqual(room.sockets[3].accessibilityLabel, "Steckdose S4: Fehler")
+        XCTAssertEqual(room.progressLabel, "5 von 8 getestet")
+        XCTAssertEqual(room.defectNote, "S4: Mangel erfasst")
+        XCTAssertEqual(room.okNote, "S6 in Ordnung")
+        XCTAssertEqual(room.defectLabel, "Mangel")
+        XCTAssertEqual(room.next.map(\.n), [3, 4, 5])
+        XCTAssertEqual(room.next[0].label, "Jeder Schalter schaltet das richtige Licht")
+        XCTAssertEqual(room.defectTarget, .newDefect)
+    }
+
+    func testLoadsPanelCheck() async throws {
+        let data = try await loaded()
+        XCTAssertEqual(Set(data.panelChecks.keys), [panelRoute])
+        let panel = try XCTUnwrap(data.panelChecks[panelRoute])
+        XCTAssertEqual(panel.counter, "Schritt 3 von 5")
+        XCTAssertEqual(panel.title, "Zählerschrank")
+        XCTAssertEqual(panel.callout,
+            "Nur von außen prüfen. Keine Abdeckungen abschrauben – das macht der Elektriker.")
+        XCTAssertEqual(panel.done.map(\.label), ["Abdeckungen vollständig", "Jede Sicherung beschriftet"])
+        XCTAssertEqual(panel.done.map(\.meta), ["1 Foto", "2 Fotos"])
+        XCTAssertEqual(panel.current.n, 3)
+        XCTAssertEqual(panel.current.title, "FI-Schutzschalter testen")
+        XCTAssertEqual(panel.current.steps, [
+            "Prüftaste „T“ am FI-Schalter drücken.",
+            "Der Hebel muss sofort nach unten springen.",
+            "Hebel wieder nach oben – Strom ist zurück.",
+        ])
+        XCTAssertEqual(panel.fis.map(\.name), ["FI 1 · Erdgeschoss", "FI 2 · Obergeschoss"])
+        XCTAssertEqual(panel.fis.map(\.tone), [.ok, .open])
+        XCTAssertEqual(panel.fis.map(\.statusLabel), ["Ausgelöst", "Jetzt testen"])
+        XCTAssertEqual(panel.outcomes, ["Löst nicht aus", "FI 2 ausgelöst"])
+        XCTAssertEqual(panel.next.map(\.n), [4, 5])
+        XCTAssertEqual(panel.next.map(\.tag), [nil, "Pflicht"])
+        XCTAssertEqual(panel.defectTarget, .newDefect)
+    }
+
+    func testLoadsSmokeCheck() async throws {
+        let data = try await loaded()
+        XCTAssertEqual(Set(data.smokeChecks.keys), [smokeRoute])
+        let smoke = try XCTUnwrap(data.smokeChecks[smokeRoute])
+        XCTAssertEqual(smoke.counter, "3 von 5")
+        XCTAssertEqual(smoke.title, "Rauchwarnmelder")
+        XCTAssertEqual(smoke.subtitle, "Pflicht in Schlaf- und Kinderzimmern und in Fluren, die als Fluchtweg dienen.")
+        XCTAssertEqual(smoke.room, "Flur OG")
+        XCTAssertEqual(smoke.nowLabel, "Jetzt prüfen")
+        XCTAssertEqual(smoke.rooms.map(\.name), ["Schlafen", "Kind 1", "Kind 2", "Flur OG", "Flur EG"])
+        XCTAssertEqual(smoke.rooms.map(\.status), [.ok, .ok, .ok, .now, .open])
+        XCTAssertEqual(smoke.rooms.map(\.statusLabel), ["Getestet", "Getestet", "Getestet", "Jetzt", "Offen"])
+        XCTAssertEqual(smoke.checks.map(\.done), [true, false])
+        XCTAssertEqual(smoke.checks.map(\.label), ["Melder an der Decke montiert", "Testknopf drücken"])
+        XCTAssertEqual(smoke.outcomes, ["Kein Piepton", "Piept – OK"])
+        XCTAssertEqual(smoke.reminder, "Jährlich an Test erinnern")
+        XCTAssertEqual(smoke.battery, "Batterien laut Hersteller bis 2037")
+        XCTAssertTrue(smoke.reminderInitiallyOn)
+        XCTAssertEqual(smoke.defectTarget, .newDefect)
+    }
+
+    func testCheckTitlesFeedRouteTitles() async throws {
+        let titles = try await loaded().routeTitles
+        XCTAssertEqual(titles.title(measureRoute), "Fensteröffnung F8")
+        XCTAssertEqual(titles.title(kitchenRoute), "Küche")
+        XCTAssertEqual(titles.title(panelRoute), "Zählerschrank")
+        XCTAssertEqual(titles.title(smokeRoute), "Rauchwarnmelder")
+        XCTAssertEqual(titles.title(.inspection(tradeId: "shell")), "Rohbau")
+        XCTAssertEqual(titles.title(.inspection(tradeId: "electrical")), "Elektro")
+        XCTAssertEqual(titles.backLabel(path: [.inspection(tradeId: "shell"), measureRoute], index: 1, tab: .inspections), "Rohbau")
+        XCTAssertEqual(titles.backLabel(path: [.inspection(tradeId: "electrical"), kitchenRoute], index: 1, tab: .inspections), "Elektro")
+    }
+
+    func testLoadsAllM5ScreenTexts() async throws {
+        let repo = try MockRepository.bundled()
+        let names = ["Erd", "Rohbau", "RohbauMasse", "Zimmerer", "ElUebersicht", "ElRaum", "ElVerteiler", "ElRauchmelder"]
+        for name in names {
+            _ = try await repo.screenText(name, as: EmptyScreenText.self)
+        }
+        for name in names {
+            let missing = try repository { object in
+                var screens = object["screens"] as? [String: Any] ?? [:]
+                screens[name] = nil
+                object["screens"] = screens
+            }
+            do {
+                _ = try await AppData.load(from: missing)
+                XCTFail("Expected RepositoryError.fixtureMissing for \(name)")
+            } catch {
+                XCTAssertEqual(error as? RepositoryError, .fixtureMissing("screens.\(name).ios"))
+            }
+        }
+    }
+
+    func testLoadsAllM5Routes() async throws {
+        let repo = try MockRepository.bundled()
+        let root = try await repo.inspections()
+        guard case let .object(inspections) = root, case let .object(byTrade)? = inspections["byTrade"] else {
+            return XCTFail("byTrade missing")
+        }
+        var shellRoutes: [String] = []
+        var electricalRoutes: [String] = []
+        for (tradeId, node) in byTrade where ["earthworks", "shell", "carpentry", "electrical"].contains(tradeId) {
+            guard case let .object(trade) = node, case let .array(groups)? = trade["groups"] else {
+                return XCTFail("groups missing \(tradeId)")
+            }
+            for case let .object(group) in groups {
+                guard case let .array(rows)? = group["rows"] else { return XCTFail("rows missing") }
+                for case let .object(row) in rows {
+                    guard case let .string(raw)? = row["route"] else { continue }
+                    if tradeId == "electrical" { electricalRoutes.append(raw) } else { shellRoutes.append(raw) }
+                }
+            }
+        }
+        XCTAssertEqual(shellRoutes.sorted(), ["defects", "inspection/shell/measure"])
+        XCTAssertEqual(electricalRoutes.sorted(), [
+            "inspection/electrical/panel", "inspection/electrical/room/kitchen", "inspection/electrical/smoke",
+        ])
+        for raw in shellRoutes {
+            _ = try RouteParser.inspectionLink(raw, field: "\(shellPath).groups.rows.route")
+        }
+        for raw in electricalRoutes {
+            XCTAssertNotNil(try RouteParser.route(raw, field: "\(electricalPath).groups.rows.route"), raw)
+        }
+        let data = try await AppData.load(from: repo)
+        let loadedRoutes = Set(data.measureChecks.keys).union(data.roomChecks.keys).union(data.panelChecks.keys)
+            .union(data.smokeChecks.keys)
+        for raw in shellRoutes + electricalRoutes {
+            guard case let .push(route)? = try RouteParser.target(raw, field: raw) else { continue }
+            XCTAssertTrue(loadedRoutes.contains(route), raw)
+        }
+    }
+
+    func testLoadsElementsStaysWindowsOnly() async throws {
+        let elements = try await loaded().inspectionElements
+        XCTAssertEqual(Set(elements.keys), ["windows"])
+    }
+
+    // MARK: M5 error paths
+
+    func testUnknownSocketStatusFailsLoad() async throws {
+        try await expectDecoding("\(electricalPath).checks.kitchen.sockets") { object in
+            editWindowsCheck(&object, "kitchen", trade: "electrical") {
+                setListItem(&$0, "sockets", 0, "status", "broken")
+            }
+        }
+    }
+
+    func testUnknownElectricalStatusLabelFailsLoad() async throws {
+        try await expectDecoding("\(electricalPath).groups.rows.statusLabel") { object in
+            editTrade(&object, "electrical") { trade in
+                var groups = trade["groups"] as? [[String: Any]] ?? []
+                setListItem(&groups[1], "rows", 0, "statusLabel", "Unbekannt")
+                trade["groups"] = groups
+            }
+        }
+    }
+
+    func testPhaseWithBothLabelsFailsLoad() async throws {
+        try await expectDecoding("\(electricalPath).phases") { object in
+            editTrade(&object, "electrical") { setListItem(&$0, "phases", 1, "statusLabel", "Abgenommen") }
+        }
+        try await expectDecoding("\(electricalPath).phases") { object in
+            editTrade(&object, "electrical") { trade in
+                var phases = trade["phases"] as? [[String: Any]] ?? []
+                phases[1]["progressLabel"] = nil
+                trade["phases"] = phases
+            }
+        }
+    }
+
+    func testUnknownBannerStatusFailsLoad() async throws {
+        try await expectDecoding("inspections.byTrade.carpentry.banner") { object in
+            editOverview(&object) { overview in
+                var rows = overview["rows"] as? [[String: Any]] ?? []
+                let index = rows.firstIndex { $0["tradeId"] as? String == "carpentry" } ?? 0
+                rows[index]["status"] = "today"
+                overview["rows"] = rows
+            }
+        }
+    }
+
+    func testCheckRouteWithoutCheckFailsLoad() async throws {
+        try await expectDecoding("\(shellPath).groups.rows.route") { object in
+            editTrade(&object, "shell") { trade in
+                var groups = trade["groups"] as? [[String: Any]] ?? []
+                setListItem(&groups[0], "rows", 0, "route", "inspection/shell/missing")
+                trade["groups"] = groups
+            }
+        }
+        try await expectDecoding("\(electricalPath).groups.rows.route") { object in
+            editTrade(&object, "electrical") { trade in
+                var groups = trade["groups"] as? [[String: Any]] ?? []
+                setListItem(&groups[1], "rows", 0, "route", "inspection/electrical/room/attic")
+                trade["groups"] = groups
+            }
+        }
+    }
+
+    func testShellRowTabRouteFailsLoad() async throws {
+        try await expectDecoding("\(shellPath).groups.rows.route") { object in
+            editTrade(&object, "shell") { trade in
+                var groups = trade["groups"] as? [[String: Any]] ?? []
+                setListItem(&groups[0], "rows", 0, "route", "home")
+                trade["groups"] = groups
+            }
+        }
+    }
+
+    func testSmokeCurrentRoomMismatchFailsLoad() async throws {
+        try await expectDecoding("\(electricalPath).checks.smoke.current.room") { object in
+            editWindowsCheck(&object, "smoke", trade: "electrical") { check in
+                var current = check["current"] as? [String: Any] ?? [:]
+                current["room"] = "Flur EG"
+                check["current"] = current
+            }
+        }
+    }
+
+    func testMissingIosMoreFailsLoad() async throws {
+        try await expectDecoding("\(electricalPath).groups.more") { object in
+            editTrade(&object, "electrical") { trade in
+                var groups = trade["groups"] as? [[String: Any]] ?? []
+                groups[1]["more"] = ["ios": NSNull(), "android": NSNull()]
+                trade["groups"] = groups
+            }
+        }
+    }
+
+    func testMissingIosDateLabelFailsLoad() async throws {
+        try await expectDecoding("\(electricalPath).phases.dateLabel") { object in
+            editTrade(&object, "electrical") {
+                setListItem(&$0, "phases", 0, "dateLabel", ["ios": NSNull(), "android": NSNull()])
+            }
+        }
+    }
+
+    func testPanelOutcomesCountFailsLoad() async throws {
+        try await expectDecoding("\(electricalPath).checks.panel.current.outcomes") { object in
+            editWindowsCheck(&object, "panel", trade: "electrical") { check in
+                var current = check["current"] as? [String: Any] ?? [:]
+                current["outcomes"] = ["Löst nicht aus"]
+                check["current"] = current
+            }
+        }
+    }
+
+    func testUnknownCheckScreenFailsLoad() async throws {
+        try await expectDecoding("\(shellPath).checks.measure.screen") { object in
+            editWindowsCheck(&object, "measure", trade: "shell") { $0["screen"] = "Unbekannt" }
+        }
+    }
+
+    func testStepNumberNotPositiveFailsLoad() async throws {
+        try await expectDecoding("\(electricalPath).checks.kitchen.next") { object in
+            editWindowsCheck(&object, "kitchen", trade: "electrical") {
+                setListItem(&$0, "next", 0, "n", "03")
+            }
+        }
+    }
+
+    func testWrongTypeInShellOpeningFailsWithSlicePath() async throws {
+        try await expectDecoding("measurements.shellOpening") { object in
+            var measurements = object["measurements"] as? [String: Any] ?? [:]
+            var opening = measurements["shellOpening"] as? [String: Any] ?? [:]
+            opening["target"] = "1010 x 1385"
+            measurements["shellOpening"] = opening
+            object["measurements"] = measurements
+        }
+    }
+
+    func testMissingShellOpeningFailsAsFixtureMissing() async throws {
+        let repo = try repository { object in
+            var measurements = object["measurements"] as? [String: Any] ?? [:]
+            measurements["shellOpening"] = nil
+            object["measurements"] = measurements
+        }
+        do {
+            _ = try await AppData.load(from: repo)
+            XCTFail("Expected RepositoryError.fixtureMissing")
+        } catch {
+            XCTAssertEqual(error as? RepositoryError, .fixtureMissing("measurements.shellOpening"))
         }
     }
 

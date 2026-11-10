@@ -53,7 +53,8 @@ public struct CountTile: View {
 }
 
 /// Phase tile of the element overview (IosElUebersicht:31). The active phase carries an accent
-/// border and a card progress bar instead of a date.
+/// border and a card progress bar instead of a date. With `fillsHeight` the tile stretches to the height its row
+/// proposes (CSS grid `align-items: stretch`); the row is a `HStack` with `.fixedSize(horizontal: false, vertical: true)`.
 public struct PhaseTile: View {
     public enum State {
         case done, planned
@@ -65,16 +66,18 @@ public struct PhaseTile: View {
     private let date: String?
     private let state: State
     private let track: ColorToken
+    private let fillsHeight: Bool
 
     public init(
         label: String, value: String, date: String? = nil, state: State,
-        track: ColorToken = Tokens.track.core
+        track: ColorToken = Tokens.track.core, fillsHeight: Bool = false
     ) {
         self.label = label
         self.value = value
         self.date = date
         self.state = state
         self.track = track
+        self.fillsHeight = fillsHeight
     }
 
     private var isActive: Bool {
@@ -109,6 +112,7 @@ public struct PhaseTile: View {
         }
         .padding(isActive ? 14 : 12)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .modifier(StretchesToRow(enabled: fillsHeight))
         .background(Tokens.surface.color, in: shape)
         .overlay {
             if isActive {
@@ -116,6 +120,20 @@ public struct PhaseTile: View {
             }
         }
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// Stretches a view to the height its row proposes, content on top; a pass-through when disabled.
+private struct StretchesToRow: ViewModifier {
+    let enabled: Bool
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if enabled {
+            content.frame(maxHeight: .infinity, alignment: .top)
+        } else {
+            content
+        }
     }
 }
 

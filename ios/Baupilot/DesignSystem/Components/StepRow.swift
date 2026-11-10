@@ -56,6 +56,7 @@ public struct StepRow: View {
     private let track: ColorToken
     private let ok: ColorToken
     private let okInk: ColorToken
+    private let titleLines: TextLines
 
     public init(
         number: Int,
@@ -65,8 +66,10 @@ public struct StepRow: View {
         minHeight: CGFloat = 44,
         track: ColorToken = Tokens.track.core,
         ok: ColorToken = Tokens.ok.core,
-        okInk: ColorToken = Tokens.okInk.core
+        okInk: ColorToken = Tokens.okInk.core,
+        titleLines: TextLines = .single
     ) {
+        self.titleLines = titleLines
         self.ok = ok
         self.okInk = okInk
         self.number = number
@@ -87,14 +90,13 @@ public struct StepRow: View {
     private var doneRow: some View {
         HStack(spacing: 12) {
             DoneRing(ok: ok, okInk: okInk)
-            Text(title)
-                .interText(15, .regular)
-                .foregroundStyle(Tokens.muted.color)
+            titleView(Tokens.muted)
                 .frame(maxWidth: .infinity, alignment: .leading)
             if let meta { metaView(meta) }
         }
         .padding(.horizontal, 14)
         .frame(minHeight: minHeight)
+        .fixedSize(horizontal: false, vertical: titleLines == .greedy)
         .background(Tokens.surface.color, in: RoundedRectangle(cornerRadius: 12))
         .accessibilityElement(children: .combine)
     }
@@ -102,9 +104,7 @@ public struct StepRow: View {
     private func openRow(tag: String?) -> some View {
         HStack(spacing: 12) {
             OpenRing(number: number, track: track)
-            Text(title)
-                .interText(15, .regular)
-                .foregroundStyle(Tokens.text.color)
+            titleView(Tokens.text)
                 .frame(maxWidth: .infinity, alignment: .leading)
             if let tag {
                 Text(tag)
@@ -114,7 +114,20 @@ public struct StepRow: View {
         }
         .padding(.horizontal, 14)
         .frame(minHeight: minHeight)
+        .fixedSize(horizontal: false, vertical: titleLines == .greedy)
         .accessibilityElement(children: .combine)
+    }
+
+    /// The row title. `.greedy` breaks like Chrome through `GreedyLabel`; the other cases go through `interText`.
+    @ViewBuilder
+    private func titleView(_ color: ColorToken) -> some View {
+        if titleLines == .greedy {
+            GreedyLabel(text: title, size: 15, weight: .regular, color: color, lineHeight: .normal)
+        } else {
+            Text(title)
+                .interText(15, .regular, lines: titleLines)
+                .foregroundStyle(color.color)
+        }
     }
 
     @ViewBuilder
@@ -147,14 +160,24 @@ public struct CurrentStepCard<Content: View>: View {
         }
     }
 
-    private let number: Int
-    private let title: String
+    /// Top row of the card: the accent number circle with the title, or the title with a note at its right.
+    public enum Header {
+        /// 26 accent circle holding the number, then the 19/700 title.
+        case numbered(Int, title: String)
+        /// No circle: the 19/700 title and a 13/600 note in `noteColor`, on the first baseline.
+        case note(title: String, note: String, noteColor: ColorToken)
+    }
+
+    private let header: Header
     private let spacing: CGFloat
     private let content: Content
 
     public init(number: Int, title: String, spacing: CGFloat = 14, @ViewBuilder content: () -> Content) {
-        self.number = number
-        self.title = title
+        self.init(header: .numbered(number, title: title), spacing: spacing, content: content)
+    }
+
+    public init(header: Header, spacing: CGFloat = 14, @ViewBuilder content: () -> Content) {
+        self.header = header
         self.spacing = spacing
         self.content = content()
     }
@@ -162,14 +185,34 @@ public struct CurrentStepCard<Content: View>: View {
     public var body: some View {
         Card(padding: EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16), border: .current) {
             VStack(alignment: .leading, spacing: spacing) {
-                HStack(spacing: 12) {
-                    NumberCircle(number: number)
-                    Text(title)
-                        .interText(19, .bold)
-                        .foregroundStyle(Tokens.text.color)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
+                headerView
                 content
+            }
+        }
+    }
+}
+
+extension CurrentStepCard {
+    @ViewBuilder
+    fileprivate var headerView: some View {
+        switch header {
+        case .numbered(let number, let title):
+            HStack(spacing: 12) {
+                NumberCircle(number: number)
+                Text(title)
+                    .interText(19, .bold)
+                    .foregroundStyle(Tokens.text.color)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        case .note(let title, let note, let noteColor):
+            HStack(alignment: .firstTextBaseline) {
+                Text(title)
+                    .interText(19, .bold)
+                    .foregroundStyle(Tokens.text.color)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text(note)
+                    .interText(13, .semibold)
+                    .foregroundStyle(noteColor.color)
             }
         }
     }

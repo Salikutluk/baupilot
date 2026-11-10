@@ -303,4 +303,92 @@ class AppNavigationStateTest {
         val savedOut = with(AppNavigationState.Saver) { scope.save(loggedOut) }
         assertEquals(loggedOut, AppNavigationState.Saver.restore(savedOut!!))
     }
+
+    private val shell = AppRoute.Inspection("shell")
+    private val electrical = AppRoute.Inspection("electrical")
+    private val windows = AppRoute.Inspection("windows")
+    private val windowsStep = AppRoute.InspectionStep("windows", "F8", 3)
+
+    private fun savedWith(vararg encoded: String): List<Any> {
+        val empty = emptyList<String>()
+        return listOf(true, "inspections", listOf(empty, empty, encoded.toList(), empty, empty), "Trades")
+    }
+
+    @Test
+    fun saverRoundTripsCheckAndRoomRoutes() {
+        val scope = SaverScope { true }
+        val state = loggedIn().select(AppTab.Inspections)
+            .open(shell).open(AppRoute.InspectionCheck("shell", "measure"))
+            .select(AppTab.Home)
+            .push(electrical).push(AppRoute.InspectionRoom("electrical", "kitchen"))
+        val saved = with(AppNavigationState.Saver) { scope.save(state) }
+        assertEquals(state, AppNavigationState.Saver.restore(saved!!))
+        assertEquals(
+            listOf("inspection:shell", "check:shell/measure"),
+            ((saved as List<*>)[2] as List<*>)[2],
+        )
+        assertEquals(
+            listOf("inspection:electrical", "room:electrical/kitchen"),
+            (saved[2] as List<*>)[0],
+        )
+    }
+
+    @Test
+    fun saverRejectsMalformedCheckRoute() {
+        listOf("check:", "check:a", "check:a/", "check:/b", "check:a/b/c", "check:-a/b", "check:a/-b", "check:a b/c")
+            .forEach { assertNull(it, AppNavigationState.Saver.restore(savedWith(it))) }
+    }
+
+    @Test
+    fun saverRejectsMalformedRoomRoute() {
+        listOf("room:", "room:a", "room:a/", "room:/b", "room:a/b/c", "room:-a/b", "room:a/-b", "room:a b/c")
+            .forEach { assertNull(it, AppNavigationState.Saver.restore(savedWith(it))) }
+    }
+
+    private fun inspectionsAt(vararg routes: AppRoute): AppNavigationState =
+        routes.fold(loggedIn().select(AppTab.Inspections)) { s, r -> s.open(r) }
+
+    @Test
+    fun saveDefectFromStepOpensSignOff() {
+        val state = inspectionsAt(windows, windowsStep, AppRoute.NewDefect).saveDefect("windows", hasSignOff = true)
+        assertEquals(listOf(windows, AppRoute.SignOff("windows")), state.path(AppTab.Inspections))
+        val noSign = inspectionsAt(windows, windowsStep, AppRoute.NewDefect).saveDefect("windows", hasSignOff = false)
+        assertEquals(listOf<AppRoute>(windows), noSign.path(AppTab.Inspections))
+    }
+
+    @Test
+    fun saveDefectFromElementRowKeepsM4Flow() {
+        val state = inspectionsAt(windows, AppRoute.NewDefect).saveDefect("windows", hasSignOff = true)
+        assertEquals(listOf(windows, AppRoute.SignOff("windows")), state.path(AppTab.Inspections))
+    }
+
+    @Test
+    fun saveDefectFromShellMeasurePops() {
+        val check = AppRoute.InspectionCheck("shell", "measure")
+        val state = inspectionsAt(shell, check, AppRoute.NewDefect).saveDefect("shell", hasSignOff = true)
+        assertEquals(listOf(shell, check), state.path(AppTab.Inspections))
+    }
+
+    @Test
+    fun saveDefectFromElectricalRoomPops() {
+        val room = AppRoute.InspectionRoom("electrical", "kitchen")
+        val state = inspectionsAt(electrical, room, AppRoute.NewDefect).saveDefect("electrical", hasSignOff = true)
+        assertEquals(listOf(electrical, room), state.path(AppTab.Inspections))
+    }
+
+    @Test
+    fun saveDefectFromDefectsRootPops() {
+        val state = loggedIn().select(AppTab.Inspections).showDefects().open(AppRoute.NewDefect)
+        assertEquals(loggedIn().showDefects(), state.saveDefect("windows", hasSignOff = true))
+    }
+
+    @Test
+    fun saveDefectIsNoOpLoggedOutOrNotOnTop() {
+        val loggedOut = AppNavigationState()
+        assertEquals(loggedOut, loggedOut.saveDefect("windows", hasSignOff = true))
+        val notOnTop = inspectionsAt(windows, AppRoute.NewDefect, sign)
+        assertEquals(notOnTop, notOnTop.saveDefect("windows", hasSignOff = true))
+        val atRoot = loggedIn().select(AppTab.Inspections)
+        assertEquals(atRoot, atRoot.saveDefect("windows", hasSignOff = true))
+    }
 }

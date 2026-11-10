@@ -117,12 +117,7 @@ struct AppShell: View {
                     .accessibilityIdentifier("screen.document.\(id)")
             }
         case let .inspection(tradeId):
-            if let model = data.inspectionElements[tradeId] {
-                ElementsScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
-            } else {
-                PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
-                    .accessibilityIdentifier("screen.inspection.\(tradeId)")
-            }
+            inspectionDestination(tradeId, route: route, backLabel: backLabel, onBack: onBack, fallback: fallback)
         case let .inspectionStep(tradeId, elementId, step):
             if let model = data.inspectionSteps[route] {
                 InspectionStepScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
@@ -139,6 +134,61 @@ struct AppShell: View {
                 PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
                     .accessibilityIdentifier("screen.inspection.\(inspectionId).sign")
             }
+        case let .inspectionCheck(tradeId, check):
+            if let model = data.measureChecks[route] {
+                RohbauMasseScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else if let model = data.roomChecks[route] {
+                ElRaumScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else if let model = data.panelChecks[route] {
+                ElVerteilerScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else if let model = data.smokeChecks[route] {
+                ElRauchmelderScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else {
+                PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
+                    .accessibilityIdentifier("screen.inspection.\(tradeId).\(check)")
+            }
+        case let .inspectionRoom(tradeId, roomId):
+            if let model = data.roomChecks[route] {
+                ElRaumScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+            } else {
+                PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
+                    .accessibilityIdentifier("screen.inspection.\(tradeId).room.\(roomId)")
+            }
+        }
+    }
+
+    /// The lookup chain of an inspection trade (D2): element list, protocol, electrical overview, placeholder.
+    @ViewBuilder
+    private func inspectionDestination(
+        _ tradeId: String, route: AppRoute, backLabel: String, onBack: @escaping () -> Void,
+        fallback: PlaceholderScreen.Presentation
+    ) -> some View {
+        if let model = data.inspectionElements[tradeId] {
+            ElementsScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+        } else if let model = data.tradeProtocols[tradeId], let screen = protocolScreen(
+            model, backLabel: backLabel, onBack: onBack) {
+            screen
+        } else if let model = data.electricalOverviews[tradeId] {
+            ElUebersichtScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle)
+        } else {
+            PlaceholderScreen(title: data.routeTitles.title(route), presentation: fallback)
+                .accessibilityIdentifier("screen.inspection.\(tradeId)")
+        }
+    }
+
+    /// Earthworks, shell and carpentry each have their own protocol screen.
+    private func protocolScreen(
+        _ model: TradeProtocolModel, backLabel: String, onBack: @escaping () -> Void
+    ) -> AnyView? {
+        switch model.tradeId {
+        case "earthworks":
+            return AnyView(ErdScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle))
+        case "shell":
+            return AnyView(RohbauScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle))
+        case "carpentry":
+            return AnyView(ZimmererScreen(model: model, backLabel: backLabel, onBack: onBack, onAction: handle))
+        default:
+            return nil
         }
     }
 
@@ -224,11 +274,31 @@ struct AppShell: View {
         case .cancel:
             navigation.pop()
         case let .save(tradeId):
-            if data.signOffs[tradeId] != nil {
-                navigation.open(.signOff(inspectionId: tradeId), above: .inspection(tradeId: tradeId))
-            } else {
-                navigation.open(.inspection(tradeId: tradeId))
-            }
+            navigation.saveDefect(formTradeId: tradeId, hasSignOff: data.signOffs[tradeId] != nil)
+        }
+    }
+
+    private func handle(_ action: ProtocolAction) {
+        switch action {
+        case let .open(target): navigation.go(target)
+        }
+    }
+
+    private func handle(_ action: ElectricalAction) {
+        switch action {
+        case let .open(route): navigation.open(route)
+        }
+    }
+
+    private func handle(_ action: MeasureAction) {
+        switch action {
+        case let .open(route): navigation.open(route)
+        }
+    }
+
+    private func handle(_ action: CheckStepAction) {
+        switch action {
+        case let .open(route): navigation.open(route)
         }
     }
 

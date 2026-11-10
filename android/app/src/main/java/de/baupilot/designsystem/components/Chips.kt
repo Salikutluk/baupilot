@@ -216,6 +216,9 @@ enum class StatusChipSize(
 
     /** AndEsBelegreife:52. */
     H24(24.dp, PaddingValues(horizontal = 8.dp), 12.sp, 6.dp),
+
+    /** AndRohbauMasse:58: the measured-opening chips, placed fractionally (no whole-dp snapping, R12). */
+    H32Body(32.dp, PaddingValues(horizontal = 12.dp), 14.sp, 8.dp),
 }
 
 /** Fill, text and border of a [StatusChip]. A null [background] or [border] is not drawn. */
