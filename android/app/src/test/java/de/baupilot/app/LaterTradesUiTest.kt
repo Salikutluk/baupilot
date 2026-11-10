@@ -1,6 +1,5 @@
 package de.baupilot.app
 
-import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
@@ -10,7 +9,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import de.baupilot.MainActivity
 import org.junit.Assert.assertEquals
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -19,8 +17,7 @@ import org.robolectric.annotation.Config
 
 /**
  * M6 later trades flows on the JVM under Robolectric, same display as [EarlyTradesUiTest] (plan section 9 UI).
- * Identifiers are the section 5.5 test tags. Skeleton: the screen bodies arrive in later steps, so every test is
- * ignored until the screens are complete (phase 18). Nothing is written back.
+ * Identifiers are the section 5.5 test tags. Nothing is written back.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(qualifiers = "w411dp-h891dp")
@@ -82,21 +79,28 @@ class LaterTradesUiTest {
         rule.onNode(hasTestTag(tag) and hasAnyDescendant(hasText(text)) or (hasTestTag(tag) and hasText(text))).assertExists()
     }
 
-    @Ignore("Gefälle body arrives in a later step (phase 18)")
+    /** The count label is "Gemessen (n)" on Android and "GEMESSEN (n)" on iOS: compare the number case-insensitively. */
+    private fun assertCount(tag: String, count: Int) {
+        val text = "($count)"
+        rule.onNode(
+            hasTestTag(tag) and hasAnyDescendant(hasText(text, substring = true, ignoreCase = true)) or
+                (hasTestTag(tag) and hasText(text, substring = true, ignoreCase = true)),
+        ).assertExists()
+    }
+
     @Test
     fun slopeCalculatorUpdatesLive() {
         openSlope()
         tap("slope.drop.decrement")
         tap("slope.drop.decrement")
-        rule.onNodeWithTag("slope.drop.value").assertTextEquals("1,5 cm")
-        rule.onNodeWithTag("slope.percent").assertTextEquals("0,75 %")
+        assertText("slope.drop.value", "1,5 cm")
+        assertText("slope.percent", "0,75 %")
         assertText("slope.verdict", "Zu flach · Soll ≥ 1,0 %")
         tap("slope.drop.increment")
-        rule.onNodeWithTag("slope.percent").assertTextEquals("1,00 %")
+        assertText("slope.percent", "1,00 %")
         assertText("slope.verdict", "Ausreichend · Soll ≥ 1,0 %")
     }
 
-    @Ignore("Ebenheit body arrives in a later step (phase 18)")
     @Test
     fun flatnessSaveAddsPoint() {
         openFlatness()
@@ -105,17 +109,16 @@ class LaterTradesUiTest {
         assertText("flatness.result", "Über Grenzwert – als Mangel erfassen")
         tap("flatness.save")
         assertText("flatness.point.3", "M4 · 5 mm")
-        assertText("flatness.count", "4")
+        assertCount("flatness.count", 4)
         assertText("flatness.defect", "2 Messpunkte über Grenzwert → Mangel erfassen")
     }
 
-    @Ignore("Sanitär screens arrive in a later step (phase 18)")
     @Test
     fun plumbingLinks() {
         openTrade("plumbing")
         tap("overview.row.0.0")
         awaitScreen("screen.inspection.plumbing.slope.A3")
-        tap("nav.close")
+        tap("nav.back")
         awaitScreen("screen.inspection.plumbing")
         tap("overview.row.0.1")
         awaitScreen("screen.inspection.plumbing.pressure")
@@ -123,20 +126,19 @@ class LaterTradesUiTest {
         awaitScreen("screen.inspection.plumbing")
         tap("overview.row.2.0")
         awaitScreen("screen.inspection.plumbing.room.bathUpper")
-        tap("nav.close")
+        tap("nav.back")
         awaitScreen("screen.inspection.plumbing")
         tap("overview.row.0.2")
         awaitScreen("screen.inspection.plumbing")
         assertAbsent("screen.inspection.plumbing.slope.A3")
     }
 
-    @Ignore("Estrich screens arrive in a later step (phase 18)")
     @Test
     fun screedLinks() {
         openTrade("screed")
         tap("overview.row.0.2")
         awaitScreen("screen.inspection.screed.flatness")
-        tap("nav.close")
+        tap("nav.back")
         awaitScreen("screen.inspection.screed")
         tap("overview.row.1.0")
         awaitScreen("screen.inspection.screed.readiness")
@@ -151,7 +153,6 @@ class LaterTradesUiTest {
         assertAbsent("screen.inspection.screed.readiness")
     }
 
-    @Ignore("Fliesen and Maler screens arrive in a later step (phase 18)")
     @Test
     fun tilesAndPaintingLinks() {
         openTilesBath()
@@ -169,7 +170,6 @@ class LaterTradesUiTest {
         awaitScreen("screen.inspection.painting")
     }
 
-    @Ignore("Defect entries of the M6 screens arrive in a later step (phase 18)")
     @Test
     fun defectFromM6ScreensReturnsToOpener() {
         openSlope()
@@ -177,7 +177,7 @@ class LaterTradesUiTest {
         awaitScreen("screen.defect.new")
         tap("defect.save")
         awaitScreen("screen.inspection.plumbing.slope.A3")
-        tap("nav.close")
+        tap("nav.back")
         awaitScreen("screen.inspection.plumbing")
         tap("nav.back")
         awaitScreen("screen.inspections")
@@ -187,7 +187,7 @@ class LaterTradesUiTest {
         awaitScreen("screen.inspection.tiles.room.bath")
         tap("tiles.defect")
         awaitScreen("screen.defect.new")
-        tap("defect.cancel")
+        tap("nav.close")
         awaitScreen("screen.inspection.tiles.room.bath")
     }
 }
