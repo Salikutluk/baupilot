@@ -15,7 +15,9 @@ Stand 05.11.2026. Vollständiger Plan als Doc: „Baupilot – Implementierungsp
 | M4 | Abnahme-Kernflow (Fenster) | 6 | 24 | [docs/milestones/M4.md](milestones/M4.md) |
 | M5 | Frühe Gewerke & Elektro | 8 | 32 | [docs/milestones/M5.md](milestones/M5.md) |
 | M6 | Sanitär, Estrich, Fliesen, Maler | 11 | 44 | [docs/milestones/M6.md](milestones/M6.md) |
-| M7 | Interaktion, Barrierefreiheit & Feinschliff | – | 136 | [docs/milestones/M7.md](milestones/M7.md) |
-| M8 | Echte Daten (nach visueller Abnahme) | – | – | [docs/milestones/M8.md](milestones/M8.md) |
+| M7 · Android | Interaktion, Barrierefreiheit & Feinschliff | – | 68 | [docs/milestones/M7-android.md](milestones/M7-android.md) |
+| M7 · iOS | Interaktion, Barrierefreiheit & Feinschliff | – | 68 | [docs/milestones/M7-ios.md](milestones/M7-ios.md) |
+| M8 · Android | Echte Daten (nach visueller Abnahme) | – | – | [docs/milestones/M8-android.md](milestones/M8-android.md) |
+| M8 · iOS | Echte Daten (nach visueller Abnahme) | – | – | [docs/milestones/M8-ios.md](milestones/M8-ios.md) |
 
-Reihenfolge strikt M0 → M8. Ein Milestone startet erst, wenn alle Tests des vorigen grün sind; M8 erst nach der visuellen Abnahme von M7.
+Reihenfolge strikt M0 → M8. Ein Milestone startet erst, wenn alle Tests des vorigen grün sind; M8 erst nach der visuellen Abnahme von M7. Ab M7 läuft jede Plattform für sich: M7 · Android → M8 · Android und M7 · iOS → M8 · iOS, unabhängig voneinander; M8 einer Plattform erst nach der visuellen Abnahme von M7 derselben Plattform.
