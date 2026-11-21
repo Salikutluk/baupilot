@@ -5,7 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -50,7 +50,7 @@ fun ExtendedFab(
     Row(
         modifier = modifier
             .cssShadow(offsetY = 3.dp, blur = 8.dp, color = Tokens.fabShadow, shape = shape)
-            .height(56.dp)
+            .heightIn(min = 56.dp)
             .clip(shape)
             .background(background.color(), shape)
             .then(press)

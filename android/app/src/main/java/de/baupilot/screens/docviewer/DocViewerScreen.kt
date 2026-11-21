@@ -65,7 +65,7 @@ fun DocViewerScreen(
                 navigation = Nav.Back(onClick = onBack),
                 subtitle = model.subtitle,
                 titleStyle = TitleStyle.Compact,
-                actions = listOf(Action.Icon(BaupilotIcon.ShareNetwork, model.shareLabel, null)),
+                actions = listOf(Action.Icon(BaupilotIcon.ShareNetwork, model.shareLabel, null, testTag = "ph.DokViewer.share")),
             )
         },
         contentPadding = PaddingValues(0.dp),
@@ -123,6 +123,7 @@ fun DocViewerScreen(
                 leading = Leading.Icon(BaupilotIcon.Edit),
                 minHeight = ListItemHeight.H56,
                 horizontalPadding = 0.dp,
+                modifier = Modifier.testTag("ph.DokViewer.change"),
             )
         }
     }

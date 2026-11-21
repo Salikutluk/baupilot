@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -84,11 +85,12 @@ sealed interface TitleStyle {
 sealed interface Action {
     val onClick: (() -> Unit)?
 
-    /** 48 round button, icon 22 `muted`. */
+    /** 48 round button, icon 22 `muted`. A non-null [testTag] identifies the button for UI tests. */
     data class Icon(
         val icon: BaupilotIcon,
         val label: String,
         override val onClick: (() -> Unit)? = null,
+        val testTag: String? = null,
     ) : Action
 
     /** 48 round bell, icon 24 `muted`, optional badge; [label] is the aria-label (AndHome:23). */
@@ -179,7 +181,7 @@ internal fun baupilotTopAppBarMeasured(
         Row(
             modifier = headerModifier
                 .fillMaxWidth()
-                .height(Tokens.Layout.topAppBar)
+                .heightIn(min = Tokens.Layout.topAppBar)
                 .padding(PaddingValues(start = padding.start, end = padding.end)),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(padding.gap),
@@ -206,7 +208,7 @@ internal fun baupilotTopAppBarMeasured(
             }
             actions.forEach { action ->
                 when (action) {
-                    is Action.Icon -> RoundButton(action.label, action.onClick) {
+                    is Action.Icon -> RoundButton(action.label, action.onClick, Modifier.optionalTestTag(action.testTag)) {
                         Icon(action.icon, 22.dp, mutedColor.color())
                     }
 
@@ -220,7 +222,7 @@ internal fun baupilotTopAppBarMeasured(
                     is Action.Text -> Box(
                         modifier = Modifier
                             .optionalTestTag(action.testTag)
-                            .height(action.height.dp)
+                            .heightIn(min = action.height.dp)
                             .clip(RoundedCornerShape((action.height / 2).dp))
                             .optionalClick(action.onClick)
                             .padding(horizontal = 12.dp),
@@ -274,7 +276,7 @@ private fun BoxScope.Badge(
             .align(Alignment.TopEnd)
             .padding(top = 11.dp, end = 12.dp)
             .widthIn(min = 16.dp)
-            .height(16.dp)
+            .heightIn(min = 16.dp)
             .background(background.color(), RoundedCornerShape(8.dp)),
         contentAlignment = Alignment.Center,
     ) {

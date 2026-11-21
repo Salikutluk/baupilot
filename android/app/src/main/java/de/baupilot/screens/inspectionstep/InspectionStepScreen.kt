@@ -140,7 +140,7 @@ private fun CurrentBody(model: StepModel, onAction: (StepAction) -> Unit) {
                 label = model.okLabel,
                 size = ButtonSize.Regular,
                 container = FilledContainer.Primary,
-                modifier = Modifier.weight(OK_BUTTON_WEIGHT),
+                modifier = Modifier.weight(OK_BUTTON_WEIGHT).testTag("ph.AbnPruefung.ok"),
                 icon = BaupilotIcon.CheckW30,
             )
         }

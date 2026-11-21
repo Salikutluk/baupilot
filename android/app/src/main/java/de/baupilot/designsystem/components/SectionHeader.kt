@@ -4,12 +4,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -17,7 +18,7 @@ import de.baupilot.designsystem.BaupilotText
 import de.baupilot.designsystem.Tokens
 
 /** Link at the end of an Overview header; a null [onClick] draws it and does nothing. */
-class SectionLink(val label: String, val onClick: (() -> Unit)? = null)
+class SectionLink(val label: String, val onClick: (() -> Unit)? = null, val testTag: String? = null)
 
 /** Look of a [SectionHeader]. */
 sealed interface SectionHeaderStyle {
@@ -36,7 +37,7 @@ sealed interface SectionHeaderStyle {
 fun SectionHeader(title: String, style: SectionHeaderStyle, modifier: Modifier = Modifier) {
     when (style) {
         is SectionHeaderStyle.Overview -> Row(
-            modifier = modifier.fillMaxWidth().height(if (style.link != null) 40.dp else 32.dp),
+            modifier = modifier.fillMaxWidth().heightIn(min = if (style.link != null) 40.dp else 32.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
@@ -51,7 +52,7 @@ fun SectionHeader(title: String, style: SectionHeaderStyle, modifier: Modifier =
                     label = style.link.label,
                     size = TextButtonSize.Compact40,
                     onClick = style.link.onClick,
-                    modifier = Modifier.hangOverEnd(12.dp),
+                    modifier = Modifier.hangOverEnd(12.dp).then(if (style.link.testTag != null) Modifier.testTag(style.link.testTag) else Modifier),
                 )
             }
         }
@@ -72,7 +73,7 @@ fun SectionHeader(title: String, style: SectionHeaderStyle, modifier: Modifier =
                     label = style.link.label,
                     size = TextButtonSize.Default,
                     onClick = style.link.onClick,
-                    modifier = Modifier.hangOverEnd(12.dp),
+                    modifier = Modifier.hangOverEnd(12.dp).then(if (style.link.testTag != null) Modifier.testTag(style.link.testTag) else Modifier),
                 )
             }
         }

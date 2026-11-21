@@ -137,3 +137,315 @@ test('invalid arguments exit 2 via the CLI wrapper; PngError exits 2', () => {
   assert.equal(capture(() => run(opts(d))).code, 2);
   rmSync(d.root, { recursive: true });
 });
+
+// ---- --all / --baseline / --unstable ----
+
+const SCREENS = [
+  { nr: 1, name: 'Alpha', title: 'Alpha', iosFile: 'a', androidFile: 'a', route: '/a', milestone: 'M1' },
+  { nr: 2, name: 'Beta', title: 'Beta', iosFile: 'b', androidFile: 'b', route: '/b', milestone: 'M1' },
+];
+
+function allOpts(root, extra = {}) {
+  return {
+    all: true,
+    screens: SCREENS,
+    actualDirs: { ios: join(root, 'actual', 'ios'), android: join(root, 'actual', 'android') },
+    referenceDirs: { ios: join(root, 'reference', 'ios'), android: join(root, 'reference', 'android') },
+    outDirs: { ios: join(root, 'out', 'ios'), android: join(root, 'out', 'android') },
+    out: join(root, 'reports'),
+    ...extra,
+  };
+}
+
+function allTree(screens = SCREENS, { sidecar = true, img = () => solid(2, 2) } = {}) {
+  const root = mkdtempSync(join(tmpdir(), 'diffall-'));
+  for (const p of ['ios', 'android']) {
+    for (const k of ['actual', 'reference']) mkdirSync(join(root, k, p), { recursive: true });
+    for (const s of screens) {
+      for (const m of ['light', 'dark']) {
+        writeFileSync(join(root, 'reference', p, `${s.name}_${m}.png`), encodePng(solid(2, 2)));
+        writeFileSync(join(root, 'actual', p, `${s.name}_${m}.png`), encodePng(img(p, s, m)));
+        if (sidecar) writeSidecar(root, p, s.name, m, { passed: true, value: null });
+      }
+    }
+  }
+  return root;
+}
+
+function writeSidecar(root, platform, name, mode, { passed, value, message = '' }) {
+  const body = {
+    platform, name, mode, passed, message, value,
+    required: platform === 'ios' ? 0.995 : 0.5,
+    unit: platform === 'ios' ? 'precision' : 'percent',
+  };
+  writeFileSync(join(root, 'actual', platform, `${name}_${mode}.result.json`), JSON.stringify(body));
+}
+
+const readSummary = (root) => JSON.parse(readFileSync(join(root, 'reports', 'summary.json'), 'utf8'));
+const rowOf = (s, name, platform, mode) => s.rows.find((r) => r.name === name && r.platform === platform && r.mode === mode);
+
+test('--all reports missing-actual for an absent screen and exits 3', () => {
+  const root = allTree();
+  rmSync(join(root, 'actual', 'ios', 'Beta_dark.png'));
+  const { code } = capture(() => run(allOpts(root)));
+  assert.equal(code, 3);
+  const s = readSummary(root);
+  const row = rowOf(s, 'Beta', 'ios', 'dark');
+  assert.equal(row.status, 'missing-actual');
+  assert.equal(row.actualSha256, null);
+  assert.equal(row.percentDifferent, null);
+  assert.equal(s.totals.ios.missing, 1);
+  rmSync(root, { recursive: true });
+});
+
+test('--all reads the sidecar verdict and value', () => {
+  const root = allTree();
+  writeSidecar(root, 'ios', 'Alpha', 'light', { passed: false, value: 0.9876, message: 'm' });
+  writeSidecar(root, 'android', 'Alpha', 'dark', { passed: false, value: 1.25 });
+  const { code } = capture(() => run(allOpts(root)));
+  assert.equal(code, 0);
+  const s = readSummary(root);
+  const ios = rowOf(s, 'Alpha', 'ios', 'light');
+  assert.equal(ios.status, 'ok');
+  assert.deepEqual(ios.test, { passed: false, value: 0.9876, required: 0.995, unit: 'precision' });
+  assert.equal(ios.offByTwoPercent, null);
+  assert.equal(ios.nr, 1);
+  const and = rowOf(s, 'Alpha', 'android', 'dark');
+  assert.deepEqual(and.test, { passed: false, value: 1.25, required: 0.5, unit: 'percent' });
+  assert.equal(and.offByTwoPercent, 0);
+  assert.match(and.actualSha256, /^[0-9a-f]{64}$/);
+  assert.deepEqual(s.totals.ios, { green: 3, red: 1, missing: 0 });
+  assert.deepEqual(s.totals.android, { green: 3, red: 1, missing: 0 });
+  rmSync(root, { recursive: true });
+});
+
+test('--all writes summary.md with 136 rows for a full synthetic tree', () => {
+  const screens = Array.from({ length: 34 }, (_, i) => ({
+    nr: i + 1, name: `S${String(i + 1).padStart(2, '0')}`, title: 't', iosFile: 'f', androidFile: 'f', route: '/', milestone: 'M1',
+  }));
+  const root = allTree(screens);
+  const { code } = capture(() => run(allOpts(root, { screens })));
+  assert.equal(code, 0);
+  const s = readSummary(root);
+  assert.equal(s.rows.length, 136);
+  assert.ok(typeof s.generatedAt === 'string');
+  const md = readFileSync(join(root, 'reports', 'summary.md'), 'utf8').split('\n');
+  const header = md.findIndex((l) => l.startsWith('| Nr '));
+  assert.ok(header >= 0);
+  assert.match(md[header], /\| Nr \| Screen \| Plattform \| Modus \| Test \| Diff % \| OffByTwo % \| Lagenanteil \| Bänder \|/);
+  const body = md.slice(header + 2).filter((l) => l.startsWith('|'));
+  assert.equal(body.length, 136);
+  assert.match(body[0], /^\| 1 \| S01 \| android \| dark \|/);
+  assert.match(body[1], /^\| 1 \| S01 \| android \| light \|/);
+  assert.match(body[2], /^\| 1 \| S01 \| ios \| dark \|/);
+  assert.ok(existsSync(join(root, 'out', 'ios', 'S01_light.png')));
+  rmSync(root, { recursive: true });
+});
+
+test('--baseline lists a changed value and exits 4; identical inputs exit 0', () => {
+  const root = allTree();
+  assert.equal(capture(() => run(allOpts(root))).code, 0);
+  const baseline = join(root, 'baseline.json');
+  writeFileSync(baseline, readFileSync(join(root, 'reports', 'summary.json')));
+  assert.equal(capture(() => run(allOpts(root, { baseline }))).code, 0);
+  assert.deepEqual(readSummary(root).changed, []);
+  writeSidecar(root, 'ios', 'Beta', 'light', { passed: false, value: 0.9 });
+  assert.equal(capture(() => run(allOpts(root, { baseline }))).code, 4);
+  const changed = readSummary(root).changed;
+  assert.deepEqual(changed.map((c) => [c.name, c.platform, c.mode, c.field]).sort(), [
+    ['Beta', 'ios', 'light', 'test.passed'],
+    ['Beta', 'ios', 'light', 'test.value'],
+  ]);
+  const v = changed.find((c) => c.field === 'test.value');
+  assert.equal(v.before, null);
+  assert.equal(v.after, 0.9);
+  rmSync(root, { recursive: true });
+});
+
+// An actual that differs from the 200-grey reference everywhere; `tweak` moves one pixel by one level.
+function writeGrey(root, tweak) {
+  const img = solid(2, 2, [202, 202, 202, 255]);
+  if (tweak) setPx(img, 0, 0, [203, 202, 202, 255]);
+  writeFileSync(join(root, 'actual', 'ios', 'Alpha_light.png'), encodePng(img));
+}
+function keepBaseline(root, file) {
+  const target = join(root, file);
+  writeFileSync(target, readFileSync(join(root, 'reports', 'summary.json')));
+  return target;
+}
+
+test('--baseline reports actualSha256 for a one-pixel change that keeps every count', () => {
+  const root = allTree();
+  writeGrey(root, false);
+  capture(() => run(allOpts(root)));
+  const baseline = keepBaseline(root, 'baseline.json');
+  writeGrey(root, true);
+  const { code } = capture(() => run(allOpts(root, { baseline })));
+  assert.equal(code, 4);
+  const changed = readSummary(root).changed;
+  assert.deepEqual(changed.map((c) => [c.name, c.platform, c.mode, c.field]), [['Alpha', 'ios', 'light', 'actualSha256']]);
+  rmSync(root, { recursive: true });
+});
+
+test('--unstable skips the hash of listed rows but still reports their value changes', () => {
+  const root = allTree();
+  writeGrey(root, false);
+  capture(() => run(allOpts(root)));
+  const baseline = keepBaseline(root, 'baseline.json');
+  // The second run only moves the hash: that is the unstable list.
+  writeGrey(root, true);
+  capture(() => run(allOpts(root, { baseline })));
+  const unstable = keepBaseline(root, 'unstable.json');
+  assert.equal(capture(() => run(allOpts(root, { baseline, unstable }))).code, 0);
+  assert.deepEqual(readSummary(root).changed, []);
+  // The same row now also changes a value: only the value is reported.
+  writeSidecar(root, 'ios', 'Alpha', 'light', { passed: false, value: 0.5 });
+  assert.equal(capture(() => run(allOpts(root, { baseline, unstable }))).code, 4);
+  assert.deepEqual(readSummary(root).changed.map((c) => c.field).sort(), ['test.passed', 'test.value']);
+  // A row that is not listed is still hash-compared.
+  writeFileSync(join(root, 'actual', 'ios', 'Beta_dark.png'), encodePng(solid(2, 2, [1, 2, 3, 255])));
+  capture(() => run(allOpts(root, { baseline, unstable })));
+  assert.ok(readSummary(root).changed.some((c) => c.name === 'Beta' && c.field === 'actualSha256'));
+  rmSync(root, { recursive: true });
+});
+
+test('--all reports size-mismatch before missing-result', () => {
+  const root = allTree();
+  writeFileSync(join(root, 'actual', 'ios', 'Alpha_light.png'), encodePng(solid(2, 3)));
+  rmSync(join(root, 'actual', 'ios', 'Alpha_light.result.json'));
+  writeSidecar(root, 'ios', 'Alpha', 'dark', { passed: true, value: null });
+  rmSync(join(root, 'actual', 'ios', 'Alpha_dark.result.json'));
+  writeFileSync(join(root, 'actual', 'ios', 'Alpha_dark.png'), encodePng(solid(2, 2)));
+  const { code } = capture(() => run(allOpts(root)));
+  assert.equal(code, 3);
+  const s = readSummary(root);
+  assert.equal(rowOf(s, 'Alpha', 'ios', 'light').status, 'size-mismatch');
+  assert.equal(rowOf(s, 'Alpha', 'ios', 'dark').status, 'missing-result');
+  // A size mismatch still reads the sidecar when present.
+  writeSidecar(root, 'ios', 'Alpha', 'light', { passed: false, value: null });
+  capture(() => run(allOpts(root)));
+  const row = rowOf(readSummary(root), 'Alpha', 'ios', 'light');
+  assert.equal(row.status, 'size-mismatch');
+  assert.equal(row.test.passed, false);
+  assert.equal(row.offByTwoPercent, null);
+  rmSync(root, { recursive: true });
+});
+
+test('usage errors exit 2', () => {
+  const root = allTree();
+  const bad = (extra, re) => {
+    const r = capture(() => run(allOpts(root, extra)));
+    assert.equal(r.code, 2);
+    assert.match(r.err, re);
+  };
+  bad({ name: 'Alpha' }, /^diff-report: /);
+  bad({ mode: 'light' }, /^diff-report: /);
+  bad({ actual: 'x.png' }, /^diff-report: /);
+  bad({ baseline: join(root, 'nope.json') }, /^diff-report: .*baseline/);
+  const ok = join(root, 'ok.json');
+  writeFileSync(ok, JSON.stringify({ rows: [], changed: [] }));
+  bad({ baseline: ok, unstable: join(root, 'nope.json') }, /^diff-report: .*unstable/);
+  const noAll = capture(() => run({ platform: 'ios', actualDir: join(root, 'actual', 'ios'), referenceDir: join(root, 'reference', 'ios'), out: join(root, 'o'), baseline: ok }));
+  assert.equal(noAll.code, 2);
+  assert.match(noAll.err, /^diff-report: .*--all/);
+  const noBase = capture(() => run(allOpts(root, { unstable: ok })));
+  assert.equal(noBase.code, 2);
+  assert.match(noBase.err, /^diff-report: .*--baseline/);
+  const wrapper = join(SCRIPTS, 'diff-report');
+  assert.equal(spawnSync(wrapper, ['--all', '--name', 'X']).status, 2);
+  assert.equal(spawnSync(wrapper, ['--platform', 'ios', '--baseline', ok]).status, 2);
+  assert.equal(spawnSync(wrapper, ['--all', '--unstable', ok]).status, 2);
+  rmSync(root, { recursive: true });
+});
+
+// ---- --all --platform <p> ----
+
+const readPlatformSummary = (root, p) => JSON.parse(readFileSync(join(root, 'reports', `summary-${p}.json`), 'utf8'));
+
+test('--all --platform android writes summary-android.md with 68 rows for a full synthetic tree', () => {
+  const screens = Array.from({ length: 34 }, (_, i) => ({
+    nr: i + 1, name: `S${String(i + 1).padStart(2, '0')}`, title: 't', iosFile: 'f', androidFile: 'f', route: '/', milestone: 'M1',
+  }));
+  const root = allTree(screens);
+  const { code } = capture(() => run(allOpts(root, { screens, platform: 'android' })));
+  assert.equal(code, 0);
+  const s = readPlatformSummary(root, 'android');
+  assert.equal(s.rows.length, 68);
+  assert.ok(s.rows.every((r) => r.platform === 'android'));
+  assert.deepEqual(Object.keys(s.totals), ['android']);
+  assert.deepEqual(s.totals.android, { green: 68, red: 0, missing: 0 });
+  const md = readFileSync(join(root, 'reports', 'summary-android.md'), 'utf8').split('\n');
+  const header = md.findIndex((l) => l.startsWith('| Nr '));
+  assert.ok(header >= 0);
+  assert.equal(md.slice(header + 2).filter((l) => l.startsWith('|')).length, 68);
+  assert.ok(existsSync(join(root, 'out', 'android', 'S01_light.png')));
+  assert.ok(existsSync(join(root, 'out', 'android', 'summary.json')));
+  assert.ok(!existsSync(join(root, 'reports', 'summary.json')));
+  assert.ok(!existsSync(join(root, 'out', 'ios', 'S01_light.png')));
+  rmSync(root, { recursive: true });
+});
+
+test('--all --platform android ignores missing ios actuals and references', () => {
+  const root = allTree();
+  rmSync(join(root, 'actual', 'ios'), { recursive: true });
+  rmSync(join(root, 'reference', 'ios'), { recursive: true });
+  const { code } = capture(() => run(allOpts(root, { platform: 'android' })));
+  assert.equal(code, 0);
+  const s = readPlatformSummary(root, 'android');
+  assert.equal(s.rows.length, 4);
+  assert.ok(!s.rows.some((r) => r.platform === 'ios'));
+  rmSync(root, { recursive: true });
+});
+
+test('--all --platform android --baseline ignores ios rows of a 136-row baseline', () => {
+  const root = allTree();
+  assert.equal(capture(() => run(allOpts(root))).code, 0);
+  const baseline = keepBaseline(root, 'baseline.json');
+  assert.equal(readSummary(root).rows.length, 8);
+  // An ios change and an ios deletion do not matter for an android run.
+  writeSidecar(root, 'ios', 'Beta', 'light', { passed: false, value: 0.9 });
+  rmSync(join(root, 'actual', 'ios', 'Alpha_dark.png'));
+  const same = capture(() => run(allOpts(root, { baseline, platform: 'android' })));
+  assert.equal(same.code, 0);
+  assert.deepEqual(readPlatformSummary(root, 'android').changed, []);
+  writeSidecar(root, 'android', 'Beta', 'dark', { passed: false, value: 1.5 });
+  const changedRun = capture(() => run(allOpts(root, { baseline, platform: 'android' })));
+  assert.equal(changedRun.code, 4);
+  assert.deepEqual(
+    readPlatformSummary(root, 'android').changed.map((c) => [c.name, c.platform, c.mode, c.field]).sort(),
+    [['Beta', 'android', 'dark', 'test.passed'], ['Beta', 'android', 'dark', 'test.value']],
+  );
+  // A selected-platform row missing from the baseline is a change.
+  const partial = join(root, 'partial.json');
+  const full = JSON.parse(readFileSync(baseline, 'utf8'));
+  full.rows = full.rows.filter((r) => !(r.platform === 'android' && r.name === 'Alpha' && r.mode === 'light'));
+  writeFileSync(partial, JSON.stringify(full));
+  writeSidecar(root, 'android', 'Beta', 'dark', { passed: true, value: null });
+  const missingRow = capture(() => run(allOpts(root, { baseline: partial, platform: 'android' })));
+  assert.equal(missingRow.code, 4);
+  assert.deepEqual(readPlatformSummary(root, 'android').changed, [
+    { name: 'Alpha', platform: 'android', mode: 'light', field: 'row', before: null, after: rowOf(readPlatformSummary(root, 'android'), 'Alpha', 'android', 'light').status },
+  ]);
+  rmSync(root, { recursive: true });
+});
+
+test('--all --platform android refuses a baseline whose rows carry no platform', () => {
+  const root = allTree();
+  assert.equal(capture(() => run(allOpts(root))).code, 0);
+  const baseline = keepBaseline(root, 'baseline.json');
+  const old = JSON.parse(readFileSync(baseline, 'utf8'));
+  for (const r of old.rows) delete r.platform;
+  writeFileSync(baseline, JSON.stringify(old));
+  const r = capture(() => run(allOpts(root, { baseline, platform: 'android' })));
+  assert.equal(r.code, 2);
+  assert.match(r.err, /^diff-report: --platform needs a baseline/);
+  rmSync(root, { recursive: true });
+});
+
+test('--all --platform xx exits 2', () => {
+  const root = allTree();
+  const r = capture(() => run(allOpts(root, { platform: 'xx' })));
+  assert.equal(r.code, 2);
+  assert.match(r.err, /^diff-report: --platform ios\|android is required/);
+  rmSync(root, { recursive: true });
+});

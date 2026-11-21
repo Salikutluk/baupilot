@@ -19,6 +19,7 @@ enum class SnapshotMode(val fileSuffix: String, val nightMode: NightMode) {
 fun baupilotPaparazzi(
     handler: SnapshotHandler,
     mode: SnapshotMode = SnapshotMode.LIGHT,
+    fontScale: Float = 1f,
 ): Paparazzi = Paparazzi(
     environment = detectEnvironment(),
     deviceConfig = DeviceConfig(
@@ -28,6 +29,7 @@ fun baupilotPaparazzi(
         ydpi = 480,
         density = Density.XXHIGH,
         nightMode = mode.nightMode,
+        fontScale = fontScale,
     ),
     theme = "android:Theme.Material.NoActionBar.Fullscreen",
     showSystemUi = false,

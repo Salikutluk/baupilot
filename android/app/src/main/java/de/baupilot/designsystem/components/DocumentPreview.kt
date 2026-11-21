@@ -13,12 +13,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,13 +42,17 @@ private const val TOTAL_DP = 2f + 6f + 9 * LINE_FACTOR
 private const val PAGE_HEIGHT_DP = 320f
 private const val PAGE_BOTTOM_PADDING_DP = 14f
 
+/** Test tag of every text of the page, so the large-text test can name the known whole-dp gap (no pixel effect). */
+const val PAGE_TEXT_TAG = "docpreview.text"
+
 /** One position of the preview page: number, description and sum. */
 class PreviewLine(val pos: String, val text: String, val sum: String)
 
 /**
  * Paper preview of an offer (AndDokViewer:35-59): 250 x 320, padding 18 18 14, always white (`doc*` tokens,
  * the same in dark mode), shadow 0 4 14. Page text is 7 sp with the CSS line height 1.35 (D11). The page is one
- * semantics node, an image described by [contentDescription].
+ * semantics node, an image described by [contentDescription]. The page is a paper mock-up with a fixed 250 x 320
+ * grid, so it is laid out at font scale 1 whatever the system font scale is (like a printed page it does not grow).
  */
 @Composable
 fun DocumentPreview(
@@ -58,6 +66,25 @@ fun DocumentPreview(
     contentDescription: String,
     modifier: Modifier = Modifier,
     radius: Dp = 2.dp,
+) {
+    val density = LocalDensity.current
+    CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1f)) {
+        PreviewPage(issuerName, issuerAddress, number, reference, lines, totalLabel, total, contentDescription, modifier, radius)
+    }
+}
+
+@Composable
+private fun PreviewPage(
+    issuerName: String,
+    issuerAddress: String,
+    number: String,
+    reference: String,
+    lines: List<PreviewLine>,
+    totalLabel: String,
+    total: String,
+    contentDescription: String,
+    modifier: Modifier,
+    radius: Dp,
 ) {
     val shape = RoundedCornerShape(radius)
     // Chrome keeps the fractional CSS heights (a 7 sp line is 9.45 dp) and paints every box edge on a whole dp.
@@ -145,6 +172,6 @@ private fun PageText(text: String, size: Int, weight: Int, color: ColorToken, mo
         weight = weight,
         color = color,
         lineHeight = (size * LINE_FACTOR).sp,
-        modifier = modifier,
+        modifier = modifier.testTag(PAGE_TEXT_TAG),
     )
 }

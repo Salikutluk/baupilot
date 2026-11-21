@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -51,7 +52,7 @@ fun SocketTile(
     modifier: Modifier = Modifier,
 ) {
     val shape = RoundedCornerShape(12.dp)
-    var frame = modifier.fillMaxWidth().height(52.dp).background(style.background.color(), shape)
+    var frame = modifier.fillMaxWidth().heightIn(min = 52.dp).background(style.background.color(), shape)
     if (style.border != null) frame = frame.border(2.dp, style.border.color(), shape)
     Column(
         modifier = frame.clearAndSetSemantics {

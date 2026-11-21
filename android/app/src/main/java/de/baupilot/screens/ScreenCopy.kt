@@ -280,6 +280,14 @@ object ScreenCopy {
         const val FINISH = "Protokoll abschließen"
     }
 
+    object Signature {
+        // M7 D11, no prototype text (role=img); state for VoiceOver/TalkBack
+        const val STATE_EMPTY = "leer"
+
+        // M7 D11, no prototype text (role=img); state for VoiceOver/TalkBack
+        const val STATE_SIGNED = "unterschrieben"
+    }
+
     /** Protocol screens Erd, Rohbau and Zimmerer (M5 D2, D7). */
     object Protocol {
         /** design/screens.md rows 16, 17 and 19: the trades that open a protocol screen. */

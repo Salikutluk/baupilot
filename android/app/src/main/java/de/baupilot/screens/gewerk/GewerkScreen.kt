@@ -48,7 +48,7 @@ fun GewerkScreen(
                 title = model.title,
                 padding = BarPadding.Nav,
                 navigation = Nav.Back(onClick = onBack),
-                actions = listOf(Action.Icon(BaupilotIcon.MoreVertical, model.moreLabel, null)),
+                actions = listOf(Action.Icon(BaupilotIcon.MoreVertical, model.moreLabel, null, testTag = "ph.Gewerk.more")),
             )
         },
         contentPadding = PaddingValues(start = 16.dp, top = 4.dp, end = 16.dp),
@@ -56,7 +56,7 @@ fun GewerkScreen(
         modifier = modifier.testTag("screen.trade.${model.tradeId}"),
         bottomBar = {
             BottomActionBar {
-                TonalIconButton(BaupilotIcon.Paperclip, model.addLabel)
+                TonalIconButton(BaupilotIcon.Paperclip, model.addLabel, Modifier.testTag("ph.Gewerk.add"))
                 FilledButton(
                     label = model.compareLabel,
                     size = ButtonSize.Regular,

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -60,7 +61,11 @@ fun PhotoTile(
     onClick: (() -> Unit)? = null,
 ) {
     val shape = RoundedCornerShape(radius)
-    var frame = modifier.height(height).clip(shape)
+    var frame = when (kind) {
+        // A scene is a picture filling the tile, so it keeps its fixed height; tiles that carry text may grow.
+        is PhotoTileKind.Scene -> modifier.height(height)
+        else -> modifier.heightIn(min = height)
+    }.clip(shape)
     frame = when (kind) {
         is PhotoTileKind.Guide, is PhotoTileKind.Icon -> frame.background(fill.color(), shape)
         is PhotoTileKind.Add -> frame.border(1.dp, Tokens.outline.color(), shape)

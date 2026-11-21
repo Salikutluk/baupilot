@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -95,7 +94,7 @@ fun FilledButton(
     Box(
         modifier = modifier
             .widthFor(size)
-            .height(48.dp)
+            .heightIn(min = 48.dp)
             .clip(ButtonShape)
             .background(background.color(), ButtonShape)
             .pressable(onClick)
@@ -128,7 +127,7 @@ fun OutlinedButton(
     Box(
         modifier = modifier
             .widthFor(size)
-            .height(if (borderOutside) 50.dp else 48.dp)
+            .heightIn(min = if (borderOutside) 50.dp else 48.dp)
             .clip(ButtonShape)
             .border(1.dp, borderColor.color(), ButtonShape)
             .pressable(onClick)
@@ -186,8 +185,8 @@ fun TextButton(
     val shape = if (size == TextButtonSize.Wide44) RoundedCornerShape(22.dp) else ButtonShape
     val sized = when (size) {
         TextButtonSize.Default -> modifier.heightIn(min = 48.dp)
-        TextButtonSize.Compact40 -> modifier.height(40.dp)
-        TextButtonSize.Wide44 -> modifier.fillMaxWidth().height(44.dp)
+        TextButtonSize.Compact40 -> modifier.heightIn(min = 40.dp)
+        TextButtonSize.Wide44 -> modifier.fillMaxWidth().heightIn(min = 44.dp)
     }
     Box(
         modifier = sized
@@ -214,7 +213,7 @@ fun TonalButton(label: String, modifier: Modifier = Modifier, onClick: (() -> Un
     val shape = RoundedCornerShape(20.dp)
     Box(
         modifier = modifier
-            .height(40.dp)
+            .heightIn(min = 40.dp)
             .clip(shape)
             .background(Tokens.secondaryContainer.color(), shape)
             .pressable(onClick)

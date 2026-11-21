@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -112,6 +113,7 @@ fun BaupilotListItem(
     subtitleColor: ColorToken = Tokens.muted,
     titleSize: TextUnit = 16.sp,
     subtitleSize: TextUnit = 14.sp,
+    titleTag: String? = null,
 ) {
     var row = modifier.fillMaxWidth()
     if (background != null) row = row.background(background.color())
@@ -135,6 +137,7 @@ fun BaupilotListItem(
                 color = titleColor,
                 maxLines = if (ellipsis) 1 else Int.MAX_VALUE,
                 overflow = if (ellipsis) TextOverflow.Ellipsis else TextOverflow.Clip,
+                modifier = if (titleTag != null) Modifier.testTag(titleTag) else Modifier,
             )
             if (subtitle != null) {
                 BaupilotText(

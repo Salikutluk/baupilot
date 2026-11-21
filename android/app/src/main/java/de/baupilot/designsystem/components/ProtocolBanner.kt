@@ -8,13 +8,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.baupilot.designsystem.BaupilotIcon
@@ -27,7 +28,7 @@ sealed interface BannerTrailing {
     data object None : BannerTrailing
 
     /** Outlined pill button, 36 content + 1 `foreground` border outside (38), padding 0 14, r18, 14 / 500. */
-    class Document(val label: String, val onClick: (() -> Unit)? = null) : BannerTrailing
+    class Document(val label: String, val onClick: (() -> Unit)? = null, val testTag: String? = null) : BannerTrailing
 
     /** `ChevronRightW22` at 18 in the foreground colour. */
     data object Chevron : BannerTrailing
@@ -67,7 +68,12 @@ fun ProtocolBanner(
             BaupilotText(text = text, size = 13.sp, color = foreground)
         }
         when (trailing) {
-            is BannerTrailing.Document -> ProtocolDocumentButton(trailing.label, foreground, trailing.onClick)
+            is BannerTrailing.Document -> ProtocolDocumentButton(
+                trailing.label,
+                foreground,
+                trailing.onClick,
+                if (trailing.testTag != null) Modifier.testTag(trailing.testTag) else Modifier,
+            )
             BannerTrailing.Chevron -> Icon(BaupilotIcon.ChevronRightW22, 18.dp, foreground.color())
             BannerTrailing.None -> Unit
         }
@@ -86,7 +92,7 @@ internal fun ProtocolDocumentButton(
         .border(1.dp, foreground.color(), ProtocolDocumentShape)
     if (onClick != null) button = button.clickable(onClick = onClick)
     Box(
-        modifier = button.height(38.dp).padding(horizontal = 14.dp),
+        modifier = button.heightIn(min = 38.dp).padding(horizontal = 14.dp),
         contentAlignment = Alignment.Center,
     ) {
         BaupilotText(text = label, size = 14.sp, weight = 500, color = foreground)

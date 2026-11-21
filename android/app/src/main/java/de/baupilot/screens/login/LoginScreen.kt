@@ -107,6 +107,7 @@ fun LoginScreen(model: LoginModel, onSubmit: () -> Unit) {
             TextButton(
                 label = model.forgot,
                 modifier = Modifier
+                    .testTag("login.forgot")
                     .align(Alignment.End)
                     .margin(top = (-12).dp, end = (-12).dp, bottom = (-4).dp),
             )
@@ -124,11 +125,12 @@ fun LoginScreen(model: LoginModel, onSubmit: () -> Unit) {
             // AndLogin.dc.html:45 (placeholder, no action)
             OutlinedButton(
                 label = model.social,
+                modifier = Modifier.testTag("ph.Login.apple"),
                 contentColor = Tokens.text,
                 leading = { GoogleMark(ScreenCopy.Login.SOCIAL_MARK) },
             )
             // AndLogin.dc.html:49 (placeholder link, no action)
-            TextButton(label = model.create, size = TextButtonSize.Wide44)
+            TextButton(label = model.create, size = TextButtonSize.Wide44, modifier = Modifier.testTag("ph.Login.create"))
         }
     }
 }

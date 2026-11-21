@@ -72,7 +72,7 @@ fun InspectionsScreen(
                     title = model.title,
                     padding = BarPadding.TopLevelAction,
                     titleStyle = TitleStyle.Large,
-                    actions = listOf(Action.Text(model.templatesLabel, 40)),
+                    actions = listOf(Action.Text(model.templatesLabel, 40, testTag = "ph.AbnGewerke.vorlagen")),
                 )
                 BaupilotTabRow(
                     tabs = model.views,

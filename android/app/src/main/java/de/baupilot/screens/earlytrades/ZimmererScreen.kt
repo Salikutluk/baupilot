@@ -11,4 +11,4 @@ fun ZimmererScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     onAction: (ProtocolAction) -> Unit = {},
-) = ProtocolTemplate(model, onBack, modifier, onAction)
+) = ProtocolTemplate(model, onBack, modifier, onAction, documentTag = "ph.Zimmerer.pdf")

@@ -1,8 +1,10 @@
 package de.baupilot.app
 
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
@@ -16,6 +18,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipe
 import androidx.compose.ui.geometry.Offset
 import de.baupilot.MainActivity
+import de.baupilot.screens.ScreenCopy
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Rule
@@ -118,6 +121,22 @@ class InspectionFlowUiTest {
         rule.onNode(hasTestTag("defect.defect-window-f2") and hasAnyDescendant(hasText("Frist 15.01.2027 · 2 Fotos")))
             .assertExists()
         rule.onNodeWithTag("tab.inspections").assertIsSelected()
+    }
+
+    /** D11 (I3): the pad's state is "leer" without a stroke and "unterschrieben" after one (unmerged tree). */
+    @Test
+    fun signatureStateFollowsStrokes() {
+        openDefectFormFromStep()
+        tap("defect.save")
+        awaitScreen("screen.inspection.windows.sign")
+        fun padWith(state: String) = rule.onNode(
+            SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, state) and
+                hasAnyAncestor(hasTestTag("sign.owner")),
+            useUnmergedTree = true,
+        )
+        padWith(ScreenCopy.Signature.STATE_EMPTY).assertExists()
+        drawOnOwnerTile()
+        padWith(ScreenCopy.Signature.STATE_SIGNED).assertExists()
     }
 
     @Test

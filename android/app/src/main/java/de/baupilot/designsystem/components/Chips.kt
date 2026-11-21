@@ -6,7 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -42,7 +42,7 @@ private fun ChipFrame(
     content: @Composable () -> Unit,
 ) {
     val shape = RoundedCornerShape(Tokens.Radius.chip)
-    var frame = modifier.height(32.dp)
+    var frame = modifier.heightIn(min = 32.dp)
     if (wholeDpWidth) frame = frame.wholeDpWidth()
     if (background != null) frame = frame.background(background.color(), shape)
     if (border != null) frame = frame.border(1.dp, border.color(), shape)
@@ -260,7 +260,7 @@ fun StatusChip(
 ) {
     val shape = RoundedCornerShape(size.radius)
     var frame = modifier
-    if (size.height != null) frame = frame.height(size.height)
+    if (size.height != null) frame = frame.heightIn(min = size.height)
     if (colors.background != null) frame = frame.background(colors.background.color(), shape)
     if (colors.border != null) frame = frame.border(1.dp, colors.border.color(), shape)
     Row(

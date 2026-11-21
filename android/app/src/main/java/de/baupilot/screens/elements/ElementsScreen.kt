@@ -80,7 +80,7 @@ fun ElementsScreen(
                 padding = BarPadding.Nav,
                 navigation = Nav.Back(onClick = onBack),
                 titleStyle = TitleStyle.Detail,
-                actions = listOf(Action.Icon(BaupilotIcon.HelpCircle, model.helpLabel)),
+                actions = listOf(Action.Icon(BaupilotIcon.HelpCircle, model.helpLabel, testTag = "ph.AbnElemente.guide")),
             )
         },
         contentPadding = PaddingValues(0.dp),
@@ -128,14 +128,19 @@ fun ElementsScreen(
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 model.chips.forEachIndexed { index, label ->
-                    FilterChip(label = label, selected = index == 0, showCheck = index == 0)
+                    FilterChip(
+                        label = label,
+                        selected = index == 0,
+                        showCheck = index == 0,
+                        modifier = Modifier.testTag("ph.AbnElemente.chip.$index"),
+                    )
                 }
             }
         }
-        model.floors.forEach { floor ->
+        model.floors.forEachIndexed { floorIndex, floor ->
             SectionHeader(
                 title = floor.title,
-                style = SectionHeaderStyle.Compact(SectionLink(floor.moreLabel)),
+                style = SectionHeaderStyle.Compact(SectionLink(floor.moreLabel, testTag = "ph.AbnElemente.more.$floorIndex")),
                 modifier = Modifier.padding(PaddingValues(start = 16.dp, top = 6.dp, end = 16.dp)),
             )
             floor.items.forEach { row -> ElementListRow(row, onAction) }
