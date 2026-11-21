@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.baupilot.app.HeatingBar
@@ -60,10 +61,12 @@ class ComponentMetricsLaterTradesTest {
 
     private val heights = mutableMapOf<String, Int>()
     private val widths = mutableMapOf<String, Int>()
+    private val lefts = mutableMapOf<String, Int>()
 
     private fun Modifier.record(key: String): Modifier = onGloballyPositioned {
         heights[key] = it.size.height
         widths[key] = it.size.width
+        lefts[key] = it.positionInParent().x.toInt()
     }
 
     /** AndSanUebersicht:30-39: the active and the planned card share one height, 2 x 175 wide. */
@@ -280,14 +283,23 @@ class ComponentMetricsLaterTradesTest {
         assertEquals(widths.getValue("default") + 8 * 3, widths.getValue("wide"))
     }
 
-    /** AndFlBad:51-53: 8 columns in a 326 wide grid with padding 8 and gap 4 give tiles of (310 - 28) / 8 = 35.25 x 44; the grid is 156 tall. */
+    /**
+     * AndFlBad:51-53: 8 columns in a 326 wide grid with padding 8 and gap 4 give tracks of (310 - 28) / 8 = 35.25 x 44; the grid
+     * is 156 tall. Chrome snaps each edge to a whole dp, round(k x 39.25) half up, so the columns are 35 or 36 dp wide and start
+     * at 0 / 39 / 79 / 118 / 157 / 196 / 236 / 275 dp (the cases 78.5, 74.5 + 35.25 and 235.5 round up).
+     */
     @Test
-    fun tileGridTilesAre35Point25By44AndTheGridIs156Tall() {
+    fun tileGridColumnsSitOnWholeDpEdgesAndTheGridIs156Tall() {
         val tiles = List(24) { TileItem("tile-${it + 1}", it == 2 || it == 3, if (it == 2 || it == 3) "hohl" else null, "Fliese ${it + 1}", Modifier.record("tile-${it + 1}")) }
         paparazzi.snapshot { TileGrid(tiles, 8, Modifier.width(326.dp).record("grid")) }
         assertEquals(44 * 3, heights.getValue("tile-1"))
-        assertEquals(35.25f * 3, widths.getValue("tile-1").toFloat(), 1f)
-        assertEquals(35.25f * 3, widths.getValue("tile-24").toFloat(), 1f)
+        val expectedLefts = listOf(0, 39, 79, 118, 157, 196, 236, 275)
+        val expectedWidths = listOf(35, 36, 35, 35, 35, 36, 35, 35)
+        for (row in 0 until 3) for (column in 0 until 8) {
+            val key = "tile-${row * 8 + column + 1}"
+            assertEquals(key, expectedLefts[column] * 3, lefts.getValue(key))
+            assertEquals(key, expectedWidths[column] * 3, widths.getValue(key))
+        }
         assertEquals(156 * 3, heights.getValue("grid"))
     }
 

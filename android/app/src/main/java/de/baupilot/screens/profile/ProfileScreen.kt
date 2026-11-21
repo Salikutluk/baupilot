@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -98,6 +98,7 @@ fun ProfileScreen(model: ProfileModel) {
                                 },
                                 minHeight = ListItemHeight.H56,
                                 titleColor = if (signOut) Tokens.error else Tokens.text,
+                                modifier = if (row.isToggle) Modifier else Modifier.testTag("ph.Profil.row.$position"),
                             )
                         }
                     }
@@ -110,7 +111,7 @@ fun ProfileScreen(model: ProfileModel) {
 @Composable
 private fun ProfileRow(model: ProfileModel) {
     Row(
-        modifier = Modifier.fillMaxWidth().height(80.dp).padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 80.dp).padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -123,6 +124,6 @@ private fun ProfileRow(model: ProfileModel) {
                 color = Tokens.muted,
             )
         }
-        TonalButton(ScreenCopy.Profil.EDIT)
+        TonalButton(ScreenCopy.Profil.EDIT, Modifier.testTag("ph.Profil.card"))
     }
 }

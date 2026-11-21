@@ -29,6 +29,7 @@ import de.baupilot.designsystem.components.Nav
 import de.baupilot.designsystem.components.StatusChip
 import de.baupilot.designsystem.components.StatusChipColors
 import de.baupilot.designsystem.components.StatusChipSize
+import de.baupilot.designsystem.components.TitleStyle
 
 /**
  * Estrich Belegreife / Aufheizprotokoll (AndEsBelegreife.dc.html:17-70): the heating chart card, the CM measurement
@@ -42,7 +43,12 @@ fun EsBelegreifeScreen(
 ) {
     DetailScreenScaffold(
         topBar = {
-            BaupilotTopAppBar(title = model.screenTitle, padding = BarPadding.Nav, navigation = Nav.Back(onClick = onBack))
+            BaupilotTopAppBar(
+                title = model.screenTitle,
+                padding = BarPadding.Nav,
+                navigation = Nav.Back(onClick = onBack),
+                titleStyle = TitleStyle.Detail, // AndEsBelegreife.dc.html:22 (20 px)
+            )
         },
         contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 0.dp),
         spacing = 12.dp,

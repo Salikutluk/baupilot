@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -56,7 +57,7 @@ fun BaupilotTabRow(
             tabs.forEachIndexed { index, label ->
                 val on = index == selectedIndex
                 val centred = !on && unselectedAlignment == TabLabelAlignment.Center
-                var cell = Modifier.weight(1f).then(tabModifier).height(48.dp)
+                var cell = Modifier.weight(1f).then(tabModifier).heightIn(min = 48.dp)
                 tabTags.getOrNull(index)?.let { cell = cell.testTag(it) }
                 if (onSelect != null) cell = cell.clickable { onSelect(index) }
                 Column(

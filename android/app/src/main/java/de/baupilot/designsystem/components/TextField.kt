@@ -4,7 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,8 +13,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextMotion
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -53,11 +57,11 @@ fun BaupilotOutlinedTextField(
 ) {
     val focused = look == FieldLook.Focused
     val shape = RoundedCornerShape(4.dp)
-    Box(modifier.height(56.dp)) {
+    Box(modifier.heightIn(min = 56.dp)) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
+                .heightIn(min = 56.dp)
                 .border(
                     width = if (focused) 2.dp else 1.dp,
                     color = (if (focused) Tokens.primary else Tokens.outline).color(),
@@ -76,10 +80,11 @@ fun BaupilotOutlinedTextField(
                     fontSize = 16.sp,
                     fontFamily = Roboto,
                     platformStyle = PlatformTextStyle(includeFontPadding = false),
+                    textMotion = TextMotion.Animated,
                 ),
                 cursorBrush = SolidColor(Tokens.primary.color()),
                 visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
-                modifier = fieldModifier.fillMaxWidth(),
+                modifier = fieldModifier.fillMaxWidth().semantics { contentDescription = label },
                 decorationBox = { inner ->
                     if (value.isEmpty()) BaupilotText(text = placeholder, size = 16.sp, color = Tokens.placeholder)
                     inner()
@@ -97,7 +102,7 @@ fun BaupilotOutlinedTextField(
                 .background(notch.color())
                 .padding(horizontal = 4.dp),
         ) {
-            BaupilotText(text = label, size = 12.sp, color = if (focused) Tokens.primary else Tokens.muted)
+            BaupilotText(modifier = Modifier.clearAndSetSemantics {}, text = label, size = 12.sp, color = if (focused) Tokens.primary else Tokens.muted)
         }
     }
 }

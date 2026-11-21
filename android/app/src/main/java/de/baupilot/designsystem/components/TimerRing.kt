@@ -9,9 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.baupilot.designsystem.BaupilotText
@@ -20,7 +20,8 @@ import de.baupilot.designsystem.Tokens
 /**
  * Timer ring of the Druckprobe (AndSanDruck:50-52): a 72 disc whose [fraction] is `primary` from the top clockwise
  * (the prototype's conic gradient) on the core `track`, with a 58 `surfaceContainer` hole that holds the [label]
- * (14 / 500). [accessibilityLabel] is the aria label of the image.
+ * (14 / 500). [accessibilityLabel] is the aria label of the image; the node clears its children so the label text
+ * is no stop of its own (M7 D10, like `HeatingBarChart`).
  */
 @Composable
 fun TimerRing(
@@ -35,7 +36,7 @@ fun TimerRing(
     Box(
         modifier = modifier
             .size(72.dp)
-            .semantics {
+            .clearAndSetSemantics {
                 role = Role.Image
                 contentDescription = accessibilityLabel
             },

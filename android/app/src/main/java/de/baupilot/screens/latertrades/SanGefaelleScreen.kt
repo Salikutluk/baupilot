@@ -88,7 +88,7 @@ fun SanGefaelleScreen(
                     id = section.id,
                     label = section.label,
                     style = section.status.style(),
-                    contentDescription = "${section.id} ${section.label}".trim(),
+                    contentDescription = listOf(section.id, section.label).filter { it.isNotEmpty() }.joinToString(", "),
                     modifier = Modifier.weight(1f).testTag("slope.section.${section.id}"),
                 )
             }

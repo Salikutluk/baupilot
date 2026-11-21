@@ -104,4 +104,25 @@ class GoldenSnapshotHandlerTest {
         assertFalse(error.toString(), error is AssertionError)
         assertTrue(error.message, error.message!!.startsWith("Größe 10x10"))
     }
+
+    @Test
+    fun goldenWritesNoSidecar() {
+        val root = tempRoot()
+        val target = golden(root, "Probe_light")
+        target.parentFile!!.mkdirs()
+        ImageIO.write(solid(0xFFFFFFFF.toInt()), "png", target) // lint-hex: allow synthetic test pixel
+        val frame = GoldenSnapshotHandler(SnapshotMode.LIGHT, record = false, repoRoot = root)
+            .newFrameHandler(snapshot("Probe"), 1, -1)
+
+        assertThrows(AssertionError::class.java) { frame.handle(solid(0xFF000000.toInt())) } // lint-hex: allow synthetic test pixel
+
+        val artifacts = File(root, "build/snapshots/android-gallery")
+        assertTrue(File(artifacts, "Probe_light.png").isFile)
+        assertEquals(listOf("Probe_light.png"), artifacts.list()!!.toList())
+        assertFalse(File(root, "build/snapshots/android").exists())
+    }
+
+    private fun solid(rgb: Int) = BufferedImage(SNAPSHOT_WIDTH, SNAPSHOT_HEIGHT, BufferedImage.TYPE_INT_ARGB).apply {
+        for (y in 0 until height) for (x in 0 until width) setRGB(x, y, rgb)
+    }
 }

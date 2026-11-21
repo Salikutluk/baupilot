@@ -25,13 +25,14 @@ import de.baupilot.inspection.Extent
 import de.baupilot.inspection.Point
 import de.baupilot.inspection.SignatureSample
 import de.baupilot.inspection.SignatureStrokes
+import de.baupilot.screens.ScreenCopy
 
 private val STROKE_WIDTH = 2.dp
 
 /**
  * Drawing surface of the owner's signature (D10): a drag collects a stroke, a tap a dot. The pad fills the size its
  * caller gives it; strokes are kept in dp and clamped to that size. Lines are 2 wide with round cap and join.
- * The semantic state is "strokes: n" so tests can tell an empty pad from a drawn one.
+ * The semantic state is "leer" / "unterschrieben" ([ScreenCopy.Signature]) for VoiceOver / TalkBack and tests.
  */
 @Composable
 fun SignaturePad(
@@ -55,7 +56,13 @@ fun SignaturePad(
 
     Canvas(
         modifier = modifier
-            .semantics { stateDescription = "strokes: ${strokes.strokes.size}" }
+            .semantics {
+                stateDescription = if (strokes.strokes.isEmpty()) {
+                    ScreenCopy.Signature.STATE_EMPTY
+                } else {
+                    ScreenCopy.Signature.STATE_SIGNED
+                }
+            }
             .pointerInput(Unit) {
                 detectTapGestures { offset ->
                     update(sized(size, this).begin(offset.toPoint(this)).end())

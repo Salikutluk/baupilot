@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -55,7 +55,7 @@ fun ValueStepper(
     Row(
         modifier = modifier
             .then(if (fillsWidth) Modifier.fillMaxWidth() else Modifier)
-            .height(50.dp)
+            .heightIn(min = 50.dp)
             .border(1.dp, Tokens.outline.color(), RoundedCornerShape(24.dp))
             .padding(1.dp)
             .padding(horizontal = 4.dp),

@@ -244,6 +244,19 @@ const TOLERANCE_PATTERNS = [
   /\bperceptualPrecision:/,
 ];
 
+// Setting this system property swaps the OffByTwo differ for another one without touching a literal (D2).
+const DIFFER_PROPERTY = 'app.cash.paparazzi.differ';
+const DIFFER_EXTS = ['.kts', '.kt', '.java', '.properties', '.xml', '.gradle', '.json', '.txt'];
+
+function scanDifferProperty(root) {
+  const files = walk(root, 'android', DIFFER_EXTS).filter((f) => {
+    const rel = relative(root, f).split('\\').join('/');
+    if (/(^|\/)(build|\.gradle)\//.test(rel)) return false;
+    return rel.endsWith('.kts') || rel === 'android/gradle.properties' || /\/src\/(test|main)\//.test(rel);
+  });
+  return scanLines(root, files, (line) => line.includes(DIFFER_PROPERTY), { comments: true });
+}
+
 function scanTolerances(root) {
   const files = [
     ...walk(root, 'ios/BaupilotTests', ['.swift']),
@@ -276,6 +289,7 @@ function scanTolerances(root) {
     }
   }
   if (verifiers === 0) hits.push(`${VERIFIER_FILES.join(' | ')}: no SnapshotVerifier( call found`);
+  hits.push(...scanDifferProperty(root));
   return hits;
 }
 
@@ -310,6 +324,29 @@ test('T-DS-3: planted tolerance literals and a literal verifier threshold are re
     );
     assert.ok(!hits.some((h) => h.includes('GoldenSnapshotHandler.kt')), hits.join('\n'));
     assert.ok(!hits.some((h) => h.includes('BaupilotPaparazzi.kt') || h.includes('ReferenceSnapshot.swift')), hits.join('\n'));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('T-DS-3: a planted paparazzi differ property is reported', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'ds3d-'));
+  try {
+    const put = (path, text) => {
+      mkdirSync(dirname(join(dir, path)), { recursive: true });
+      writeFileSync(join(dir, path), text);
+    };
+    put('android/app/build.gradle.kts', 'tasks.withType<Test> {\n    systemProperty("app.cash.paparazzi.differ", "mssim")\n}\n');
+    put('android/gradle.properties', 'org.gradle.jvmargs=-Xmx2g\nsystemProp.app.cash.paparazzi.differ=mssim\n');
+    put('android/app/src/test/java/T4.kt', 'val p = System.getProperty("app.cash.paparazzi.differ")\n');
+    put('android/app/src/main/java/T5.kt', 'val ok = 1\n// app.cash.paparazzi.differ\n');
+    put('android/app/build/generated/T6.kt', 'val p = "app.cash.paparazzi.differ"\n');
+    const hits = scanTolerances(dir);
+    assert.ok(hits.includes('android/app/build.gradle.kts:2: systemProperty("app.cash.paparazzi.differ", "mssim")'), hits.join('\n'));
+    assert.ok(hits.includes('android/gradle.properties:2: systemProp.app.cash.paparazzi.differ=mssim'), hits.join('\n'));
+    assert.ok(hits.includes('android/app/src/test/java/T4.kt:1: val p = System.getProperty("app.cash.paparazzi.differ")'), hits.join('\n'));
+    assert.ok(hits.includes('android/app/src/main/java/T5.kt:2: // app.cash.paparazzi.differ'), hits.join('\n'));
+    assert.ok(!hits.some((h) => h.includes('T6.kt')), hits.join('\n'));
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

@@ -1,10 +1,6 @@
 package de.baupilot.snapshot
 
-import de.baupilot.app.AppNavigationState
-import de.baupilot.app.AppRoute
-import de.baupilot.app.AppTab
 import de.baupilot.app.BaupilotAppContent
-import de.baupilot.app.NavigationTarget
 import org.junit.Rule
 import org.junit.Test
 
@@ -16,7 +12,7 @@ class LoginLightSnapshotTest {
     @Test
     fun login() {
         val data = TestAppData.load()
-        paparazzi.snapshot { BaupilotAppContent(state = AppNavigationState(), onStateChange = {}, data = data) }
+        paparazzi.snapshot { BaupilotAppContent(state = ScreenCatalog.state("Login"), onStateChange = {}, data = data) }
     }
 }
 
@@ -28,7 +24,7 @@ class LoginDarkSnapshotTest {
     @Test
     fun login() {
         val data = TestAppData.load()
-        paparazzi.snapshot { BaupilotAppContent(state = AppNavigationState(), onStateChange = {}, data = data) }
+        paparazzi.snapshot { BaupilotAppContent(state = ScreenCatalog.state("Login"), onStateChange = {}, data = data) }
     }
 }
 
@@ -40,7 +36,7 @@ class HomeLightSnapshotTest {
     @Test
     fun home() {
         val data = TestAppData.load()
-        paparazzi.snapshot { BaupilotAppContent(state = AppNavigationState().logIn(), onStateChange = {}, data = data) }
+        paparazzi.snapshot { BaupilotAppContent(state = ScreenCatalog.state("Home"), onStateChange = {}, data = data) }
     }
 }
 
@@ -52,7 +48,7 @@ class HomeDarkSnapshotTest {
     @Test
     fun home() {
         val data = TestAppData.load()
-        paparazzi.snapshot { BaupilotAppContent(state = AppNavigationState().logIn(), onStateChange = {}, data = data) }
+        paparazzi.snapshot { BaupilotAppContent(state = ScreenCatalog.state("Home"), onStateChange = {}, data = data) }
     }
 }
 
@@ -64,7 +60,7 @@ class ZeitplanLightSnapshotTest {
     @Test
     fun zeitplan() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Schedule)
+        val state = ScreenCatalog.state("Zeitplan")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -77,7 +73,7 @@ class ZeitplanDarkSnapshotTest {
     @Test
     fun zeitplan() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Schedule)
+        val state = ScreenCatalog.state("Zeitplan")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -90,7 +86,7 @@ class ProfilLightSnapshotTest {
     @Test
     fun profil() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Profile)
+        val state = ScreenCatalog.state("Profil")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -103,7 +99,7 @@ class ProfilDarkSnapshotTest {
     @Test
     fun profil() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Profile)
+        val state = ScreenCatalog.state("Profil")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -116,7 +112,7 @@ class GewerkLightSnapshotTest {
     @Test
     fun gewerk() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().open(AppRoute.Trade("screed"))
+        val state = ScreenCatalog.state("Gewerk")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -129,7 +125,7 @@ class GewerkDarkSnapshotTest {
     @Test
     fun gewerk() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().open(AppRoute.Trade("screed"))
+        val state = ScreenCatalog.state("Gewerk")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -142,7 +138,7 @@ class DokumenteLightSnapshotTest {
     @Test
     fun dokumente() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Documents)
+        val state = ScreenCatalog.state("Dokumente")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -155,7 +151,7 @@ class DokumenteDarkSnapshotTest {
     @Test
     fun dokumente() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Documents)
+        val state = ScreenCatalog.state("Dokumente")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -168,7 +164,7 @@ class DokViewerLightSnapshotTest {
     @Test
     fun dokViewer() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Documents).open(AppRoute.Document("doc-offer-wagner"))
+        val state = ScreenCatalog.state("DokViewer")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -181,7 +177,7 @@ class DokViewerDarkSnapshotTest {
     @Test
     fun dokViewer() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Documents).open(AppRoute.Document("doc-offer-wagner"))
+        val state = ScreenCatalog.state("DokViewer")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -194,7 +190,7 @@ class VergleichLightSnapshotTest {
     @Test
     fun vergleich() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().open(AppRoute.Trade("screed")).open(AppRoute.Compare("screed"))
+        val state = ScreenCatalog.state("Vergleich")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -207,7 +203,7 @@ class VergleichDarkSnapshotTest {
     @Test
     fun vergleich() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().open(AppRoute.Trade("screed")).open(AppRoute.Compare("screed"))
+        val state = ScreenCatalog.state("Vergleich")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -220,7 +216,7 @@ class MitteilungenLightSnapshotTest {
     @Test
     fun mitteilungen() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().open(AppRoute.Notifications)
+        val state = ScreenCatalog.state("Mitteilungen")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -233,7 +229,7 @@ class MitteilungenDarkSnapshotTest {
     @Test
     fun mitteilungen() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().open(AppRoute.Notifications)
+        val state = ScreenCatalog.state("Mitteilungen")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -246,7 +242,7 @@ class AbnGewerkeLightSnapshotTest {
     @Test
     fun abnGewerke() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections)
+        val state = ScreenCatalog.state("AbnGewerke")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -259,7 +255,7 @@ class AbnGewerkeDarkSnapshotTest {
     @Test
     fun abnGewerke() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections)
+        val state = ScreenCatalog.state("AbnGewerke")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -272,7 +268,7 @@ class AbnElementeLightSnapshotTest {
     @Test
     fun abnElemente() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("windows"))
+        val state = ScreenCatalog.state("AbnElemente")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -285,7 +281,7 @@ class AbnElementeDarkSnapshotTest {
     @Test
     fun abnElemente() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("windows"))
+        val state = ScreenCatalog.state("AbnElemente")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -298,9 +294,7 @@ class AbnPruefungLightSnapshotTest {
     @Test
     fun abnPruefung() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections)
-            .open(AppRoute.Inspection("windows"))
-            .open(AppRoute.InspectionStep("windows", "F8", 3))
+        val state = ScreenCatalog.state("AbnPruefung")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -313,9 +307,7 @@ class AbnPruefungDarkSnapshotTest {
     @Test
     fun abnPruefung() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections)
-            .open(AppRoute.Inspection("windows"))
-            .open(AppRoute.InspectionStep("windows", "F8", 3))
+        val state = ScreenCatalog.state("AbnPruefung")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -328,10 +320,7 @@ class AbnMangelLightSnapshotTest {
     @Test
     fun abnMangel() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections)
-            .open(AppRoute.Inspection("windows"))
-            .open(AppRoute.InspectionStep("windows", "F8", 3))
-            .open(AppRoute.NewDefect)
+        val state = ScreenCatalog.state("AbnMangel")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -344,10 +333,7 @@ class AbnMangelDarkSnapshotTest {
     @Test
     fun abnMangel() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections)
-            .open(AppRoute.Inspection("windows"))
-            .open(AppRoute.InspectionStep("windows", "F8", 3))
-            .open(AppRoute.NewDefect)
+        val state = ScreenCatalog.state("AbnMangel")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -360,9 +346,7 @@ class AbnSignaturLightSnapshotTest {
     @Test
     fun abnSignatur() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections)
-            .open(AppRoute.Inspection("windows"))
-            .open(AppRoute.SignOff("windows"))
+        val state = ScreenCatalog.state("AbnSignatur")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -375,9 +359,7 @@ class AbnSignaturDarkSnapshotTest {
     @Test
     fun abnSignatur() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections)
-            .open(AppRoute.Inspection("windows"))
-            .open(AppRoute.SignOff("windows"))
+        val state = ScreenCatalog.state("AbnSignatur")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -390,7 +372,7 @@ class AbnMaengelLightSnapshotTest {
     @Test
     fun abnMaengel() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().go(NavigationTarget.Defects)
+        val state = ScreenCatalog.state("AbnMaengel")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -403,7 +385,7 @@ class AbnMaengelDarkSnapshotTest {
     @Test
     fun abnMaengel() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().go(NavigationTarget.Defects)
+        val state = ScreenCatalog.state("AbnMaengel")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -416,7 +398,7 @@ class ErdLightSnapshotTest {
     @Test
     fun erd() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("earthworks"))
+        val state = ScreenCatalog.state("Erd")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -429,7 +411,7 @@ class ErdDarkSnapshotTest {
     @Test
     fun erd() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("earthworks"))
+        val state = ScreenCatalog.state("Erd")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -442,7 +424,7 @@ class RohbauLightSnapshotTest {
     @Test
     fun rohbau() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("shell"))
+        val state = ScreenCatalog.state("Rohbau")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -455,7 +437,7 @@ class RohbauDarkSnapshotTest {
     @Test
     fun rohbau() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("shell"))
+        val state = ScreenCatalog.state("Rohbau")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -468,8 +450,7 @@ class RohbauMasseLightSnapshotTest {
     @Test
     fun rohbauMasse() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("shell"))
-            .open(AppRoute.InspectionCheck("shell", "measure"))
+        val state = ScreenCatalog.state("RohbauMasse")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -482,8 +463,7 @@ class RohbauMasseDarkSnapshotTest {
     @Test
     fun rohbauMasse() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("shell"))
-            .open(AppRoute.InspectionCheck("shell", "measure"))
+        val state = ScreenCatalog.state("RohbauMasse")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -496,7 +476,7 @@ class ZimmererLightSnapshotTest {
     @Test
     fun zimmerer() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("carpentry"))
+        val state = ScreenCatalog.state("Zimmerer")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -509,7 +489,7 @@ class ZimmererDarkSnapshotTest {
     @Test
     fun zimmerer() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("carpentry"))
+        val state = ScreenCatalog.state("Zimmerer")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -522,7 +502,7 @@ class ElUebersichtLightSnapshotTest {
     @Test
     fun elUebersicht() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("electrical"))
+        val state = ScreenCatalog.state("ElUebersicht")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -536,7 +516,7 @@ class ElUebersichtDarkSnapshotTest {
     @Test
     fun elUebersicht() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("electrical"))
+        val state = ScreenCatalog.state("ElUebersicht")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -549,8 +529,7 @@ class ElRaumLightSnapshotTest {
     @Test
     fun elRaum() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("electrical"))
-            .open(AppRoute.InspectionRoom("electrical", "kitchen"))
+        val state = ScreenCatalog.state("ElRaum")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -563,8 +542,7 @@ class ElRaumDarkSnapshotTest {
     @Test
     fun elRaum() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("electrical"))
-            .open(AppRoute.InspectionRoom("electrical", "kitchen"))
+        val state = ScreenCatalog.state("ElRaum")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -577,8 +555,7 @@ class ElVerteilerLightSnapshotTest {
     @Test
     fun elVerteiler() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("electrical"))
-            .open(AppRoute.InspectionCheck("electrical", "panel"))
+        val state = ScreenCatalog.state("ElVerteiler")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -591,8 +568,7 @@ class ElVerteilerDarkSnapshotTest {
     @Test
     fun elVerteiler() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("electrical"))
-            .open(AppRoute.InspectionCheck("electrical", "panel"))
+        val state = ScreenCatalog.state("ElVerteiler")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -605,8 +581,7 @@ class ElRauchmelderLightSnapshotTest {
     @Test
     fun elRauchmelder() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("electrical"))
-            .open(AppRoute.InspectionCheck("electrical", "smoke"))
+        val state = ScreenCatalog.state("ElRauchmelder")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -619,8 +594,7 @@ class ElRauchmelderDarkSnapshotTest {
     @Test
     fun elRauchmelder() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("electrical"))
-            .open(AppRoute.InspectionCheck("electrical", "smoke"))
+        val state = ScreenCatalog.state("ElRauchmelder")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -633,7 +607,7 @@ class SanUebersichtLightSnapshotTest {
     @Test
     fun sanUebersicht() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("plumbing"))
+        val state = ScreenCatalog.state("SanUebersicht")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -646,7 +620,7 @@ class SanUebersichtDarkSnapshotTest {
     @Test
     fun sanUebersicht() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("plumbing"))
+        val state = ScreenCatalog.state("SanUebersicht")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -659,8 +633,7 @@ class SanGefaelleLightSnapshotTest {
     @Test
     fun sanGefaelle() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("plumbing"))
-            .open(AppRoute.InspectionCheckItem("plumbing", "slope", "A3"))
+        val state = ScreenCatalog.state("SanGefaelle")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -673,8 +646,7 @@ class SanGefaelleDarkSnapshotTest {
     @Test
     fun sanGefaelle() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("plumbing"))
-            .open(AppRoute.InspectionCheckItem("plumbing", "slope", "A3"))
+        val state = ScreenCatalog.state("SanGefaelle")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -687,8 +659,7 @@ class SanDruckLightSnapshotTest {
     @Test
     fun sanDruck() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("plumbing"))
-            .open(AppRoute.InspectionCheck("plumbing", "pressure"))
+        val state = ScreenCatalog.state("SanDruck")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -701,8 +672,7 @@ class SanDruckDarkSnapshotTest {
     @Test
     fun sanDruck() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("plumbing"))
-            .open(AppRoute.InspectionCheck("plumbing", "pressure"))
+        val state = ScreenCatalog.state("SanDruck")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -715,8 +685,7 @@ class SanBadLightSnapshotTest {
     @Test
     fun sanBad() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("plumbing"))
-            .open(AppRoute.InspectionRoom("plumbing", "bathUpper"))
+        val state = ScreenCatalog.state("SanBad")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -729,8 +698,7 @@ class SanBadDarkSnapshotTest {
     @Test
     fun sanBad() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("plumbing"))
-            .open(AppRoute.InspectionRoom("plumbing", "bathUpper"))
+        val state = ScreenCatalog.state("SanBad")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -743,7 +711,7 @@ class EsUebersichtLightSnapshotTest {
     @Test
     fun esUebersicht() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("screed"))
+        val state = ScreenCatalog.state("EsUebersicht")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -756,7 +724,7 @@ class EsUebersichtDarkSnapshotTest {
     @Test
     fun esUebersicht() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("screed"))
+        val state = ScreenCatalog.state("EsUebersicht")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -769,8 +737,7 @@ class EsEbenheitLightSnapshotTest {
     @Test
     fun esEbenheit() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("screed"))
-            .open(AppRoute.InspectionCheck("screed", "flatness"))
+        val state = ScreenCatalog.state("EsEbenheit")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -783,8 +750,7 @@ class EsEbenheitDarkSnapshotTest {
     @Test
     fun esEbenheit() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("screed"))
-            .open(AppRoute.InspectionCheck("screed", "flatness"))
+        val state = ScreenCatalog.state("EsEbenheit")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -797,8 +763,7 @@ class EsBelegreifeLightSnapshotTest {
     @Test
     fun esBelegreife() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("screed"))
-            .open(AppRoute.InspectionCheck("screed", "readiness"))
+        val state = ScreenCatalog.state("EsBelegreife")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -811,8 +776,7 @@ class EsBelegreifeDarkSnapshotTest {
     @Test
     fun esBelegreife() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("screed"))
-            .open(AppRoute.InspectionCheck("screed", "readiness"))
+        val state = ScreenCatalog.state("EsBelegreife")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -825,7 +789,7 @@ class FlUebersichtLightSnapshotTest {
     @Test
     fun flUebersicht() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("tiles"))
+        val state = ScreenCatalog.state("FlUebersicht")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -838,7 +802,7 @@ class FlUebersichtDarkSnapshotTest {
     @Test
     fun flUebersicht() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("tiles"))
+        val state = ScreenCatalog.state("FlUebersicht")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -851,8 +815,7 @@ class FlBadLightSnapshotTest {
     @Test
     fun flBad() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("tiles"))
-            .open(AppRoute.InspectionRoom("tiles", "bath"))
+        val state = ScreenCatalog.state("FlBad")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -865,8 +828,7 @@ class FlBadDarkSnapshotTest {
     @Test
     fun flBad() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("tiles"))
-            .open(AppRoute.InspectionRoom("tiles", "bath"))
+        val state = ScreenCatalog.state("FlBad")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -879,7 +841,7 @@ class MaUebersichtLightSnapshotTest {
     @Test
     fun maUebersicht() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("painting"))
+        val state = ScreenCatalog.state("MaUebersicht")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -892,7 +854,7 @@ class MaUebersichtDarkSnapshotTest {
     @Test
     fun maUebersicht() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("painting"))
+        val state = ScreenCatalog.state("MaUebersicht")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -905,8 +867,7 @@ class MaRaumLightSnapshotTest {
     @Test
     fun maRaum() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("painting"))
-            .open(AppRoute.InspectionRoom("painting", "living"))
+        val state = ScreenCatalog.state("MaRaum")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }
@@ -919,8 +880,7 @@ class MaRaumDarkSnapshotTest {
     @Test
     fun maRaum() {
         val data = TestAppData.load()
-        val state = AppNavigationState().logIn().select(AppTab.Inspections).open(AppRoute.Inspection("painting"))
-            .open(AppRoute.InspectionRoom("painting", "living"))
+        val state = ScreenCatalog.state("MaRaum")
         paparazzi.snapshot { BaupilotAppContent(state = state, onStateChange = {}, data = data) }
     }
 }

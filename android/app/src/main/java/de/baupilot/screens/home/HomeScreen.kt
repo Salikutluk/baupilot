@@ -63,11 +63,17 @@ fun HomeScreen(model: HomeModel, onAction: (HomeAction) -> Unit) {
         },
         spacing = 16.dp,
         modifier = Modifier.testTag("screen.home"),
-        fab = { ExtendedFab(label = ScreenCopy.Home.DOCUMENT_FAB, icon = FabIcon.Plus) },
+        fab = {
+            ExtendedFab(
+                label = ScreenCopy.Home.DOCUMENT_FAB,
+                icon = FabIcon.Plus,
+                modifier = Modifier.testTag("ph.Home.dokument"),
+            )
+        },
     ) {
         PhaseCard(model)
         Column {
-            SectionHeader(ScreenCopy.Home.NEXT_NEEDED, SectionHeaderStyle.Overview(SectionLink(ScreenCopy.Home.ALL)))
+            SectionHeader(ScreenCopy.Home.NEXT_NEEDED, SectionHeaderStyle.Overview(SectionLink(ScreenCopy.Home.ALL, testTag = "ph.Home.alle")))
             model.trades.forEach { trade ->
                 BaupilotListItem(
                     title = trade.name,
@@ -77,16 +83,23 @@ fun HomeScreen(model: HomeModel, onAction: (HomeAction) -> Unit) {
                     minHeight = ListItemHeight.H64,
                     horizontalPadding = 0.dp,
                     onClick = { onAction(HomeAction.OpenTrade(trade.tradeId)) },
+                    modifier = Modifier.testTag("home.trade.${trade.tradeId}"),
                 )
             }
         }
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             SectionHeader(ScreenCopy.Home.DOCUMENTS, SectionHeaderStyle.Overview())
-            model.docs.chunked(2).forEach { pair ->
+            model.docs.chunked(2).forEachIndexed { rowIndex, pair ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    pair.forEach { doc ->
+                    pair.forEachIndexed { column, doc ->
                         Box(Modifier.weight(1f)) {
-                            DocumentTile(doc.icon, doc.label, doc.count, onClick = { onAction(HomeAction.OpenDocumentsTab) })
+                            DocumentTile(
+                                doc.icon,
+                                doc.label,
+                                doc.count,
+                                onClick = { onAction(HomeAction.OpenDocumentsTab) },
+                                modifier = Modifier.testTag("home.doc.${rowIndex * 2 + column}"),
+                            )
                         }
                     }
                 }

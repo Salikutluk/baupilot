@@ -66,12 +66,13 @@ fun ScheduleScreen(model: ScheduleModel, onAction: (ScheduleAction) -> Unit) {
                 color = Tokens.onPrimaryContainer,
                 modifier = Modifier.padding(vertical = 4.dp),
             )
-            model.asks.forEach { ask ->
+            model.asks.forEachIndexed { index, ask ->
                 val trade = ask.target as? AppRoute.Trade
                 AskRow(
                     title = ask.name,
                     subtitle = ask.sub,
                     onClick = trade?.let { { onAction(ScheduleAction.OpenTrade(it.id)) } },
+                    modifier = Modifier.testTag("schedule.ask.$index"),
                 )
             }
         }

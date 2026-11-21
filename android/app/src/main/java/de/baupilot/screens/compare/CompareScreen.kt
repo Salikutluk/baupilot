@@ -70,7 +70,7 @@ fun CompareScreen(
             BottomActionBar {
                 OutlinedButton(
                     label = model.askLabel,
-                    modifier = Modifier.weight(ASK_WEIGHT),
+                    modifier = Modifier.weight(ASK_WEIGHT).testTag("ph.Vergleich.ask"),
                     contentColor = Tokens.primary,
                     borderOutside = true,
                 )
@@ -78,7 +78,7 @@ fun CompareScreen(
                     label = model.awardLabel,
                     size = ButtonSize.Regular,
                     container = FilledContainer.Primary,
-                    modifier = Modifier.weight(AWARD_WEIGHT).align(Alignment.Top),
+                    modifier = Modifier.weight(AWARD_WEIGHT).align(Alignment.Top).testTag("ph.Vergleich.award"),
                 )
             }
         },
@@ -98,6 +98,6 @@ fun CompareScreen(
             contentDescription = model.tableLabel,
         )
         InfoCallout(model.note)
-        model.pending?.let { ActionRow(it.firm, it.text, model.remindLabel) }
+        model.pending?.let { ActionRow(it.firm, it.text, model.remindLabel, Modifier.testTag("ph.Vergleich.remind")) }
     }
 }

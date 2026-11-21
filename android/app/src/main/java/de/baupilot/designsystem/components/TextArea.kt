@@ -4,7 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,8 +12,12 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextMotion
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,11 +42,11 @@ fun BaupilotOutlinedTextArea(
     notch: ColorToken = Tokens.bg,
 ) {
     val shape = RoundedCornerShape(4.dp)
-    Box(modifier.fillMaxWidth().height((rows * 22 + 32).dp)) {
+    Box(modifier.fillMaxWidth().heightIn(min = (rows * 22 + 32).dp)) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height((rows * 22 + 32).dp)
+                .heightIn(min = (rows * 22 + 32).dp)
                 .border(2.dp, Tokens.primary.color(), shape)
                 .padding(16.dp),
         ) {
@@ -57,13 +61,14 @@ fun BaupilotOutlinedTextArea(
                     lineHeight = 22.sp,
                     fontFamily = Roboto,
                     platformStyle = PlatformTextStyle(includeFontPadding = false),
+                    textMotion = TextMotion.Animated,
                     lineHeightStyle = LineHeightStyle(
                         alignment = LineHeightStyle.Alignment.Center,
                         trim = LineHeightStyle.Trim.None,
                     ),
                 ),
                 cursorBrush = SolidColor(Tokens.primary.color()),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
             )
         }
         Box(
@@ -72,7 +77,7 @@ fun BaupilotOutlinedTextArea(
                 .background(notch.color())
                 .padding(horizontal = 4.dp),
         ) {
-            BaupilotText(text = label, size = 12.sp, color = Tokens.primary)
+            BaupilotText(modifier = Modifier.clearAndSetSemantics {}, text = label, size = 12.sp, color = Tokens.primary)
         }
     }
 }

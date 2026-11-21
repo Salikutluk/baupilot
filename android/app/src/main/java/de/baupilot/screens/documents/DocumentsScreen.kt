@@ -59,7 +59,14 @@ fun DocumentsScreen(model: DocumentsModel, modifier: Modifier = Modifier, onOpen
         topBar = { Spacer(Modifier.height(32.dp)) },
         spacing = 12.dp,
         modifier = modifier.testTag("screen.documents"),
-        fab = { ExtendedFab(label = model.uploadLabel, icon = FabIcon.Plus, onClick = null) },
+        fab = {
+            ExtendedFab(
+                label = model.uploadLabel,
+                icon = FabIcon.Plus,
+                modifier = Modifier.testTag("ph.Dokumente.add"),
+                onClick = null,
+            )
+        },
     ) {
         BaupilotSearchBar(
             query = query,
@@ -90,12 +97,13 @@ fun DocumentsScreen(model: DocumentsModel, modifier: Modifier = Modifier, onOpen
             title = model.banner.title,
             subtitle = model.banner.sub,
             amount = model.banner.amount,
+            modifier = Modifier.testTag("ph.Dokumente.hint"),
         )
         // AndDokumente:40: margin-bottom -8 on the header, and the list is a sibling of this padded block, not a
         // child of its 12 gap, so the list starts 8 above the header's bottom edge.
         SectionHeader(
             title = model.recentLabel,
-            style = SectionHeaderStyle.Compact(SectionLink(model.byTradeLabel)),
+            style = SectionHeaderStyle.Compact(SectionLink(model.byTradeLabel, testTag = "ph.Dokumente.bytrade")),
             modifier = Modifier.trimBottom(8.dp + 12.dp),
         )
         Column(Modifier.bleedHorizontally(16.dp)) {
@@ -117,6 +125,7 @@ private fun DocumentListRow(row: DocumentRow, onOpen: (AppRoute) -> Unit) {
         },
         minHeight = ListItemHeight.H72,
         ellipsis = true,
+        titleTag = "documents.row.title",
         onClick = if (target != null) ({ onOpen(target) }) else null,
         modifier = Modifier.testTag("documents.row.${row.id}"),
     )

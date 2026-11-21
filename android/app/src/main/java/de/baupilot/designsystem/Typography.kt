@@ -12,12 +12,15 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextMotion
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
 
@@ -179,6 +182,7 @@ fun BaupilotText(
             lineHeight = if (unspecified) RobotoMetrics.lineBox(size.value).sp else lineHeight,
             textAlign = textAlign ?: TextAlign.Unspecified,
             platformStyle = PlatformTextStyle(includeFontPadding = false),
+            textMotion = TextMotion.Animated,
             // Without a style Compose ignores a line height on one-line text. Top keeps the extra leading below
             // each line; `cssLineHeightBaseline` then seats the first baseline where CSS puts it.
             lineHeightStyle = LineHeightStyle(
@@ -200,14 +204,15 @@ fun BaupilotText(
 private fun Modifier.robotoLineBox(sizeSp: Float, lineCount: IntArray): Modifier = layout { measurable, constraints ->
     val placeable = measurable.measure(constraints)
     val lines = max(1, lineCount[0])
-    val boxPx = RobotoMetrics.lineBox(sizeSp).sp.roundToPx()
-    val baselinePx = RobotoMetrics.baselineOffset(sizeSp).sp.roundToPx()
-    val excess = max(0, placeable.height / lines - boxPx) * lines
+    val boxPx = robotoLineBoxPx(sizeSp)
+    val baselinePx = robotoBaselinePx(sizeSp)
+    // Trim and baseline shift mimic Chrome's rounded line box at scale 1; above it the text keeps its own box, so stacked lines never overlap.
+    val excess = if (fontScale > LARGE_FONT_SCALE) 0 else max(0, placeable.height / lines - boxPx) * lines
     val height = (placeable.height - excess).coerceIn(constraints.minHeight, constraints.maxHeight)
     val first = placeable[FirstBaseline]
-    val shift = if (first == AlignmentLine.Unspecified) 0 else baselinePx - first
+    val shift = if (first == AlignmentLine.Unspecified || fontScale > LARGE_FONT_SCALE) 0 else baselinePx - first
     val alignmentLines = buildMap<AlignmentLine, Int> {
-        if (first != AlignmentLine.Unspecified) put(FirstBaseline, baselinePx)
+        if (first != AlignmentLine.Unspecified) put(FirstBaseline, first + shift)
         val last = placeable[LastBaseline]
         if (last != AlignmentLine.Unspecified) put(LastBaseline, last + shift)
     }
@@ -221,14 +226,36 @@ private fun Modifier.robotoLineBox(sizeSp: Float, lineCount: IntArray): Modifier
  */
 private fun Modifier.cssLineHeightBaseline(sizeSp: Float, lineHeightSp: Float): Modifier = layout { measurable, constraints ->
     val placeable = measurable.measure(constraints)
-    val halfLeading = floor((lineHeightSp - RobotoMetrics.lineBox(sizeSp)) / 2f)
-    val baselinePx = (RobotoMetrics.baselineOffset(sizeSp) + halfLeading).sp.roundToPx()
+    val baselinePx = cssBaselinePx(sizeSp, lineHeightSp)
     val first = placeable[FirstBaseline]
-    val shift = if (first == AlignmentLine.Unspecified) 0 else baselinePx - first
+    val shift = if (first == AlignmentLine.Unspecified || fontScale > LARGE_FONT_SCALE) 0 else baselinePx - first
     val alignmentLines = buildMap<AlignmentLine, Int> {
-        if (first != AlignmentLine.Unspecified) put(FirstBaseline, baselinePx)
+        if (first != AlignmentLine.Unspecified) put(FirstBaseline, first + shift)
         val last = placeable[LastBaseline]
         if (last != AlignmentLine.Unspecified) put(LastBaseline, last + shift)
     }
     layout(placeable.width, placeable.height, alignmentLines) { placeable.placeRelative(0, shift) }
+}
+
+/** Above this font scale Compose resolves line heights proportionally and the Chrome line-box trim is dropped. */
+private const val LARGE_FONT_SCALE = 1.05f
+
+/**
+ * Compose 1.11.4 resolves an sp `lineHeight` proportionally (`lineHeight / fontSize * fontSizePx`, rounded up as in
+ * `LineHeightStyleSpan`) only above fontScale 1.05; up to there it is `lineHeight.toPx()`. From 1.03 on `sp.toPx()` is
+ * non-linear, so the two differ. Mirrors that for a line-box [value] of [sizeSp].
+ */
+private fun Density.lineBoxValuePx(value: Float, sizeSp: Float): Int =
+    if (fontScale > LARGE_FONT_SCALE) ceil(value / sizeSp * sizeSp.sp.toPx()).toInt() else value.sp.roundToPx()
+
+/** Pixel height of the [RobotoMetrics.lineBox] of [sizeSp]. */
+internal fun Density.robotoLineBoxPx(sizeSp: Float): Int = lineBoxValuePx(RobotoMetrics.lineBox(sizeSp), sizeSp)
+
+/** Pixel distance from the top of the line box to the first baseline, [RobotoMetrics.baselineOffset] of [sizeSp]. */
+internal fun Density.robotoBaselinePx(sizeSp: Float): Int = lineBoxValuePx(RobotoMetrics.baselineOffset(sizeSp), sizeSp)
+
+/** Pixel first baseline for an explicit CSS line height of [lineHeightSp]: ascent plus the floored half leading. */
+internal fun Density.cssBaselinePx(sizeSp: Float, lineHeightSp: Float): Int {
+    val halfLeading = floor((lineHeightSp - RobotoMetrics.lineBox(sizeSp)) / 2f)
+    return lineBoxValuePx(RobotoMetrics.baselineOffset(sizeSp) + halfLeading, sizeSp)
 }

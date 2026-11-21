@@ -42,7 +42,7 @@ fun NotificationsScreen(
                 padding = BarPadding.Nav,
                 navigation = Nav.Back(onClick = onBack),
                 titleStyle = TitleStyle.Large,
-                actions = listOf(Action.Text(model.markAllLabel, height = 48)),
+                actions = listOf(Action.Text(model.markAllLabel, height = 48, testTag = "ph.Mitteilungen.markall")),
             )
         },
         contentPadding = PaddingValues(0.dp),

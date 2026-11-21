@@ -19,6 +19,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,6 +34,8 @@ import de.baupilot.designsystem.Tokens
  * [sufficient], else `errBg` / `errFg`. Left a 92 x 44 schema in viewBox units (1 unit = 1 dp): a dashed level line
  * with the [levelLabel] (8 / 700; Chrome draws the prototype's 600 as 700), the tilted pipe ending at [schemaY2] and
  * the drop mark with [deltaLabel] (9 / 700). Right the [percent] (26 / 500) over the one-line [verdict] (13 / 500).
+ * The card is one merged node tagged `slope.result` (M7 D7): its label is the percentage then the verdict; the schema
+ * is hidden like the prototype's aria-hidden svg.
  */
 @Composable
 fun SlopeResult(
@@ -50,6 +54,8 @@ fun SlopeResult(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .semantics(mergeDescendants = true) {}
+            .testTag("slope.result")
             .clip(RoundedCornerShape(12.dp))
             .background(background.color())
             .padding(14.dp),
@@ -83,7 +89,7 @@ fun SlopeResult(
 @Composable
 private fun SlopeSchema(color: ColorToken, y2: Float, levelLabel: String, deltaLabel: String) {
     val tint = color.color()
-    Box(Modifier.size(92.dp, 44.dp)) {
+    Box(Modifier.size(92.dp, 44.dp).clearAndSetSemantics {}) {
         Canvas(Modifier.size(92.dp, 44.dp)) {
             val d = density
             drawLine(

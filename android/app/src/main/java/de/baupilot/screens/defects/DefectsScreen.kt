@@ -71,7 +71,7 @@ fun DefectsScreen(
                     title = model.title,
                     padding = BarPadding.TopLevelAction,
                     titleStyle = TitleStyle.Large,
-                    actions = listOf(Action.Text(model.templatesLabel, 48)),
+                    actions = listOf(Action.Text(model.templatesLabel, 48, testTag = "ph.AbnMaengel.vorlagen")),
                 )
                 BaupilotTabRow(
                     tabs = model.views,
@@ -99,6 +99,7 @@ fun DefectsScreen(
                 trailing = Trailing.Text(model.resolvedCount, 14.sp, Tokens.muted, weight = 400),
                 minHeight = ListItemHeight.H56,
                 horizontalPadding = 4.dp,
+                modifier = Modifier.testTag("ph.AbnMaengel.resolved"),
             )
         }
     }
@@ -137,8 +138,8 @@ private fun DefectCardView(card: DefectCard, model: DefectsBoardModel) {
                     modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
                 ) {
-                    OutlinedButton(model.remindLabel, size = ButtonSize.Compact)
-                    FilledButton(model.resolveLabel, ButtonSize.Compact, FilledContainer.Primary)
+                    OutlinedButton(model.remindLabel, Modifier.testTag("ph.AbnMaengel.remind.${card.id}"), size = ButtonSize.Compact)
+                    FilledButton(model.resolveLabel, ButtonSize.Compact, FilledContainer.Primary, Modifier.testTag("ph.AbnMaengel.resolve.${card.id}"))
                 }
             }
         }
