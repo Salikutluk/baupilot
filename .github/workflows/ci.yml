@@ -118,7 +118,9 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      # The k3s runner image has no Android SDK (ubuntu-latest had one preinstalled).
+      # The k3s runner image has no Android SDK (ubuntu-latest had one preinstalled), nor the unzip that
+      # setup-android needs to unpack it.
+      - run: command -v unzip || { sudo apt-get update -q && sudo apt-get install -yq --no-install-recommends unzip; }
       - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
       - uses: actions/setup-node@v4
