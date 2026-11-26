@@ -59,7 +59,9 @@ public struct SignaturePad: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabel)
-        .accessibilityValue(strokes.map { "strokes: \($0.wrappedValue.strokes.count)" } ?? "")
+        .accessibilityValue(
+            strokes.map { $0.wrappedValue.strokes.isEmpty ? ScreenCopy.Signature.empty : ScreenCopy.Signature.signed }
+                ?? "")
     }
 
     private func drawing(size: CGSize) -> some Gesture {

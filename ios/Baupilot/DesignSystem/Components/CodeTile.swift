@@ -18,7 +18,7 @@ public struct CodeTile: View {
             .interText(13, .bold)
             .foregroundStyle(foreground.color)
             .frame(maxWidth: .infinity)
-            .frame(height: 40)
+            .scaledFrame(height: 40)
             .background(RoundedRectangle(cornerRadius: 10).fill(background.color))
     }
 }

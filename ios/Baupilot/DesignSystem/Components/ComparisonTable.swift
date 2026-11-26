@@ -33,12 +33,13 @@ public struct ComparisonTable: View {
         }
     }
 
-    /// Grows a column header's hit area above and below its content so it reaches 44 pt.
-    static let hitExpansion: CGFloat = 14
-
     struct HeaderCell: View {
         let column: Column
         let width: CGFloat
+
+        /// A header cell shorter than 44 pt grows its hit shape to 44 pt without moving the layout; a taller one (XL
+        /// text) keeps its own height, so its frame never reaches into the next row.
+        static var hitShape: some Shape { MinimumHitShape() }
 
         var body: some View {
             if let action = column.action {
@@ -65,9 +66,7 @@ public struct ComparisonTable: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(width: width, alignment: .leading)
-            .padding(.vertical, ComparisonTable.hitExpansion)
-            .contentShape(Rectangle())
-            .padding(.vertical, -ComparisonTable.hitExpansion)
+            .contentShape(Self.hitShape)
         }
     }
 

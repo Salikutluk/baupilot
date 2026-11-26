@@ -32,6 +32,9 @@ public struct SearchField: View {
             .foregroundStyle(Tokens.text.color)
             // Chrome gives an `<input>` 2 px of side padding.
             .padding(.leading, 2)
+            // The field fills the 44 pt row, so the whole row height focuses it.
+            .frame(maxHeight: .infinity)
+            .contentShape(Rectangle())
             .accessibilityLabel(accessibilityLabel)
         }
         .padding(.horizontal, 12)

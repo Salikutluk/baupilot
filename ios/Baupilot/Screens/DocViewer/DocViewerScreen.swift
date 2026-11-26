@@ -46,7 +46,8 @@ struct DocViewerScreen: View {
         VStack(alignment: .leading, spacing: 12) {
             BackBar(
                 label: backLabel, action: onBack,
-                trailing: .icon(.share, size: 22, label: model.shareLabel, action: nil))
+                trailing: .icon(.share, size: 22, label: model.shareLabel, action: nil),
+                trailingIdentifier: "ph.DokViewer.share")
             DetailTitle(model.title, subtitle: model.subtitle, style: .size22)
         }
         .padding(EdgeInsets(top: 50, leading: 20, bottom: 0, trailing: 20))
@@ -78,6 +79,7 @@ struct DocViewerScreen: View {
             VStack(spacing: 0) {
                 ForEach(Array(model.facts.enumerated()), id: \.offset) { index, fact in
                     factRow(fact, isAmount: index == model.facts.count - 1, showsDivider: index > 0)
+                        .accessibilityIdentifier("ph.DokViewer.fact.\(index)")
                 }
             }
         }

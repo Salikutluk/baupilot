@@ -29,12 +29,18 @@ public struct SettingsRow: View {
     private let trailing: Trailing
     private let tone: Tone
     private let showsDivider: Bool
+    private let identifier: String?
 
-    public init(label: String, trailing: Trailing, tone: Tone = .regular, showsDivider: Bool) {
+    /// `identifier` goes on the label text: an identifier on the whole row would make the audit see one text node
+    /// with no font it can check (Dynamic Type finding).
+    public init(
+        label: String, trailing: Trailing, tone: Tone = .regular, showsDivider: Bool, identifier: String? = nil
+    ) {
         self.label = label
         self.trailing = trailing
         self.tone = tone
         self.showsDivider = showsDivider
+        self.identifier = identifier
     }
 
     public var body: some View {
@@ -47,6 +53,7 @@ public struct SettingsRow: View {
                     .interText(16, .regular)
                     .foregroundStyle(tone.labelColor.color)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .optionalIdentifier(identifier)
                 trailingView
             }
             .padding(.horizontal, Metrics.horizontal)

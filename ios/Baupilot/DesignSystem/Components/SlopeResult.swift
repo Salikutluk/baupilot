@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// Live result of the slope check (IosSanGefaelle:68-75): a 92 x 44 schema of the pipe next to the percentage (26/700)
-/// and a one-line verdict (13/600), gap 14, padding 14, r12, in `foreground` on `background`.
+/// and a one-line verdict (13/600), gap 14, padding 14, r12, in `foreground` on `background`. For accessibility the
+/// card is one element (M7 D7) read as percentage, then verdict; the sketch stays hidden like the prototype's svg.
 public struct SlopeResult: View {
     /// The pipe drawn against the dashed level line (SVG `viewBox 0 0 92 44`), all strokes in one colour.
     struct Schema: View {
@@ -56,11 +57,11 @@ public struct SlopeResult: View {
     private let deltaLabel: String
     private let background: ColorToken
     private let foreground: ColorToken
-    private let identifiers: (percent: String, verdict: String)?
+    private let identifier: String?
 
     public init(
         percent: String, verdict: String, schemaY2: CGFloat, levelLabel: String, deltaLabel: String,
-        background: ColorToken, foreground: ColorToken, identifiers: (percent: String, verdict: String)? = nil
+        background: ColorToken, foreground: ColorToken, identifier: String? = nil
     ) {
         self.percent = percent
         self.verdict = verdict
@@ -69,7 +70,7 @@ public struct SlopeResult: View {
         self.deltaLabel = deltaLabel
         self.background = background
         self.foreground = foreground
-        self.identifiers = identifiers
+        self.identifier = identifier
     }
 
     public var body: some View {
@@ -78,11 +79,9 @@ public struct SlopeResult: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(percent)
                     .interText(26, .bold, tracking: -0.4)
-                    .accessibilityIdentifier(identifiers?.percent ?? "")
                 Text(verdict)
                     .interText(13, .semibold)
                     .fixedSize(horizontal: true, vertical: false)
-                    .accessibilityIdentifier(identifiers?.verdict ?? "")
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -90,5 +89,7 @@ public struct SlopeResult: View {
         .padding(14)
         .frame(maxWidth: .infinity)
         .background(RoundedRectangle(cornerRadius: 12).fill(background.color))
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier(identifier ?? "")
     }
 }

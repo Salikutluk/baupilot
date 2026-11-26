@@ -76,6 +76,7 @@ struct InspectionStepScreen: View {
                 )
                 .accessibilityIdentifier("step.defect")
                 OkButton(model.okLabel, size: .medium, showsIcon: true, action: nil)
+                    .accessibilityIdentifier("ph.AbnPruefung.ok")
             }
         }
     }

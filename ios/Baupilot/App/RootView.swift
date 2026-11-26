@@ -1,8 +1,16 @@
 import SwiftUI
 
 struct RootView: View {
-    @State private var navigation = AppNavigation()
+    @State private var navigation: AppNavigation
     @State private var data: AppData?
+
+    init() {
+        #if DEBUG
+        _navigation = State(initialValue: DebugScreens.launchNavigation() ?? AppNavigation())
+        #else
+        _navigation = State(initialValue: AppNavigation())
+        #endif
+    }
 
     var body: some View {
         ZStack {

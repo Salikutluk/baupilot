@@ -12,7 +12,7 @@ public struct BackBar: View {
     }
 
     private enum Mode {
-        case back(label: String, action: (() -> Void)?, trailing: Trailing)
+        case back(label: String, action: (() -> Void)?, trailing: Trailing, trailingIdentifier: String?)
         case modal(
             cancel: String, title: String, confirm: String,
             onCancel: (() -> Void)?, onConfirm: (() -> Void)?,
@@ -21,8 +21,10 @@ public struct BackBar: View {
 
     private let mode: Mode
 
-    public init(label: String, action: (() -> Void)?, trailing: Trailing = .none) {
-        mode = .back(label: label, action: action, trailing: trailing)
+    public init(
+        label: String, action: (() -> Void)?, trailing: Trailing = .none, trailingIdentifier: String? = nil
+    ) {
+        mode = .back(label: label, action: action, trailing: trailing, trailingIdentifier: trailingIdentifier)
     }
 
     private init(mode: Mode) {
@@ -47,7 +49,7 @@ public struct BackBar: View {
 
     public var body: some View {
         switch mode {
-        case let .back(label, action, trailing):
+        case let .back(label, action, trailing, trailingIdentifier):
             HStack(spacing: 0) {
                 Button(action: { action?() }) {
                     HStack(spacing: 2) {
@@ -57,12 +59,13 @@ public struct BackBar: View {
                             .foregroundStyle(Tokens.accent.color)
                     }
                     .frame(minHeight: 44)
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("nav.back")
                 .padding(.leading, -6)
                 Spacer(minLength: 0)
-                trailingView(trailing)
+                trailingView(trailing, identifier: trailingIdentifier)
             }
             .frame(height: 44)
         case let .modal(cancel, title, confirm, onCancel, onConfirm, cancelIdentifier, confirmIdentifier):
@@ -72,6 +75,7 @@ public struct BackBar: View {
                         .interText(17, .regular)
                         .foregroundStyle(Tokens.accent.color)
                         .frame(minHeight: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier(cancelIdentifier ?? "")
@@ -87,6 +91,7 @@ public struct BackBar: View {
                         .interText(17, .semibold)
                         .foregroundStyle(Tokens.accent.color)
                         .frame(minHeight: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier(confirmIdentifier ?? "")
@@ -97,7 +102,7 @@ public struct BackBar: View {
     }
 
     @ViewBuilder
-    private func trailingView(_ trailing: Trailing) -> some View {
+    private func trailingView(_ trailing: Trailing, identifier: String?) -> some View {
         switch trailing {
         case .none:
             EmptyView()
@@ -113,17 +118,21 @@ public struct BackBar: View {
             Button(action: { action?() }) {
                 Icon(icon, size: size, color: Tokens.accent.color)
                     .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel(label)
+            .optionalIdentifier(identifier)
         case let .text(text, action):
             Button(action: { action?() }) {
                 Text(text)
                     .interText(17, .regular)
                     .foregroundStyle(Tokens.accent.color)
                     .frame(minHeight: 44)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .optionalIdentifier(identifier)
         }
     }
 }

@@ -1,5 +1,5 @@
 {
- "platforms": {"ios": false, "android": true},
+ "platforms": {"ios": true, "android": true},
  "links": [
   {"from": 1, "to": 2, "element": "login.submit", "ios": "AppNavigationUITests/testLoginLeadsToOverview", "android": "AppNavigationUiTest#loginLeadsToOverview"},
   {"from": 2, "to": 10, "element": "tab.inspections", "ios": "AppNavigationUITests/testTabBarSwitchesAllFiveTabs", "android": "AppNavigationUiTest#tabBarSwitchesAllFiveTabs", "note": "Asserts inspections.view.trades (tab.inspections restores the last Abnahmen view)."},

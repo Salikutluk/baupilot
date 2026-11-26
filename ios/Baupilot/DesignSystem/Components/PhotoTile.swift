@@ -102,9 +102,13 @@ public struct PhotoTile: View {
                 }
             }
             .clipShape(shape)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(accessibilityLabel ?? caption ?? "")
-            .accessibilityAddTraits(.isImage)
+            .accessibilityHidden(true)
+            .overlay {
+                Color.clear
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(accessibilityLabel ?? caption ?? "")
+                    .accessibilityAddTraits(.isImage)
+            }
     }
 
     private func guide(title: String, illustration: AnyView) -> some View {

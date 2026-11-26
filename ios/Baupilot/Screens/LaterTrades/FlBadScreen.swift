@@ -66,6 +66,6 @@ struct FlBadScreen: View {
             style: tile.hollow
                 ? TileGrid.Tile.Style(fill: Tokens.eSoft.flBad, border: Tokens.err.flBad, labelColor: Tokens.eFg)
                 : TileGrid.Tile.Style(fill: Tokens.tile, border: nil, labelColor: Tokens.eFg),
-            label: tile.label, accessibilityLabel: tile.accessibilityLabel, identifier: "tiles.tile.\(tile.id)")
+            label: tile.label, accessibilityLabel: tile.accessibilityLabel)
     }
 }

@@ -13,7 +13,9 @@ struct NotificationsScreen: View {
 
     var body: some View {
         ScreenScaffold(kind: .detailNoBar, sectionSpacing: .regular) {
-            BackBar(label: backLabel, action: onBack, trailing: .text(model.markAllLabel, action: nil))
+            BackBar(
+                label: backLabel, action: onBack, trailing: .text(model.markAllLabel, action: nil),
+                trailingIdentifier: "ph.Mitteilungen.markall")
             Text(model.title)
                 .interText(32, .bold, tracking: -0.6)
                 .foregroundStyle(Tokens.text.color)

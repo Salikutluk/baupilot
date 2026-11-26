@@ -334,8 +334,7 @@ struct GalleryFinishingPage: View {
             style: hollow
                 ? TileGrid.Tile.Style(fill: Tokens.eSoft.flBad, border: Tokens.err.flBad, labelColor: Tokens.eFg)
                 : TileGrid.Tile.Style(fill: Tokens.tile, border: nil, labelColor: Tokens.eFg),
-            label: hollow ? "hohl" : nil, accessibilityLabel: "Fliese \(number)\(hollow ? ": hohl" : "")",
-            identifier: "gallery.tile.\(number)")
+            label: hollow ? "hohl" : nil, accessibilityLabel: "Fliese \(number)\(hollow ? ": hohl" : "")")
     }
 }
 #endif

@@ -42,6 +42,7 @@ struct ProfileScreen: View {
                 Icon(.chevronRightW22, size: 16, color: Tokens.muted.color)
             }
         }
+        .accessibilityIdentifier("ph.Profil.card")
     }
 
     private func trailing(_ row: ProfileModel.Row, group: Int, index: Int) -> SettingsRow.Trailing {
@@ -60,7 +61,8 @@ struct ProfileScreen: View {
                             label: row.label,
                             trailing: trailing(row, group: groupIndex, index: index),
                             tone: row.label == ScreenCopy.Profil.signOut ? .danger : .regular,
-                            showsDivider: index > 0)
+                            showsDivider: index > 0,
+                            identifier: row.isToggle ? nil : "ph.Profil.row.\(groupIndex).\(index)")
                     }
                 }
             }

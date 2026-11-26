@@ -6,11 +6,14 @@ public struct SectionHeader: View {
         public let title: String
         public let size: CGFloat
         public let action: (() -> Void)?
+        /// Invisible accessibility identifier of the link button (placeholder links, D20).
+        public let identifier: String?
 
-        public init(title: String, size: CGFloat = 15, action: (() -> Void)?) {
+        public init(title: String, size: CGFloat = 15, action: (() -> Void)?, identifier: String? = nil) {
             self.title = title
             self.size = size
             self.action = action
+            self.identifier = identifier
         }
     }
 
@@ -26,10 +29,14 @@ public struct SectionHeader: View {
 
     private let title: String
     private let style: Style
+    private let identifier: String?
 
-    public init(_ title: String, style: Style) {
+    /// `identifier` goes on the heading text: on the whole header it would turn a link-less header into one text node
+    /// with no font the accessibility audit can check (Dynamic Type finding).
+    public init(_ title: String, style: Style, identifier: String? = nil) {
         self.title = title
         self.style = style
+        self.identifier = identifier
     }
 
     private enum Metrics {
@@ -44,15 +51,19 @@ public struct SectionHeader: View {
     struct LinkButton: View {
         let link: Link
 
+        /// A short title ("Alle 6") is narrower than 44; the hit shape grows to 44 × 44 without moving the layout.
+        static var hitShape: some Shape { MinimumHitShape() }
+
         var body: some View {
             Button(action: link.action ?? {}) {
                 Text(link.title)
                     .interText(link.size, .semibold)
                     .foregroundStyle(Tokens.accent.color)
                     .frame(minHeight: Metrics.linkHitHeight)
-                    .contentShape(Rectangle())
+                    .contentShape(Self.hitShape)
             }
             .buttonStyle(.plain)
+            .optionalIdentifier(link.identifier)
         }
     }
 
@@ -64,6 +75,7 @@ public struct SectionHeader: View {
                     .interText(20, .bold)
                     .foregroundStyle(Tokens.text.color)
                     .accessibilityAddTraits(.isHeader)
+                    .optionalIdentifier(identifier)
                 Spacer(minLength: 0)
                 if let note {
                     Text(note)
@@ -82,6 +94,7 @@ public struct SectionHeader: View {
                     .textCase(.uppercase)
                     .foregroundStyle(Tokens.muted.color)
                     .accessibilityAddTraits(.isHeader)
+                    .optionalIdentifier(identifier)
                     .padding(.leading, inset)
                 if let link {
                     Spacer(minLength: 0)
@@ -92,5 +105,13 @@ public struct SectionHeader: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+}
+
+extension View {
+    /// Sets the accessibility identifier when one is given; without one the view is returned unchanged.
+    @ViewBuilder
+    func optionalIdentifier(_ identifier: String?) -> some View {
+        if let identifier { accessibilityIdentifier(identifier) } else { self }
     }
 }

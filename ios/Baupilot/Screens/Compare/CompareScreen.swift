@@ -36,14 +36,17 @@ struct CompareScreen: View {
             if let pending = model.pending {
                 ActionRow(
                     title: pending.firm, subtitle: pending.text, actionTitle: model.remindLabel, action: nil)
+                    .accessibilityIdentifier("ph.Vergleich.remind")
             }
         } bottomBar: {
             BottomActionBar {
                 HStack(spacing: 10) {
                     SecondaryButton(model.askLabel, size: .medium, chip: Tokens.chip.vergleich, action: nil)
                         .frame(width: Self.barButtonWidths.ask)
+                        .accessibilityIdentifier("ph.Vergleich.ask")
                     PrimaryButton(model.awardLabel, size: .medium, action: nil)
                         .frame(width: Self.barButtonWidths.award)
+                        .accessibilityIdentifier("ph.Vergleich.award")
                 }
             }
         }

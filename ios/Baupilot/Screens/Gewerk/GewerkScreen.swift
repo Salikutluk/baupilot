@@ -16,7 +16,8 @@ struct GewerkScreen: View {
         ScreenScaffold(kind: .detail, sectionSpacing: .medium) {
             BackBar(
                 label: backLabel, action: onBack,
-                trailing: .icon(.moreHorizontal, size: 22, label: model.moreLabel, action: nil))
+                trailing: .icon(.moreHorizontal, size: 22, label: model.moreLabel, action: nil),
+                trailingIdentifier: "ph.Gewerk.more")
             titleBlock
             FactStrip(items: model.facts.map { (label: $0.label, value: $0.value) }, style: .divided)
             offers
@@ -27,6 +28,7 @@ struct GewerkScreen: View {
                     PrimaryButton(model.compareLabel, action: compareAction)
                         .accessibilityIdentifier("trade.compare")
                     SecondaryIconButton(icon: .plusW22, label: model.addLabel, action: nil)
+                        .accessibilityIdentifier("ph.Gewerk.add")
                 }
             }
         }

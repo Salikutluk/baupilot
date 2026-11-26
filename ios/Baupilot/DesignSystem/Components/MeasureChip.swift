@@ -6,17 +6,22 @@ public struct MeasureChip: View {
     private let text: String
     private let background: ColorToken
     private let foreground: ColorToken
+    private let identifier: String?
 
-    public init(_ text: String, background: ColorToken, foreground: ColorToken) {
+    /// `identifier` goes on the label text, not on the chip: an identifier on the chip would be one text node with no
+    /// font the accessibility audit can check (Dynamic Type finding).
+    public init(_ text: String, background: ColorToken, foreground: ColorToken, identifier: String? = nil) {
         self.text = text
         self.background = background
         self.foreground = foreground
+        self.identifier = identifier
     }
 
     public var body: some View {
         Text(text)
             .interText(14, .semibold)
             .foregroundStyle(foreground.color)
+            .optionalIdentifier(identifier)
             .offset(y: 1.0 / 3)
             .padding(.horizontal, 12)
             .frame(height: 36)

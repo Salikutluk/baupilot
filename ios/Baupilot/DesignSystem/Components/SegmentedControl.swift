@@ -36,6 +36,11 @@ public struct SegmentedControl: View {
     private let identifiers: [String]?
     private let onSelect: (Int) -> Void
 
+    /// The tappable shape of a segment: the drawn box grown to 44 pt tall (D14), unchanged when already 44.
+    static func hitShape(for height: SegmentHeight) -> some Shape {
+        Rectangle().inset(by: -max(0, (44 - height.points) / 2))
+    }
+
     public init(
         segments: [String],
         selection: Int,
@@ -72,7 +77,6 @@ public struct SegmentedControl: View {
     private func segment(_ index: Int) -> some View {
         let active = index == selection
         // D14: the visual segment may be shorter than 44 pt; the hit area grows without changing layout.
-        let hitInset = -max(0, (44 - height.points) / 2)
         return Button {
             onSelect(index)
         } label: {
@@ -89,7 +93,7 @@ public struct SegmentedControl: View {
                             .shadow(color: Tokens.segShadow.color, radius: 1.5, x: 0, y: 1)
                     }
                 }
-                .contentShape(Rectangle().inset(by: hitInset))
+                .contentShape(Self.hitShape(for: height))
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(active ? [.isButton, .isSelected] : .isButton)

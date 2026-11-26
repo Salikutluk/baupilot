@@ -66,6 +66,113 @@ final class TypographyTests: XCTestCase {
         let one = size(of: Text("Hamburg").interText(14, .regular, lineHeight: .factor(1.5), lines: .block), width: 200)
         XCTAssertEqual(one.height, 21, accuracy: 0.001)
     }
+
+    // MARK: Large text units
+
+    private static let lineHeights: [LineHeight] = [
+        .normal, .factor(1.15), .factor(1.25), .factor(1.35), .factor(1.4), .factor(1.45),
+    ]
+    private static let sizes: [CGFloat] = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 24, 26, 28, 30, 32, 34]
+
+    /// The size iOS renders: the body curve's value, rounded to a whole point (`scaledFont` and `Font.custom` both do).
+    private func scaled(_ size: CGFloat, _ category: UIContentSizeCategory) -> CGFloat {
+        UIFontMetrics(forTextStyle: .body).scaledValue(
+            for: size, compatibleWith: UITraitCollection(preferredContentSizeCategory: category)
+        ).rounded()
+    }
+
+    func testLineBoxForCategoryIsIdenticalAtLarge() {
+        for lineHeight in Self.lineHeights {
+            for size in Self.sizes {
+                for category in [UIContentSizeCategory.large, .medium, .extraSmall] {
+                    let a = lineHeight.box(for: size, category: category)
+                    let b = lineHeight.box(for: size)
+                    XCTAssertEqual(a.box, b.box, "\(lineHeight) \(size) \(category.rawValue)")
+                    XCTAssertEqual(a.baseline, b.baseline, "\(lineHeight) \(size) \(category.rawValue)")
+                }
+            }
+        }
+    }
+
+    func testLineBoxScalesAboveLarge() {
+        for lineHeight in Self.lineHeights {
+            for size in [CGFloat(11), 15, 24, 34] {
+                let large = lineHeight.box(for: size, category: .large)
+                let xl = lineHeight.box(for: size, category: .extraLarge)
+                let expected = lineHeight.box(for: scaled(size, .extraLarge))
+                XCTAssertGreaterThan(xl.box, large.box, "\(lineHeight) \(size)")
+                XCTAssertEqual(xl.box, expected.box, "\(lineHeight) \(size)")
+                XCTAssertEqual(xl.baseline, expected.baseline, "\(lineHeight) \(size)")
+            }
+        }
+    }
+
+    /// The `UIFontMetrics` curve must match what `Font.custom(_:size:)` renders at that Dynamic Type size.
+    func testInterTextSingleAtXLMatchesScaledBox() {
+        BaupilotFonts.registerIfNeeded()
+        for pt: CGFloat in [13, 15, 20] {
+            let s = size(
+                of: Text("Hamburg").interText(pt, .regular).environment(\.dynamicTypeSize, .xLarge), width: 300)
+            // A wrap-capable line is `minHeight: box`, so it measures max(box, text). The plain text at XL is what
+            // `Font.custom` renders; it must be the natural height of the rounded scaled size, which is what the
+            // box formula is built on. A measured text height snaps to the 1/3 pt pixel grid (scale 3), the
+            // tolerance; the unrounded size (16.33 / 21.67 against 16 / 22) is off by more than that.
+            let plain = size(
+                of: Text("Hamburg").font(.inter(pt, .regular)).environment(\.dynamicTypeSize, .xLarge), width: 300)
+            let scaled = InterMetrics.scaledSize(pt, category: .extraLarge)
+            XCTAssertEqual(plain.height, InterMetrics.naturalHeight(scaled), accuracy: 1.0 / 3 + 0.001, "\(pt)")
+            let box = LineHeight.normal.box(for: pt, category: .extraLarge).box
+            XCTAssertEqual(s.height, max(box, plain.height), accuracy: 0.01, "\(pt)")
+        }
+    }
+
+    func testSingleTruncatingIsSingleAtLarge() {
+        BaupilotFonts.registerIfNeeded()
+        let probeA = BaselineProbe()
+        let probeB = BaselineProbe()
+        for width: CGFloat in [40, 300] {
+            let single = size(
+                of: BaselineLayout(probe: probeA) {
+                    Text("Hamburg Hamburg Hamburg").interText(15, .regular, lines: .single)
+                }.environment(\.dynamicTypeSize, .large), width: width)
+            let truncating = size(
+                of: BaselineLayout(probe: probeB) {
+                    Text("Hamburg Hamburg Hamburg").interText(15, .regular, lines: .singleTruncating)
+                }.environment(\.dynamicTypeSize, .large), width: width)
+            XCTAssertEqual(single, truncating, "width \(width)")
+            XCTAssertEqual(single.height, 19, "width \(width)")
+            XCTAssertEqual(probeA.baseline, probeB.baseline, "width \(width)")
+        }
+    }
+
+    /// Above `.large` a `scaledFrame` is a minimum height, and a stack that proposes less height than the wrapped text
+    /// needs must not compress it into an ellipsis; at `.large` the frame is exactly `height`.
+    func testScaledFrameDoesNotCompressWrappedTextAtXL() {
+        BaupilotFonts.registerIfNeeded()
+        let text = "Hamburg Hamburg Hamburg Hamburg Hamburg Hamburg Hamburg Hamburg Hamburg Hamburg"
+        let probe = ProposalProbe()
+        for (category, expectsGrowth) in [(DynamicTypeSize.xLarge, true), (.large, false)] {
+            _ = size(
+                of: ProposalLayout(probe: probe, proposedHeight: 40) {
+                    Text(text).interText(15, .regular, lines: .multi).scaledFrame(height: 40, alignment: .top)
+                }.environment(\.dynamicTypeSize, category), width: 120)
+            if expectsGrowth {
+                XCTAssertGreaterThan(probe.height, 40, "\(category)")
+            } else {
+                XCTAssertEqual(probe.height, 40, "\(category)")
+            }
+        }
+    }
+
+    func testGreedyLabelFontScalesAtXL() {
+        BaupilotFonts.registerIfNeeded()
+        let large = GreedyLabel.font(weight: .medium, size: 15, category: .large)
+        let xl = GreedyLabel.font(weight: .medium, size: 15, category: .extraLarge)
+        XCTAssertEqual(large.pointSize, 15)
+        XCTAssertGreaterThan(xl.pointSize, large.pointSize)
+        XCTAssertEqual(xl.pointSize, scaled(15, .extraLarge))
+        XCTAssertEqual(xl.fontName, large.fontName)
+    }
 }
 
 /// Records the first-text-baseline of its single child, measured from the child's top.
@@ -85,6 +192,28 @@ private struct BaselineLayout: Layout {
         in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()
     ) {
         probe.baseline = subviews[0].dimensions(in: .unspecified)[.firstTextBaseline]
+        subviews[0].place(at: bounds.origin, proposal: proposal)
+    }
+}
+
+/// Records the height the child reports when it is proposed `proposedHeight`.
+final class ProposalProbe: @unchecked Sendable {
+    nonisolated(unsafe) var height: CGFloat = -1
+}
+
+private struct ProposalLayout: Layout {
+    let probe: ProposalProbe
+    let proposedHeight: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let size = subviews[0].sizeThatFits(ProposedViewSize(width: proposal.width, height: proposedHeight))
+        probe.height = size.height
+        return size
+    }
+
+    func placeSubviews(
+        in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()
+    ) {
         subviews[0].place(at: bounds.origin, proposal: proposal)
     }
 }

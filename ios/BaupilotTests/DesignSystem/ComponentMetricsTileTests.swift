@@ -91,4 +91,25 @@ final class ComponentMetricsTileTests: XCTestCase {
         XCTAssertEqual(size(of: row(.toggle(isOn: .constant(true))), width: 350).height, 46)
         XCTAssertEqual(size(of: row(.none, divider: true), width: 350).height, 47)
     }
+
+    // MARK: TileGrid semantics (M7 D8)
+
+    private func gridTile(_ number: Int, hollow: Bool) -> TileGrid.Tile {
+        TileGrid.Tile(
+            id: "tile-\(number)",
+            style: hollow
+                ? TileGrid.Tile.Style(fill: Tokens.eSoft.flBad, border: Tokens.err.flBad, labelColor: Tokens.eFg)
+                : TileGrid.Tile.Style(fill: Tokens.tile, border: nil, labelColor: Tokens.eFg),
+            label: hollow ? "hohl" : nil, accessibilityLabel: "Fliese \(number)\(hollow ? ": hohl" : "")")
+    }
+
+    func testHollowTilesJoined() {
+        let tiles = (1...6).map { gridTile($0, hollow: $0 == 3 || $0 == 4) }
+        XCTAssertEqual(TileGrid.accessibilityValue(tiles: tiles), "Fliese 3: hohl, Fliese 4: hohl")
+    }
+
+    func testNoHollowTilesIsEmpty() {
+        let tiles = (1...6).map { gridTile($0, hollow: false) }
+        XCTAssertEqual(TileGrid.accessibilityValue(tiles: tiles), "")
+    }
 }

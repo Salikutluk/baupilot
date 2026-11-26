@@ -24,6 +24,5 @@ public struct Avatar: View {
             .lineLimit(1)
             .frame(width: size.side, height: size.side)
             .background(Tokens.accent.color, in: Circle())
-            .accessibilityHidden(true)
     }
 }

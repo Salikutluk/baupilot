@@ -8,10 +8,12 @@ public struct FormField: View {
     public struct Link {
         public let title: String
         public let action: (() -> Void)?
+        public let identifier: String?
 
-        public init(title: String, action: (() -> Void)?) {
+        public init(title: String, action: (() -> Void)?, identifier: String? = nil) {
             self.title = title
             self.action = action
+            self.identifier = identifier
         }
     }
 
@@ -79,6 +81,7 @@ public struct FormField: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .optionalIdentifier(trailingLink.identifier)
                 .padding(.vertical, -14)
             }
         }

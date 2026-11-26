@@ -9,7 +9,9 @@ final class AppNavigationUITests: XCTestCase {
     override func setUp() async throws {
         continueAfterFailure = false
         app = XCUIApplication()
-        app.launch()
+        if !name.contains("testLaunchHookOpensScreenDirectly") {
+            app.launch()
+        }
     }
 
     private func element(_ identifier: String) -> XCUIElement {
@@ -107,5 +109,15 @@ final class AppNavigationUITests: XCTestCase {
         link.tap()
         XCTAssertTrue(element("screen.login").exists)
         XCTAssertFalse(element("screen.home").exists)
+    }
+
+    func testLaunchHookOpensScreenDirectly() {
+        app.launchArguments += ["-BaupilotScreen", "SanGefaelle"]
+        app.launch()
+        XCTAssertTrue(element("screen.inspection.plumbing.slope.A3").waitForExistence(timeout: 10))
+        let back = app.buttons["nav.back"]
+        XCTAssertTrue(back.waitForExistence(timeout: 5))
+        back.tap()
+        XCTAssertTrue(element("screen.inspection.plumbing").waitForExistence(timeout: 5))
     }
 }

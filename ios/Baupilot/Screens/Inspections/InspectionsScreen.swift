@@ -14,7 +14,9 @@ struct InspectionsScreen: View {
         ScreenScaffold(kind: .tabRoot) {
             // A content container of its own: on the scaffold the identifier would merge with `screen.inspections`.
             VStack(alignment: .leading, spacing: 14) {
-                LargeTitleHeader(title: model.title, trailing: .link(text: model.templatesLabel, action: nil))
+                LargeTitleHeader(
+                    title: model.title, trailing: .link(text: model.templatesLabel, action: nil),
+                    trailingIdentifier: "ph.AbnGewerke.vorlagen")
                 SegmentedControl(
                     segments: model.views, selection: 0, background: .chip(Tokens.chip.abnGewerke),
                     accessibilityLabel: model.viewsLabel,

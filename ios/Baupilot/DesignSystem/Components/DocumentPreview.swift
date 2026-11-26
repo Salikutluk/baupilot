@@ -118,6 +118,7 @@ public struct DocumentPreview: View {
         }
         .padding(EdgeInsets(top: 18, leading: 18, bottom: 14, trailing: 18))
         .frame(width: Metrics.width, height: Metrics.height, alignment: .topLeading)
+        .accessibilityHidden(true)
         .background {
             // The shadow belongs to the paper only; on the whole view the text would cast one too.
             // CSS blur 14 / 2, the M1 convention.
@@ -125,8 +126,13 @@ public struct DocumentPreview: View {
                 .fill(Tokens.docPaper.color)
                 .shadow(color: Tokens.docShadow.color, radius: 7, x: 0, y: 4)
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(accessibilityLabel)
-        .accessibilityAddTraits(.isImage)
+        .overlay {
+            Color.clear
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(accessibilityLabel)
+                .accessibilityAddTraits(.isImage)
+        }
+        // P5: a prototype image keeps its text scale. IosDokViewer.dc.html:35 role="img" aria-label="Vorschau Seite 1 von 2"
+        .environment(\.dynamicTypeSize, .large)
     }
 }
