@@ -67,6 +67,14 @@ struct GreedyLabel: View {
     let color: ColorToken
     let lineHeight: LineHeight
 
+    /// Inter at `size`, grown along the body text-style curve like `Font.custom` does (the factor is 1 at `.large` and below).
+    /// A `UIFontMetrics` font at every size: the accessibility audit counts a plain `UIFont` as unsupported Dynamic Type.
+    static func font(weight: InterWeight, size: CGFloat, category: UIContentSizeCategory) -> UIFont {
+        let base = UIFont(name: weight.postScriptName, size: size) ?? .systemFont(ofSize: size)
+        return UIFontMetrics(forTextStyle: .body).scaledFont(
+            for: base, compatibleWith: UITraitCollection(preferredContentSizeCategory: max(category, .large)))
+    }
+
     /// The label is never interactive: without `allowsHitTesting(false)` the representable swallows taps
     /// that belong to the `Button` it sits in (list rows, text links).
     var body: some View {
@@ -83,22 +91,27 @@ private struct GreedyLabelRepresentable: UIViewRepresentable {
     let lineHeight: LineHeight
 
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var category: UIContentSizeCategory { UIContentSizeCategory(dynamicTypeSize) }
 
     func makeUIView(context: Context) -> TopAlignedLabel {
         let label = TopAlignedLabel()
         label.numberOfLines = 0
         label.lineBreakMode = .byWordWrapping
+        label.adjustsFontForContentSizeCategory = true
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
         label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         return label
     }
 
-    private var lineBox: (box: CGFloat, baseline: CGFloat) { lineHeight.box(for: size) }
+    private var lineBox: (box: CGFloat, baseline: CGFloat) { lineHeight.box(for: size, category: category) }
 
     /// UIKit sits the baseline of a fixed-height line at `box − descender`; CSS puts it at the (half-leading
     /// floored) rounded ascent. The difference is how far the glyphs are raised to land on Chrome's baseline.
     private var baselineRise: CGFloat {
-        lineBox.box - InterMetrics.descender * size / InterMetrics.unitsPerEm - lineBox.baseline
+        lineBox.box - InterMetrics.descender * InterMetrics.scaledSize(size, category: category) / InterMetrics.unitsPerEm
+            - lineBox.baseline
     }
 
     func updateUIView(_ label: TopAlignedLabel, context: Context) {
@@ -109,7 +122,7 @@ private struct GreedyLabelRepresentable: UIViewRepresentable {
         label.attributedText = NSAttributedString(
             string: text,
             attributes: [
-                .font: UIFont(name: weight.postScriptName, size: size) ?? .systemFont(ofSize: size),
+                .font: GreedyLabel.font(weight: weight, size: size, category: category),
                 .foregroundColor: UIColor(color.color(scheme)),
                 .paragraphStyle: style,
                 .baselineOffset: baselineRise,

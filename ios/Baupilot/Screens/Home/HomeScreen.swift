@@ -9,6 +9,8 @@ struct HomeScreen: View {
     let model: HomeModel
     let onAction: (HomeAction) -> Void
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     private var phaseCard: some View {
         Card(style: .hero, padding: EdgeInsets(top: 18, leading: 18, bottom: 18, trailing: 18)) {
             VStack(alignment: .leading, spacing: 12) {
@@ -40,7 +42,8 @@ struct HomeScreen: View {
                 ScreenCopy.Home.nextNeeded,
                 style: .title(
                     link: SectionHeader.Link(
-                        title: ScreenCopy.Home.scheduleLink, action: { onAction(.openScheduleTab) })))
+                        title: ScreenCopy.Home.scheduleLink, action: { onAction(.openScheduleTab) },
+                        identifier: "home.schedule")))
             Card(style: .hero, padding: EdgeInsets()) {
                 VStack(spacing: 0) {
                     ForEach(Array(model.trades.enumerated()), id: \.offset) { index, trade in
@@ -53,6 +56,7 @@ struct HomeScreen: View {
                             titleSize: .large,
                             showsDivider: index > 0,
                             action: { onAction(.openTrade(trade.tradeId)) })
+                        .accessibilityIdentifier("home.trade.\(trade.tradeId)")
                     }
                 }
             }
@@ -70,6 +74,7 @@ struct HomeScreen: View {
                             DocumentTile(
                                 icon: doc.icon.symbol, label: doc.label, count: doc.count,
                                 action: { onAction(.openDocumentsTab) })
+                            .accessibilityIdentifier("home.doc.\(index)")
                         }
                     }
                 }
@@ -81,7 +86,10 @@ struct HomeScreen: View {
     /// kicker: the stack is as tall as the header with its own kicker.
     private var header: some View {
         let titleRow: CGFloat = 44
-        return VStack(alignment: .leading, spacing: 2 - (titleRow - InterMetrics.lineBox(32))) {
+        // Above `.large` the title's line box grows (and may pass the 44 pt row); the pull-up follows it so the kicker's
+        // box and the title's box do not overlap. At `.large` this is `titleRow - lineBox(32)`, as before.
+        let titleBox = LineHeight.normal.box(for: 32, category: UIContentSizeCategory(dynamicTypeSize)).box
+        return VStack(alignment: .leading, spacing: 2 - (max(titleRow, titleBox) - titleBox)) {
             Text(model.projectLabel)
                 .interText(13, .semibold)
                 .foregroundStyle(Tokens.muted.color)

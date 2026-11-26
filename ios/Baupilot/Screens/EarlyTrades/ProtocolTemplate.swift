@@ -36,9 +36,19 @@ struct ProtocolTemplate: View {
             background: isOk ? Tokens.oSoft : Tokens.wSoft,
             foreground: isOk ? Tokens.oFg : Tokens.wFg.core,
             trailing: trailing(banner, isOk: isOk),
-            action: isOk ? nil : openAction(banner.target)
+            action: isOk ? nil : openAction(banner.target),
+            documentIdentifier: Self.pdfIdentifier(tradeId: model.tradeId)
         )
         .accessibilityIdentifier("protocol.banner")
+    }
+
+    /// D20: the accepted banner's PDF button has no action; the identifier names the reference screen.
+    private static func pdfIdentifier(tradeId: String) -> String? {
+        switch tradeId {
+        case "earthworks": return "ph.Erd.pdf"
+        case "carpentry": return "ph.Zimmerer.pdf"
+        default: return nil
+        }
     }
 
     private func trailing(_ banner: TradeProtocolModel.Banner, isOk: Bool) -> ProtocolBanner.Trailing {

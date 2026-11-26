@@ -7,6 +7,9 @@ public struct IosToggle: View {
     private let accessibilityLabel: String
     private let action: () -> Void
 
+    /// The track draws 51 × 31; the hit shape grows to 44 tall without moving the layout.
+    static var hitShape: some Shape { MinimumHitShape() }
+
     public init(
         isOn: Bool,
         onColor: ColorToken = Tokens.on,
@@ -31,7 +34,7 @@ public struct IosToggle: View {
                     .padding(2)
             }
             .frame(width: 51, height: 31)
-            .contentShape(Rectangle())
+            .contentShape(Self.hitShape)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text(accessibilityLabel))

@@ -12,11 +12,13 @@ public struct LargeTitleHeader: View {
     private let title: String
     private let kicker: String?
     private let trailing: Trailing
+    private let trailingIdentifier: String?
 
-    public init(title: String, kicker: String? = nil, trailing: Trailing = .none) {
+    public init(title: String, kicker: String? = nil, trailing: Trailing = .none, trailingIdentifier: String? = nil) {
         self.title = title
         self.kicker = kicker
         self.trailing = trailing
+        self.trailingIdentifier = trailingIdentifier
     }
 
     public var body: some View {
@@ -33,13 +35,14 @@ public struct LargeTitleHeader: View {
                     .accessibilityAddTraits(.isHeader)
             }
             Spacer(minLength: 0)
-            TrailingView(trailing: trailing)
+            TrailingView(trailing: trailing, identifier: trailingIdentifier)
         }
     }
 
     /// The trailing control exactly as the header places it in its row.
     struct TrailingView: View {
         let trailing: Trailing
+        var identifier: String?
 
         var body: some View {
             switch trailing {
@@ -73,14 +76,17 @@ public struct LargeTitleHeader: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(label)
+                .optionalIdentifier(identifier)
             case let .link(text, action):
                 Button(action: { action?() }) {
                     Text(text)
                         .interText(15, .semibold)
                         .foregroundStyle(Tokens.accent.color)
                         .frame(minHeight: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .optionalIdentifier(identifier)
             }
         }
     }

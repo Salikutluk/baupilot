@@ -30,11 +30,11 @@ public struct ChecklistRow: View {
     public var body: some View {
         HStack(spacing: 12) {
             Ring(done: done)
+                .accessibilityHidden(true)
             Text(title)
                 .interText(15, .regular)
                 .foregroundStyle((done ? Tokens.muted : Tokens.text).color)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .accessibilityElement(children: .combine)
     }
 }

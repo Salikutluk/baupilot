@@ -66,11 +66,11 @@ final class InspectionFlowUITests: XCTestCase {
         XCTAssertTrue(owner.waitForExistence(timeout: 5))
         let placeholder = app.staticTexts["Hier unterschreiben"]
         XCTAssertTrue(placeholder.exists)
-        XCTAssertEqual(owner.value as? String, "strokes: 0")
+        XCTAssertEqual(owner.value as? String, "leer")
         let start = owner.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: 0.5))
         let end = owner.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.6))
         start.press(forDuration: 0.1, thenDragTo: end)
-        XCTAssertEqual(owner.value as? String, "strokes: 1")
+        XCTAssertEqual(owner.value as? String, "unterschrieben")
         XCTAssertFalse(placeholder.exists)
         tap("sign.finish")
         expectScreen("screen.inspections")

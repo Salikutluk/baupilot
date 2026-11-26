@@ -20,502 +20,274 @@ final class ScreenSnapshotTests: XCTestCase {
     }
 
     func testLoginLight() async throws {
-        try await verify("Login", mode: .light, navigation: AppNavigation())
+        try await verify("Login", mode: .light, navigation: DebugScreens.navigation(named: "Login")!)
     }
 
     func testLoginDark() async throws {
-        try await verify("Login", mode: .dark, navigation: AppNavigation())
-    }
-
-    private var home: AppNavigation {
-        var navigation = AppNavigation()
-        navigation.logIn()
-        return navigation
+        try await verify("Login", mode: .dark, navigation: DebugScreens.navigation(named: "Login")!)
     }
 
     func testHomeLight() async throws {
-        try await verify("Home", mode: .light, navigation: home)
+        try await verify("Home", mode: .light, navigation: DebugScreens.navigation(named: "Home")!)
     }
 
     func testHomeDark() async throws {
-        try await verify("Home", mode: .dark, navigation: home)
-    }
-
-    private var schedule: AppNavigation {
-        var navigation = home
-        navigation.select(.schedule)
-        return navigation
+        try await verify("Home", mode: .dark, navigation: DebugScreens.navigation(named: "Home")!)
     }
 
     func testZeitplanLight() async throws {
-        try await verify("Zeitplan", mode: .light, navigation: schedule)
+        try await verify("Zeitplan", mode: .light, navigation: DebugScreens.navigation(named: "Zeitplan")!)
     }
 
     func testZeitplanDark() async throws {
-        try await verify("Zeitplan", mode: .dark, navigation: schedule)
-    }
-
-    private var profile: AppNavigation {
-        var navigation = home
-        navigation.select(.profile)
-        return navigation
+        try await verify("Zeitplan", mode: .dark, navigation: DebugScreens.navigation(named: "Zeitplan")!)
     }
 
     func testProfilLight() async throws {
-        try await verify("Profil", mode: .light, navigation: profile)
+        try await verify("Profil", mode: .light, navigation: DebugScreens.navigation(named: "Profil")!)
     }
 
     func testProfilDark() async throws {
-        try await verify("Profil", mode: .dark, navigation: profile)
-    }
-
-    /// D7: logged in, Estrich opened from Home (back label "Übersicht").
-    private var gewerk: AppNavigation {
-        var navigation = home
-        navigation.open(.trade(id: "screed"))
-        return navigation
+        try await verify("Profil", mode: .dark, navigation: DebugScreens.navigation(named: "Profil")!)
     }
 
     func testGewerkLight() async throws {
-        try await verify("Gewerk", mode: .light, navigation: gewerk)
+        try await verify("Gewerk", mode: .light, navigation: DebugScreens.navigation(named: "Gewerk")!)
     }
 
     func testGewerkDark() async throws {
-        try await verify("Gewerk", mode: .dark, navigation: gewerk)
-    }
-
-    /// D7: logged in, Abnahmen tab (view "Gewerke").
-    private var abnGewerke: AppNavigation {
-        var navigation = home
-        navigation.select(.inspections)
-        return navigation
+        try await verify("Gewerk", mode: .dark, navigation: DebugScreens.navigation(named: "Gewerk")!)
     }
 
     func testAbnGewerkeLight() async throws {
-        try await verify("AbnGewerke", mode: .light, navigation: abnGewerke)
+        try await verify("AbnGewerke", mode: .light, navigation: DebugScreens.navigation(named: "AbnGewerke")!)
     }
 
     func testAbnGewerkeDark() async throws {
-        try await verify("AbnGewerke", mode: .dark, navigation: abnGewerke)
-    }
-
-    /// D7: logged in, Abnahmen tab, Fenster & Türen opened (back label "Abnahmen").
-    private var abnElemente: AppNavigation {
-        var navigation = abnGewerke
-        navigation.open(.inspection(tradeId: "windows"))
-        return navigation
+        try await verify("AbnGewerke", mode: .dark, navigation: DebugScreens.navigation(named: "AbnGewerke")!)
     }
 
     func testAbnElementeLight() async throws {
-        try await verify("AbnElemente", mode: .light, navigation: abnElemente)
+        try await verify("AbnElemente", mode: .light, navigation: DebugScreens.navigation(named: "AbnElemente")!)
     }
 
     func testAbnElementeDark() async throws {
-        try await verify("AbnElemente", mode: .dark, navigation: abnElemente)
-    }
-
-    /// D7: logged in, Abnahmen tab, Fenster & Türen, Prüfschritt F8 opened (back label "Fenster & Türen").
-    private var abnPruefung: AppNavigation {
-        var navigation = abnElemente
-        navigation.open(.inspectionStep(tradeId: "windows", elementId: "F8", step: 3))
-        return navigation
+        try await verify("AbnElemente", mode: .dark, navigation: DebugScreens.navigation(named: "AbnElemente")!)
     }
 
     func testAbnPruefungLight() async throws {
-        try await verify("AbnPruefung", mode: .light, navigation: abnPruefung)
+        try await verify("AbnPruefung", mode: .light, navigation: DebugScreens.navigation(named: "AbnPruefung")!)
     }
 
     func testAbnPruefungDark() async throws {
-        try await verify("AbnPruefung", mode: .dark, navigation: abnPruefung)
-    }
-
-    /// D7: logged in, Abnahmen tab, Fenster & Türen, Prüfschritt F8, Mangel erfassen opened (pushed, D14).
-    private var abnMangel: AppNavigation {
-        var navigation = abnPruefung
-        navigation.open(.newDefect)
-        return navigation
+        try await verify("AbnPruefung", mode: .dark, navigation: DebugScreens.navigation(named: "AbnPruefung")!)
     }
 
     func testAbnMangelLight() async throws {
-        try await verify("AbnMangel", mode: .light, navigation: abnMangel)
+        try await verify("AbnMangel", mode: .light, navigation: DebugScreens.navigation(named: "AbnMangel")!)
     }
 
     func testAbnMangelDark() async throws {
-        try await verify("AbnMangel", mode: .dark, navigation: abnMangel)
-    }
-
-    /// D7: logged in, Abnahmen tab, Fenster & Türen opened, then the sign-off (back label "Fenster & Türen").
-    private var abnSignatur: AppNavigation {
-        var navigation = abnElemente
-        navigation.open(.signOff(inspectionId: "windows"))
-        return navigation
+        try await verify("AbnMangel", mode: .dark, navigation: DebugScreens.navigation(named: "AbnMangel")!)
     }
 
     func testAbnSignaturLight() async throws {
-        try await verify("AbnSignatur", mode: .light, navigation: abnSignatur)
+        try await verify("AbnSignatur", mode: .light, navigation: DebugScreens.navigation(named: "AbnSignatur")!)
     }
 
     func testAbnSignaturDark() async throws {
-        try await verify("AbnSignatur", mode: .dark, navigation: abnSignatur)
-    }
-
-    /// D7: logged in, then the open-defects view of the Abnahmen root (`go(.defects)`).
-    private var abnMaengel: AppNavigation {
-        var navigation = home
-        navigation.go(.defects)
-        return navigation
+        try await verify("AbnSignatur", mode: .dark, navigation: DebugScreens.navigation(named: "AbnSignatur")!)
     }
 
     func testAbnMaengelLight() async throws {
-        try await verify("AbnMaengel", mode: .light, navigation: abnMaengel)
+        try await verify("AbnMaengel", mode: .light, navigation: DebugScreens.navigation(named: "AbnMaengel")!)
     }
 
     func testAbnMaengelDark() async throws {
-        try await verify("AbnMaengel", mode: .dark, navigation: abnMaengel)
-    }
-
-    /// D7: logged in, Dokumente tab.
-    private var documents: AppNavigation {
-        var navigation = home
-        navigation.select(.documents)
-        return navigation
+        try await verify("AbnMaengel", mode: .dark, navigation: DebugScreens.navigation(named: "AbnMaengel")!)
     }
 
     func testDokumenteLight() async throws {
-        try await verify("Dokumente", mode: .light, navigation: documents)
+        try await verify("Dokumente", mode: .light, navigation: DebugScreens.navigation(named: "Dokumente")!)
     }
 
     func testDokumenteDark() async throws {
-        try await verify("Dokumente", mode: .dark, navigation: documents)
-    }
-
-    /// D7: logged in, Dokumente tab, Angebot Wagner opened (back label "Dokumente").
-    private var docViewer: AppNavigation {
-        var navigation = documents
-        navigation.open(.document(id: "doc-offer-wagner"))
-        return navigation
+        try await verify("Dokumente", mode: .dark, navigation: DebugScreens.navigation(named: "Dokumente")!)
     }
 
     func testDokViewerLight() async throws {
-        try await verify("DokViewer", mode: .light, navigation: docViewer)
+        try await verify("DokViewer", mode: .light, navigation: DebugScreens.navigation(named: "DokViewer")!)
     }
 
     func testDokViewerDark() async throws {
-        try await verify("DokViewer", mode: .dark, navigation: docViewer)
-    }
-
-    /// D7: logged in, Estrich opened from Home, Angebote vergleichen opened (back label "Estrich").
-    private var vergleich: AppNavigation {
-        var navigation = gewerk
-        navigation.open(.compare(tradeId: "screed"))
-        return navigation
+        try await verify("DokViewer", mode: .dark, navigation: DebugScreens.navigation(named: "DokViewer")!)
     }
 
     func testVergleichLight() async throws {
-        try await verify("Vergleich", mode: .light, navigation: vergleich)
+        try await verify("Vergleich", mode: .light, navigation: DebugScreens.navigation(named: "Vergleich")!)
     }
 
     func testVergleichDark() async throws {
-        try await verify("Vergleich", mode: .dark, navigation: vergleich)
-    }
-
-    /// D7: logged in, Mitteilungen opened from Home (back label "Übersicht").
-    private var mitteilungen: AppNavigation {
-        var navigation = home
-        navigation.open(.notifications)
-        return navigation
+        try await verify("Vergleich", mode: .dark, navigation: DebugScreens.navigation(named: "Vergleich")!)
     }
 
     func testMitteilungenLight() async throws {
-        try await verify("Mitteilungen", mode: .light, navigation: mitteilungen)
+        try await verify("Mitteilungen", mode: .light, navigation: DebugScreens.navigation(named: "Mitteilungen")!)
     }
 
     func testMitteilungenDark() async throws {
-        try await verify("Mitteilungen", mode: .dark, navigation: mitteilungen)
-    }
-
-    /// D10: logged in, Abnahmen tab, Erdarbeiten opened (back label "Abnahmen").
-    private var erd: AppNavigation {
-        var navigation = abnGewerke
-        navigation.open(.inspection(tradeId: "earthworks"))
-        return navigation
+        try await verify("Mitteilungen", mode: .dark, navigation: DebugScreens.navigation(named: "Mitteilungen")!)
     }
 
     func testErdLight() async throws {
-        try await verify("Erd", mode: .light, navigation: erd)
+        try await verify("Erd", mode: .light, navigation: DebugScreens.navigation(named: "Erd")!)
     }
 
     func testErdDark() async throws {
-        try await verify("Erd", mode: .dark, navigation: erd)
-    }
-
-    /// D10: logged in, Abnahmen tab, Rohbau opened (back label "Abnahmen").
-    private var rohbau: AppNavigation {
-        var navigation = abnGewerke
-        navigation.open(.inspection(tradeId: "shell"))
-        return navigation
+        try await verify("Erd", mode: .dark, navigation: DebugScreens.navigation(named: "Erd")!)
     }
 
     func testRohbauLight() async throws {
-        try await verify("Rohbau", mode: .light, navigation: rohbau)
+        try await verify("Rohbau", mode: .light, navigation: DebugScreens.navigation(named: "Rohbau")!)
     }
 
     func testRohbauDark() async throws {
-        try await verify("Rohbau", mode: .dark, navigation: rohbau)
-    }
-
-    /// D10: Rohbau opened, then Maße & Lot (back label "Rohbau"); initial ViewModel state.
-    private var rohbauMasse: AppNavigation {
-        var navigation = rohbau
-        navigation.open(.inspectionCheck(tradeId: "shell", check: "measure"))
-        return navigation
+        try await verify("Rohbau", mode: .dark, navigation: DebugScreens.navigation(named: "Rohbau")!)
     }
 
     func testRohbauMasseLight() async throws {
-        try await verify("RohbauMasse", mode: .light, navigation: rohbauMasse)
+        try await verify("RohbauMasse", mode: .light, navigation: DebugScreens.navigation(named: "RohbauMasse")!)
     }
 
     func testRohbauMasseDark() async throws {
-        try await verify("RohbauMasse", mode: .dark, navigation: rohbauMasse)
-    }
-
-    /// D10: logged in, Abnahmen tab, Zimmerer opened (back label "Abnahmen").
-    private var zimmerer: AppNavigation {
-        var navigation = abnGewerke
-        navigation.open(.inspection(tradeId: "carpentry"))
-        return navigation
+        try await verify("RohbauMasse", mode: .dark, navigation: DebugScreens.navigation(named: "RohbauMasse")!)
     }
 
     func testZimmererLight() async throws {
-        try await verify("Zimmerer", mode: .light, navigation: zimmerer)
+        try await verify("Zimmerer", mode: .light, navigation: DebugScreens.navigation(named: "Zimmerer")!)
     }
 
     func testZimmererDark() async throws {
-        try await verify("Zimmerer", mode: .dark, navigation: zimmerer)
-    }
-
-    /// D10: logged in, Abnahmen tab, Elektro opened (back label "Abnahmen").
-    private var elUebersicht: AppNavigation {
-        var navigation = abnGewerke
-        navigation.open(.inspection(tradeId: "electrical"))
-        return navigation
+        try await verify("Zimmerer", mode: .dark, navigation: DebugScreens.navigation(named: "Zimmerer")!)
     }
 
     func testElUebersichtLight() async throws {
-        try await verify("ElUebersicht", mode: .light, navigation: elUebersicht)
+        try await verify("ElUebersicht", mode: .light, navigation: DebugScreens.navigation(named: "ElUebersicht")!)
     }
 
     func testElUebersichtDark() async throws {
-        try await verify("ElUebersicht", mode: .dark, navigation: elUebersicht)
-    }
-
-    /// D10: Elektro opened, then Raumprüfung Küche (back label "Elektro").
-    private var elRaum: AppNavigation {
-        var navigation = elUebersicht
-        navigation.open(.inspectionRoom(tradeId: "electrical", roomId: "kitchen"))
-        return navigation
+        try await verify("ElUebersicht", mode: .dark, navigation: DebugScreens.navigation(named: "ElUebersicht")!)
     }
 
     func testElRaumLight() async throws {
-        try await verify("ElRaum", mode: .light, navigation: elRaum)
+        try await verify("ElRaum", mode: .light, navigation: DebugScreens.navigation(named: "ElRaum")!)
     }
 
     func testElRaumDark() async throws {
-        try await verify("ElRaum", mode: .dark, navigation: elRaum)
-    }
-
-    /// D10: Elektro opened, then Zählerschrank & FI-Test (back label "Elektro").
-    private var elVerteiler: AppNavigation {
-        var navigation = elUebersicht
-        navigation.open(.inspectionCheck(tradeId: "electrical", check: "panel"))
-        return navigation
+        try await verify("ElRaum", mode: .dark, navigation: DebugScreens.navigation(named: "ElRaum")!)
     }
 
     func testElVerteilerLight() async throws {
-        try await verify("ElVerteiler", mode: .light, navigation: elVerteiler)
+        try await verify("ElVerteiler", mode: .light, navigation: DebugScreens.navigation(named: "ElVerteiler")!)
     }
 
     func testElVerteilerDark() async throws {
-        try await verify("ElVerteiler", mode: .dark, navigation: elVerteiler)
-    }
-
-    /// D10: Elektro opened, then Rauchwarnmelder (back label "Elektro").
-    private var elRauchmelder: AppNavigation {
-        var navigation = elUebersicht
-        navigation.open(.inspectionCheck(tradeId: "electrical", check: "smoke"))
-        return navigation
+        try await verify("ElVerteiler", mode: .dark, navigation: DebugScreens.navigation(named: "ElVerteiler")!)
     }
 
     func testElRauchmelderLight() async throws {
-        try await verify("ElRauchmelder", mode: .light, navigation: elRauchmelder)
+        try await verify("ElRauchmelder", mode: .light, navigation: DebugScreens.navigation(named: "ElRauchmelder")!)
     }
 
     func testElRauchmelderDark() async throws {
-        try await verify("ElRauchmelder", mode: .dark, navigation: elRauchmelder)
-    }
-
-    /// D10: logged in, Abnahmen tab, Sanitär & Heizung opened (back label "Abnahmen").
-    private var sanUebersicht: AppNavigation {
-        var navigation = abnGewerke
-        navigation.open(.inspection(tradeId: "plumbing"))
-        return navigation
+        try await verify("ElRauchmelder", mode: .dark, navigation: DebugScreens.navigation(named: "ElRauchmelder")!)
     }
 
     func testSanUebersichtLight() async throws {
-        try await verify("SanUebersicht", mode: .light, navigation: sanUebersicht)
+        try await verify("SanUebersicht", mode: .light, navigation: DebugScreens.navigation(named: "SanUebersicht")!)
     }
 
     func testSanUebersichtDark() async throws {
-        try await verify("SanUebersicht", mode: .dark, navigation: sanUebersicht)
-    }
-
-    /// D10: Sanitär & Heizung opened, then Gefälle Abwasser A3 (back label "Sanitär"), calculator in its initial state.
-    private var sanGefaelle: AppNavigation {
-        var navigation = sanUebersicht
-        navigation.open(.inspectionCheckItem(tradeId: "plumbing", check: "slope", item: "A3"))
-        return navigation
+        try await verify("SanUebersicht", mode: .dark, navigation: DebugScreens.navigation(named: "SanUebersicht")!)
     }
 
     func testSanGefaelleLight() async throws {
-        try await verify("SanGefaelle", mode: .light, navigation: sanGefaelle)
+        try await verify("SanGefaelle", mode: .light, navigation: DebugScreens.navigation(named: "SanGefaelle")!)
     }
 
     func testSanGefaelleDark() async throws {
-        try await verify("SanGefaelle", mode: .dark, navigation: sanGefaelle)
-    }
-
-    /// D10: Sanitär & Heizung opened, then Druckprobe (back label "Sanitär"), the end field empty.
-    private var sanDruck: AppNavigation {
-        var navigation = sanUebersicht
-        navigation.open(.inspectionCheck(tradeId: "plumbing", check: "pressure"))
-        return navigation
+        try await verify("SanGefaelle", mode: .dark, navigation: DebugScreens.navigation(named: "SanGefaelle")!)
     }
 
     func testSanDruckLight() async throws {
-        try await verify("SanDruck", mode: .light, navigation: sanDruck)
+        try await verify("SanDruck", mode: .light, navigation: DebugScreens.navigation(named: "SanDruck")!)
     }
 
     func testSanDruckDark() async throws {
-        try await verify("SanDruck", mode: .dark, navigation: sanDruck)
-    }
-
-    /// D10: Sanitär & Heizung opened, then Bad OG (back label "Sanitär").
-    private var sanBad: AppNavigation {
-        var navigation = sanUebersicht
-        navigation.open(.inspectionRoom(tradeId: "plumbing", roomId: "bathUpper"))
-        return navigation
+        try await verify("SanDruck", mode: .dark, navigation: DebugScreens.navigation(named: "SanDruck")!)
     }
 
     func testSanBadLight() async throws {
-        try await verify("SanBad", mode: .light, navigation: sanBad)
+        try await verify("SanBad", mode: .light, navigation: DebugScreens.navigation(named: "SanBad")!)
     }
 
     func testSanBadDark() async throws {
-        try await verify("SanBad", mode: .dark, navigation: sanBad)
-    }
-
-    /// D10: logged in, Abnahmen tab, Estrich opened (back label "Abnahmen").
-    private var esUebersicht: AppNavigation {
-        var navigation = abnGewerke
-        navigation.open(.inspection(tradeId: "screed"))
-        return navigation
+        try await verify("SanBad", mode: .dark, navigation: DebugScreens.navigation(named: "SanBad")!)
     }
 
     func testEsUebersichtLight() async throws {
-        try await verify("EsUebersicht", mode: .light, navigation: esUebersicht)
+        try await verify("EsUebersicht", mode: .light, navigation: DebugScreens.navigation(named: "EsUebersicht")!)
     }
 
     func testEsUebersichtDark() async throws {
-        try await verify("EsUebersicht", mode: .dark, navigation: esUebersicht)
-    }
-
-    /// D10: logged in, Abnahmen tab, Fliesen opened (back label "Abnahmen").
-    private var flUebersicht: AppNavigation {
-        var navigation = abnGewerke
-        navigation.open(.inspection(tradeId: "tiles"))
-        return navigation
+        try await verify("EsUebersicht", mode: .dark, navigation: DebugScreens.navigation(named: "EsUebersicht")!)
     }
 
     func testFlUebersichtLight() async throws {
-        try await verify("FlUebersicht", mode: .light, navigation: flUebersicht)
+        try await verify("FlUebersicht", mode: .light, navigation: DebugScreens.navigation(named: "FlUebersicht")!)
     }
 
     func testFlUebersichtDark() async throws {
-        try await verify("FlUebersicht", mode: .dark, navigation: flUebersicht)
-    }
-
-    /// D10: Estrich opened from Abnahmen, then Ebenheit (back label "Estrich").
-    private var esEbenheit: AppNavigation {
-        var navigation = esUebersicht
-        navigation.open(.inspectionCheck(tradeId: "screed", check: "flatness"))
-        return navigation
+        try await verify("FlUebersicht", mode: .dark, navigation: DebugScreens.navigation(named: "FlUebersicht")!)
     }
 
     func testEsEbenheitLight() async throws {
-        try await verify("EsEbenheit", mode: .light, navigation: esEbenheit)
+        try await verify("EsEbenheit", mode: .light, navigation: DebugScreens.navigation(named: "EsEbenheit")!)
     }
 
     func testEsEbenheitDark() async throws {
-        try await verify("EsEbenheit", mode: .dark, navigation: esEbenheit)
-    }
-
-    /// D10: Estrich opened from Abnahmen, then Aufheizen & Belegreife (back label "Estrich").
-    private var esBelegreife: AppNavigation {
-        var navigation = esUebersicht
-        navigation.open(.inspectionCheck(tradeId: "screed", check: "readiness"))
-        return navigation
+        try await verify("EsEbenheit", mode: .dark, navigation: DebugScreens.navigation(named: "EsEbenheit")!)
     }
 
     func testEsBelegreifeLight() async throws {
-        try await verify("EsBelegreife", mode: .light, navigation: esBelegreife)
+        try await verify("EsBelegreife", mode: .light, navigation: DebugScreens.navigation(named: "EsBelegreife")!)
     }
 
     func testEsBelegreifeDark() async throws {
-        try await verify("EsBelegreife", mode: .dark, navigation: esBelegreife)
-    }
-
-    /// D10: Fliesen opened from Abnahmen, then Bad OG (back label "Fliesen").
-    private var flBad: AppNavigation {
-        var navigation = flUebersicht
-        navigation.open(.inspectionRoom(tradeId: "tiles", roomId: "bath"))
-        return navigation
+        try await verify("EsBelegreife", mode: .dark, navigation: DebugScreens.navigation(named: "EsBelegreife")!)
     }
 
     func testFlBadLight() async throws {
-        try await verify("FlBad", mode: .light, navigation: flBad)
+        try await verify("FlBad", mode: .light, navigation: DebugScreens.navigation(named: "FlBad")!)
     }
 
     func testFlBadDark() async throws {
-        try await verify("FlBad", mode: .dark, navigation: flBad)
-    }
-
-    /// D10: logged in, Abnahmen tab, Maler opened (back label "Abnahmen").
-    private var maUebersicht: AppNavigation {
-        var navigation = abnGewerke
-        navigation.open(.inspection(tradeId: "painting"))
-        return navigation
+        try await verify("FlBad", mode: .dark, navigation: DebugScreens.navigation(named: "FlBad")!)
     }
 
     func testMaUebersichtLight() async throws {
-        try await verify("MaUebersicht", mode: .light, navigation: maUebersicht)
+        try await verify("MaUebersicht", mode: .light, navigation: DebugScreens.navigation(named: "MaUebersicht")!)
     }
 
     func testMaUebersichtDark() async throws {
-        try await verify("MaUebersicht", mode: .dark, navigation: maUebersicht)
-    }
-
-    /// D10: Maler opened from Abnahmen, then Wohnen / Essen (back label "Maler").
-    private var maRaum: AppNavigation {
-        var navigation = maUebersicht
-        navigation.open(.inspectionRoom(tradeId: "painting", roomId: "living"))
-        return navigation
+        try await verify("MaUebersicht", mode: .dark, navigation: DebugScreens.navigation(named: "MaUebersicht")!)
     }
 
     func testMaRaumLight() async throws {
-        try await verify("MaRaum", mode: .light, navigation: maRaum)
+        try await verify("MaRaum", mode: .light, navigation: DebugScreens.navigation(named: "MaRaum")!)
     }
 
     func testMaRaumDark() async throws {
-        try await verify("MaRaum", mode: .dark, navigation: maRaum)
+        try await verify("MaRaum", mode: .dark, navigation: DebugScreens.navigation(named: "MaRaum")!)
     }
 }

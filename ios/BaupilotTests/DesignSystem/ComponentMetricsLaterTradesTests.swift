@@ -365,7 +365,7 @@ final class ComponentMetricsLaterTradesTests: XCTestCase {
             tiles: (1...tiles).map { index in
                 TileGrid.Tile(
                     id: "tile-\(index)", style: index == 3 ? hollow : normal, label: index == 3 ? "hohl" : nil,
-                    accessibilityLabel: "Fliese \(index)", identifier: "tiles.tile.tile-\(index)")
+                    accessibilityLabel: "Fliese \(index)")
             },
             columns: 8, radius: 10, tileRadius: 3, background: Tokens.grout, accessibilityLabel: "Fliesenraster")
     }

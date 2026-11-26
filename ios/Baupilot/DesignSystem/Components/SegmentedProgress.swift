@@ -36,7 +36,8 @@ public struct SegmentedProgress: View {
             }
         }
         .frame(height: height)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(label)
+        // The prototype bar (IosAbnElemente.dc.html:36-40) has no role and no aria-label; the screen's own text
+        // already says "7 von 12 Elementen geprüft".
+        .accessibilityHidden(true)
     }
 }

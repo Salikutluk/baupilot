@@ -21,6 +21,7 @@ public struct ProtocolBanner: View {
 
         let label: String
         var action: (() -> Void)?
+        var identifier: String?
 
         var body: some View {
             let face = Text(label)
@@ -31,6 +32,7 @@ public struct ProtocolBanner: View {
                 .frame(height: 36)
                 .background(RoundedRectangle(cornerRadius: 10).fill(Tokens.surface.color))
                 .contentShape(Self.hitShape)
+                .optionalIdentifier(identifier)
             if let action {
                 Button(action: action) { face }.buttonStyle(.plain)
             } else {
@@ -46,10 +48,11 @@ public struct ProtocolBanner: View {
     private let foreground: ColorToken
     private let trailing: Trailing
     private let action: (() -> Void)?
+    private let documentIdentifier: String?
 
     public init(
         icon: BaupilotIcon, title: String, text: String, background: ColorToken, foreground: ColorToken,
-        trailing: Trailing = .none, action: (() -> Void)?
+        trailing: Trailing = .none, action: (() -> Void)?, documentIdentifier: String? = nil
     ) {
         self.icon = icon
         self.title = title
@@ -58,6 +61,7 @@ public struct ProtocolBanner: View {
         self.foreground = foreground
         self.trailing = trailing
         self.action = action
+        self.documentIdentifier = documentIdentifier
     }
 
     private var banner: some View {
@@ -73,7 +77,7 @@ public struct ProtocolBanner: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             switch trailing {
             case .document(let label, let documentAction):
-                DocumentButton(label: label, action: documentAction)
+                DocumentButton(label: label, action: documentAction, identifier: documentIdentifier)
                     .layoutPriority(1)
             case .chevron:
                 Icon(.chevronRightW24, size: 14, color: foreground.color)

@@ -101,7 +101,7 @@ struct SanGefaelleScreen: View {
             levelLabel: model.schemaLevelLabel, deltaLabel: model.schemaDeltaLabel,
             background: sufficient ? Tokens.oSoft : Tokens.eSoft.core,
             foreground: sufficient ? Tokens.oFg : Tokens.eFg,
-            identifiers: (percent: "slope.percent", verdict: "slope.verdict"))
+            identifier: "slope.result")
     }
 
     private var note: some View {
@@ -111,7 +111,7 @@ struct SanGefaelleScreen: View {
     private func tile(_ section: SlopeCheckModel.Section) -> SocketTile {
         SocketTile(
             id: section.id, label: section.label, style: Self.style(section.status),
-            accessibilityLabel: "Abschnitt \(section.id): \(section.label)",
+            accessibilityLabel: [section.id, section.label].filter { !$0.isEmpty }.joined(separator: ", "),
             identifier: "slope.section.\(section.id)", height: 52)
     }
 

@@ -81,11 +81,14 @@ final class LaterTradesUITests: XCTestCase {
         tap("slope.drop.decrement")
         tap("slope.drop.decrement")
         expectLabel("slope.drop.value", "1,5 cm")
-        expectLabel("slope.percent", "0,75 %")
-        expectLabel("slope.verdict", "Zu flach · Soll ≥ 1,0 %")
+        // D7: the card is one element; `.combine` joins the parts in an unspecified format (R12), so check each part.
+        expectLabel("slope.result", "0,75 %")
+        expectLabel("slope.result", "Zu flach · Soll ≥ 1,0 %")
         tap("slope.drop.increment")
-        expectLabel("slope.percent", "1,00 %")
-        expectLabel("slope.verdict", "Ausreichend · Soll ≥ 1,0 %")
+        expectLabel("slope.result", "1,00 %")
+        expectLabel("slope.result", "Ausreichend · Soll ≥ 1,0 %")
+        XCTAssertFalse(element("slope.percent").exists)
+        XCTAssertFalse(element("slope.verdict").exists)
     }
 
     func testFlatnessSaveAddsPoint() throws {
@@ -150,10 +153,22 @@ final class LaterTradesUITests: XCTestCase {
         openTradeFromHome("tiles")
         tapRow("overview.row.1.0")
         expectScreen("screen.inspection.tiles.room.bath")
-        // I11: a tile is an accessible button without an action.
-        tap("tiles.tile.tile-3")
+        // I11 (kept): a tap on a tile does nothing. D8: the grid is one element, so the tile is hit by coordinate.
+        let grid = element("tiles.grid").firstMatch
+        XCTAssertTrue(grid.waitForExistence(timeout: 5))
+        if !app.frame.contains(grid.frame) { app.swipeUp() }
+        let valueBefore = grid.value as? String
+        XCTAssertFalse(valueBefore?.isEmpty ?? true, "the tile grid must report a value")
+        let tileWidth = (grid.frame.width - 2 * 8 - 7 * 4) / 8
+        let column: CGFloat = 2
+        let centre = CGVector(
+            dx: (8 + column * (tileWidth + 4) + tileWidth / 2) / grid.frame.width,
+            dy: (8 + 44 / 2) / grid.frame.height)
+        grid.coordinate(withNormalizedOffset: centre).tap()
         expectScreen("screen.inspection.tiles.room.bath")
         XCTAssertFalse(element("screen.defect.new").exists)
+        XCTAssertEqual(grid.value as? String, valueBefore)
+        XCTAssertFalse(element("tiles.tile.tile-3").exists)
         back(to: "screen.inspection.tiles")
         back(to: "screen.inspections")
 
@@ -181,5 +196,15 @@ final class LaterTradesUITests: XCTestCase {
         expectScreen("screen.defect.new")
         tap("defect.cancel")
         expectScreen("screen.inspection.tiles.room.bath")
+    }
+
+    /// D12: the section tile's label is its visible texts joined with ", ", without an invented prefix.
+    func testSectionTileLabelMatchesVisibleText() throws {
+        openTradeFromHome("plumbing")
+        tapRow("overview.row.0.0")
+        expectScreen("screen.inspection.plumbing.slope.A3")
+        let tile = element("slope.section.A3").firstMatch
+        XCTAssertTrue(tile.waitForExistence(timeout: 5))
+        XCTAssertEqual(tile.label, "A3, jetzt")
     }
 }

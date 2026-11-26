@@ -48,7 +48,7 @@ struct LoginScreen: View {
                 .foregroundStyle(Tokens.muted.color)
                 .padding(.top, introHalfLeading)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
-                .frame(height: introHeight, alignment: .top)
+                .scaledFrame(height: introHeight, alignment: .top)
         }
     }
 
@@ -69,7 +69,7 @@ struct LoginScreen: View {
                 label: model.passwordLabel, text: $password,
                 placeholder: ScreenCopy.passwordPlaceholder, kind: .password,
                 border: Tokens.border.login,
-                trailingLink: FormField.Link(title: model.forgot, action: nil))
+                trailingLink: FormField.Link(title: model.forgot, action: nil, identifier: "login.forgot"))
         }
         .padding(.top, 4)
     }
@@ -87,6 +87,7 @@ struct LoginScreen: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("ph.Login.create")
             .padding(.vertical, -14)
         }
         .frame(maxWidth: .infinity)
@@ -98,6 +99,7 @@ struct LoginScreen: View {
             PrimaryButton(model.submit, height: .tall, action: onSubmit)
                 .accessibilityIdentifier("login.submit")
             InvertedButton(model.social, icon: .apple, action: nil)
+                .accessibilityIdentifier("ph.Login.apple")
             newHere
         }
     }

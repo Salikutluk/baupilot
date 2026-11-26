@@ -16,8 +16,8 @@ struct ElementsScreen: View {
             BackBar(label: backLabel, action: onBack)
             DetailTitle(model.title, subtitle: model.subtitle, style: .size30)
             summaryCard
-            ForEach(model.floors, id: \.title) { floor in
-                floorSection(floor)
+            ForEach(Array(model.floors.enumerated()), id: \.element.title) { index, floor in
+                floorSection(floor, index: index)
             }
         } bottomBar: {
             BottomActionBar {
@@ -38,7 +38,7 @@ struct ElementsScreen: View {
                         .interText(16, .semibold)
                         .foregroundStyle(Tokens.text.color)
                     Spacer(minLength: 0)
-                    InlineLink(model.guideLinkLabel, size: 14, action: nil)
+                    InlineLink(model.guideLinkLabel, size: 14, action: nil, identifier: "ph.AbnElemente.guide")
                 }
                 SegmentedProgress(
                     segments: model.progress.map(segmentColor), height: 8, accessibilityLabel: model.counter)
@@ -48,10 +48,11 @@ struct ElementsScreen: View {
         }
     }
 
-    private func floorSection(_ floor: ElementsModel.FloorSection) -> some View {
+    private func floorSection(_ floor: ElementsModel.FloorSection, index: Int) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             SectionHeader(
-                floor.title, style: .caps(inset: 4, link: SectionHeader.Link(title: floor.moreLabel, size: 13, action: nil)))
+                floor.title, style: .caps(inset: 4, link: SectionHeader.Link(
+                        title: floor.moreLabel, size: 13, action: nil, identifier: "ph.AbnElemente.more.\(index)")))
             Card(padding: EdgeInsets()) {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(floor.items.enumerated()), id: \.element.id) { index, item in

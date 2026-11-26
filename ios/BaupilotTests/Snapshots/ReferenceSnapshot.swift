@@ -63,11 +63,13 @@ enum ReferenceSnapshot {
             at: repoRootURL.appendingPathComponent("design/reference/ios/\(name)_\(mode.rawValue).png"))
     }
 
-    static func render<V: View>(_ view: V, mode: SnapshotMode) throws -> UIImage {
+    static func render<V: View>(
+        _ view: V, mode: SnapshotMode, contentSize: UIContentSizeCategory = .large
+    ) throws -> UIImage {
         let traits = UITraitCollection { traits in
             traits.displayScale = scale
             traits.userInterfaceStyle = mode.interfaceStyle
-            traits.preferredContentSizeCategory = .large
+            traits.preferredContentSizeCategory = contentSize
         }
         let strategy = Snapshotting<V, UIImage>.image(
             precision: precision,
@@ -111,7 +113,17 @@ enum ReferenceSnapshot {
 
         let diffing = Diffing<UIImage>.image(
             precision: precision, perceptualPrecision: perceptualPrecision, scale: scale)
-        guard let (message, attachments) = diffing.diffV2(reference, actual) else { return }
+        let diff = diffing.diffV2(reference, actual)
+
+        if writesSidecar(artifactDirectory: artifactDirectory, writeArtifact: writeArtifact) {
+            try writeSidecar(
+                result(passed: diff == nil, message: diff?.0 ?? ""), name: name, mode: mode,
+                directory: artifactDirectoryURL(
+                    env: ProcessInfo.processInfo.environment["SNAPSHOT_ARTIFACTS"],
+                    artifactDirectory: artifactDirectory))
+        }
+
+        guard let (message, attachments) = diff else { return }
         for attachment in attachments {
             if case let .data(data, attachmentName) = attachment {
                 let xcAttachment = XCTAttachment(
@@ -146,6 +158,58 @@ enum ReferenceSnapshot {
         let data = renderer.pngData { _ in image.draw(at: .zero) }
         let target = directory.appendingPathComponent("\(name)_\(mode.rawValue).png")
         do {
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            try data.write(to: target)
+        } catch {
+            throw ReferenceSnapshotError.artifactWriteFailed("\(target.path): \(error)")
+        }
+    }
+
+    /// Only screen snapshots write a result sidecar; gallery goldens and canaries do not.
+    static func writesSidecar(artifactDirectory: String, writeArtifact: Bool) -> Bool {
+        artifactDirectory == "ios" && writeArtifact
+    }
+
+    struct SidecarResult: Equatable {
+        let passed: Bool
+        let message: String
+        /// The pixel-match ratio from the failure message; nil on a pass, a size mismatch or no match.
+        let pixelMatch: Double?
+        let required: Double
+    }
+
+    /// The parse only fills `pixelMatch`; the verdict is always `passed`.
+    static func result(passed: Bool, message: String) -> SidecarResult {
+        var pixelMatch: Double?
+        if !passed,
+            let regex = try? NSRegularExpression(
+                pattern: #"pixels that match ([0-9.]+) is less than required"#),
+            let match = regex.firstMatch(
+                in: message, range: NSRange(message.startIndex..., in: message)),
+            let range = Range(match.range(at: 1), in: message)
+        {
+            pixelMatch = Double(message[range])
+        }
+        return SidecarResult(
+            passed: passed, message: message, pixelMatch: pixelMatch, required: Double("\(precision)") ?? 0)
+    }
+
+    private static func writeSidecar(
+        _ result: SidecarResult, name: String, mode: SnapshotMode, directory: URL
+    ) throws {
+        let json: [String: Any] = [
+            "platform": "ios",
+            "name": name,
+            "mode": mode.rawValue,
+            "passed": result.passed,
+            "message": result.message,
+            "value": result.pixelMatch.map { $0 as Any } ?? NSNull(),
+            "required": result.required,
+            "unit": "precision",
+        ]
+        let target = directory.appendingPathComponent("\(name)_\(mode.rawValue).result.json")
+        do {
+            let data = try JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted, .sortedKeys])
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
             try data.write(to: target)
         } catch {

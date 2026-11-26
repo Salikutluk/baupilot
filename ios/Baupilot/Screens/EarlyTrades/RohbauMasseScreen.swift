@@ -115,17 +115,28 @@ struct RohbauMasseScreen: View {
             .accessibilityIdentifier("measure.result")
     }
 
-    /// IosRohbauMasse:56-62: "Bereits gemessen" and the 4-column tile grid (gap 6).
+    /// IosRohbauMasse:56-62: "Bereits gemessen" and the 4-column tile grid (gap 6). Rows of equal tiles rather than a
+    /// `LazyVGrid`: the accessibility audit reports a lazy grid's text as not scaling with Dynamic Type.
     private var measuredSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             SectionHeader(model.measuredHeading, style: .caps(inset: 4))
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4), spacing: 6) {
-                ForEach(model.measured, id: \.self) { code in
-                    CodeTile(code, background: Tokens.oSoft, foreground: Tokens.oFg)
+            VStack(spacing: 6) {
+                ForEach(Array(stride(from: 0, to: model.measured.count, by: Self.tileColumns)), id: \.self) { start in
+                    let row = model.measured[start..<min(start + Self.tileColumns, model.measured.count)]
+                    HStack(spacing: 6) {
+                        ForEach(Array(row), id: \.self) { code in
+                            CodeTile(code, background: Tokens.oSoft, foreground: Tokens.oFg)
+                        }
+                        // An empty cell per missing tile keeps the columns as wide as in a full row.
+                        ForEach(0..<(Self.tileColumns - row.count), id: \.self) { _ in Color.clear }
+                    }
                 }
             }
         }
     }
+
+    /// IosRohbauMasse.dc.html:58 (`grid-template-columns: repeat(4, minmax(0, 1fr))`).
+    private static let tileColumns = 4
 
     private static func target(_ model: MeasureViewModel, _ dimension: MeasureViewModel.Dimension) -> Int {
         switch dimension {

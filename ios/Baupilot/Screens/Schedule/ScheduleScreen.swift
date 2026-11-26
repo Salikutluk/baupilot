@@ -20,8 +20,9 @@ struct ScheduleScreen: View {
                 Text(ScreenCopy.Zeitplan.askHeading)
                     .interText(13, .semibold)
                     .foregroundStyle(Tokens.aFg.color)
-                ForEach(Array(model.asks.enumerated()), id: \.offset) { _, ask in
+                ForEach(Array(model.asks.enumerated()), id: \.offset) { index, ask in
                     AskRow(title: ask.name, subtitle: ask.sub, action: action(for: ask))
+                        .accessibilityIdentifier("schedule.ask.\(index)")
                 }
             }
         }

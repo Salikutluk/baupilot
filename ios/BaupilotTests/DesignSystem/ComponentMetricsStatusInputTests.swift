@@ -81,6 +81,58 @@ final class ComponentMetricsStatusInputTests: XCTestCase {
         XCTAssertEqual(s.height, 36)
     }
 
+    /// The chip draws 36 tall; its hit shape grows 4 pt on every side (44 tall) without moving the layout.
+    func testFilterChipHitShapeIs44() {
+        let box = CGRect(x: 0, y: 0, width: 60, height: 36)
+        let hit = FilterChips.hitShape.path(in: box).boundingRect
+        XCTAssertGreaterThanOrEqual(hit.height, 44)
+        XCTAssertTrue(hit.contains(box))
+    }
+
+    /// The compact segment draws 34 tall; its hit shape grows to 44. The regular segment is already 44.
+    func testSegmentedControlCompactHitShapeIs44() {
+        let compact = CGRect(x: 0, y: 0, width: 80, height: SegmentedControl.SegmentHeight.compact.points)
+        let hit = SegmentedControl.hitShape(for: .compact).path(in: compact).boundingRect
+        XCTAssertGreaterThanOrEqual(hit.height, 44)
+        XCTAssertTrue(hit.contains(compact))
+        let regular = CGRect(x: 0, y: 0, width: 80, height: SegmentedControl.SegmentHeight.regular.points)
+        XCTAssertEqual(SegmentedControl.hitShape(for: .regular).path(in: regular).boundingRect, regular)
+    }
+
+    func testMinimumHitShapeGrowsASmallBoxToA44CentredBox() {
+        func hit(_ box: CGRect) -> CGRect { MinimumHitShape().path(in: box).boundingRect }
+        XCTAssertEqual(hit(CGRect(x: 10, y: 20, width: 22, height: 22)), CGRect(x: -1, y: 9, width: 44, height: 44))
+        XCTAssertEqual(hit(CGRect(x: 0, y: 0, width: 98, height: 20)), CGRect(x: 0, y: -12, width: 98, height: 44))
+        let large = CGRect(x: 0, y: 0, width: 120, height: 48)
+        XCTAssertEqual(hit(large), large)
+    }
+
+    /// The 51 × 31 track keeps its layout; the hit shape is 44 tall.
+    func testToggleHitShapeIs44Tall() {
+        let box = CGRect(x: 0, y: 0, width: 51, height: 31)
+        let hit = IosToggle.hitShape.path(in: box).boundingRect
+        XCTAssertGreaterThanOrEqual(hit.height, 44)
+        XCTAssertTrue(hit.contains(box))
+    }
+
+    /// A short link ("Alle 6", 36 wide) gets a 44 × 44 hit shape that contains the drawn text box.
+    func testSectionHeaderLinkHitShapeIs44By44() {
+        let box = CGRect(x: 0, y: 0, width: 36, height: 44)
+        let hit = SectionHeader.LinkButton.hitShape.path(in: box).boundingRect
+        XCTAssertGreaterThanOrEqual(hit.width, 44)
+        XCTAssertGreaterThanOrEqual(hit.height, 44)
+        XCTAssertTrue(hit.contains(box))
+    }
+
+    /// The back bar's tappable parts keep the 44 pt row: the hit shape is the full 44 tall frame, not the 24 pt icon.
+    func testBackBarControlsKeepA44Row() {
+        XCTAssertEqual(size(of: BackBar(label: "Abnahmen", action: nil), width: 350).height, 44)
+        XCTAssertEqual(
+            size(of: BackBar(label: "Dokumente", action: nil, trailing: .icon(.share, size: 22, label: "Teilen", action: nil)), width: 350).height, 44)
+        XCTAssertEqual(
+            size(of: BackBar.modal(cancel: "Abbrechen", title: "Neuer Mangel", confirm: "Sichern"), width: 350).height, 44)
+    }
+
     /// Identifiers are an accessibility annotation only: the chips keep their size.
     func testFilterChipsWithoutIdentifiersKeepSize() {
         func chips(_ identifiers: [String]?) -> FilterChips {

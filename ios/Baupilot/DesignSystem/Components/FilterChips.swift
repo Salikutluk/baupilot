@@ -9,6 +9,9 @@ public struct FilterChips: View {
     private let identifiers: [String]?
     private let onSelect: (Int) -> Void
 
+    /// The tappable shape of a chip: the drawn 36 pt box inset by -4 on all sides (44 tall).
+    static var hitShape: some Shape { Rectangle().inset(by: -4) }
+
     public init(
         items: [String],
         selection: Int,
@@ -56,7 +59,7 @@ public struct FilterChips: View {
                     (active ? Tokens.text : inactive).color, in: RoundedRectangle(cornerRadius: 18)
                 )
                 // D14: 36 < 44, so the hit area grows by (44 − 36) / 2 without changing layout.
-                .contentShape(Rectangle().inset(by: -4))
+                .contentShape(Self.hitShape)
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(active ? [.isButton, .isSelected] : .isButton)

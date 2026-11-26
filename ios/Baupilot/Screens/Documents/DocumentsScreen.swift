@@ -37,6 +37,7 @@ struct DocumentsScreen: View {
             icon: .clockW22, title: model.banner.title, subtitle: model.banner.sub, amount: model.banner.amount,
             background: Tokens.aSoft, tileBackground: Tokens.accent, tileForeground: Tokens.onAccent,
             subtitleColor: Tokens.aFg, action: nil)
+        .accessibilityIdentifier("ph.Dokumente.hint")
     }
 
     private func row(_ row: DocumentsModel.Row, index: Int) -> some View {
@@ -63,7 +64,7 @@ struct DocumentsScreen: View {
         VStack(alignment: .leading, spacing: 10) {
             SectionHeader(
                 model.recentLabel,
-                style: .title(link: SectionHeader.Link(title: model.byTradeLabel, action: nil)))
+                style: .title(link: SectionHeader.Link(title: model.byTradeLabel, action: nil, identifier: "ph.Dokumente.bytrade")))
             Card(padding: EdgeInsets()) {
                 VStack(spacing: 0) {
                     let rows = model.rows(filter: filter)
@@ -79,7 +80,7 @@ struct DocumentsScreen: View {
         ScreenScaffold(kind: .tabRoot) {
             LargeTitleHeader(
                 title: model.title, kicker: model.kicker,
-                trailing: .add(label: model.addLabel, action: nil))
+                trailing: .add(label: model.addLabel, action: nil), trailingIdentifier: "ph.Dokumente.add")
             SearchField(
                 text: $query, placeholder: model.searchPlaceholder, accessibilityLabel: model.searchLabel,
                 background: Tokens.chip.dokumente)

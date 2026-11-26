@@ -235,6 +235,33 @@ cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests 'de.bau
 cd android && JAVA_HOME=<jdk21> ./gradlew :app:testDebugUnitTest --tests 'de.baupilot.inspection.SlopeViewModelTest' --tests 'de.baupilot.inspection.FlatnessViewModelTest' --tests 'de.baupilot.app.M6ConsistencyTest'
 ```
 
+### M7 · iOS: Screen-Snapshots, UI-Tests und Barrierefreiheit
+
+M7 (iOS) schließt die Screens der App ab und prüft sie gesamt: 68 Screen-Snapshots (hell und dunkel) gegen `design/reference/ios/<Name>_<light|dark>.png`, UI-Tests für alle Links und Platzhalter-Links (`href="#"` bleibt sichtbar, ohne Aktion), ein Barrierefreiheits-Audit, die Prüfung der Touch-Ziele (≥ 44 pt) und Tests mit großer Schrift. Die Toleranzen ändern sich nie. Messergebnisse, Entscheidungen und bekannte Lücken: [`docs/m7-ios-offene-punkte.md`](docs/m7-ios-offene-punkte.md).
+
+`<scratch>` ist ein Verzeichnis außerhalb des Repositorys (nie im Repository). `build/` und `reports/` sind git-ignoriert.
+
+```sh
+# Scripts-Tests und Prüfungen (vom Repository-Root)
+cd scripts && node --test test/ && cd ..
+scripts/gen-tokens --check && scripts/gen-icons --check && scripts/lint-hex && scripts/design-freeze --check
+
+# iOS: alle Tests (Snapshots, Unit-, UI-Tests, Audit) und Release-Build
+cd ios && xcodegen generate
+xcodebuild test -project Baupilot.xcodeproj -scheme Baupilot -destination 'platform=iOS Simulator,name=iPhone 15' -derivedDataPath <scratch>/m7-ios-dd
+xcodebuild build -project Baupilot.xcodeproj -scheme Baupilot -configuration Release -destination 'generic/platform=iOS Simulator' -derivedDataPath <scratch>/m7-ios-rel
+cd ..
+
+# Diff-Report über alle iOS-Screens (Rohbericht)
+scripts/diff-report --all --platform ios
+```
+
+**Baseline:** Der erste Lauf von `scripts/diff-report --all --platform ios` liefert die Baseline. Die Dateien `summary.json` und `unstable.json` liegen unter `build/m7/ios/baseline/` (git-ignoriert, nicht committet). Spätere Läufe vergleichen dagegen und zeigen Verschlechterungen und instabile Snapshots:
+
+```sh
+scripts/diff-report --all --platform ios --baseline build/m7/ios/baseline/summary.json --unstable build/m7/ios/baseline/unstable.json
+```
+
 ## Font provenance
 
 Fonts are embedded as TTF and also used in the test path.

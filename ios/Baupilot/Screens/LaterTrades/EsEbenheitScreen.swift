@@ -88,15 +88,14 @@ struct EsEbenheitScreen: View {
     /// IosEsEbenheit:57-62: the heading, the chips (`oSoft` / `eSoft` when over) and the summary link, gap 8.
     private var measured: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionHeader(String(format: model.measuredFormat, flatness.points.count), style: .caps(inset: 4))
-                .accessibilityIdentifier("flatness.count")
+            SectionHeader(String(format: model.measuredFormat, flatness.points.count), style: .caps(inset: 4),
+                          identifier: "flatness.count")
             FlowLayout(spacing: 8, lineSpacing: 8) {
                 ForEach(flatness.points.indices, id: \.self) { index in
                     let over = flatness.isOver(index)
                     MeasureChip(
                         flatness.pointText(index), background: over ? Tokens.eSoft.core : Tokens.oSoft,
-                        foreground: over ? Tokens.eFg : Tokens.oFg)
-                        .accessibilityIdentifier("flatness.point.\(index)")
+                        foreground: over ? Tokens.eFg : Tokens.oFg, identifier: "flatness.point.\(index)")
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

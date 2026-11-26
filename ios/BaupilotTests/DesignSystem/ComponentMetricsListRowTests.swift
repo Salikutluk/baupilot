@@ -105,13 +105,16 @@ final class ComponentMetricsListRowTests: XCTestCase {
         XCTAssertEqual(size(of: row, width: 350).height, 41)
     }
 
-    /// The hit area is the cell grown by `hitExpansion` above and below, without moving the layout.
+    /// The hit shape is the cell grown to 44 pt, without moving the layout; a taller cell keeps its height.
     func testComparisonColumnHeaderHitArea44() {
         BaupilotFonts.registerIfNeeded()
         let nameOnly = ComparisonTable.HeaderCell(
             column: .init(name: "Fließestrich Hahn", badge: nil, action: {}), width: compareWidths.value)
-        XCTAssertGreaterThanOrEqual(
-            size(of: nameOnly, width: compareWidths.value).height + 2 * ComparisonTable.hitExpansion, 44)
+        let cell = size(of: nameOnly, width: compareWidths.value)
+        let hit = ComparisonTable.HeaderCell.hitShape.path(in: CGRect(origin: .zero, size: cell)).boundingRect
+        XCTAssertGreaterThanOrEqual(hit.height, 44)
+        let tall = CGSize(width: cell.width, height: 66)
+        XCTAssertEqual(ComparisonTable.HeaderCell.hitShape.path(in: CGRect(origin: .zero, size: tall)).boundingRect.height, 66)
     }
 }
 

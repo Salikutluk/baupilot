@@ -53,7 +53,10 @@ struct ElUebersichtScreen: View {
                 group.title,
                 style: .caps(
                     inset: 4,
-                    link: group.moreLabel.map { SectionHeader.Link(title: $0, size: 13, action: nil) }))
+                    link: group.moreLabel.map {
+                        SectionHeader.Link(
+                            title: $0, size: 13, action: nil, identifier: "ph.ElUebersicht.more.\(groupIndex)")
+                    }))
             Card(style: .row, padding: EdgeInsets()) {
                 VStack(spacing: 0) {
                     ForEach(Array(group.rows.enumerated()), id: \.offset) { rowIndex, row in

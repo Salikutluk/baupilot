@@ -8,6 +8,12 @@ enum ScreenCopy {
     // Main.dc.html:48 (iOS login password input placeholder)
     static let passwordPlaceholder = "••••••••"
 
+    enum Signature {
+        // M7 D11, no prototype text (role=img); state for VoiceOver/TalkBack
+        static let empty = "leer"
+        static let signed = "unterschrieben"
+    }
+
     enum Login {
         /// Feature bullet icons by position (Main.dc.html:71-73): calendar, document with check, rising line.
         static var featureIcons: [BaupilotIcon] { [.calendar, .documentCheck, .chartLine] }

@@ -1,8 +1,9 @@
 import SwiftUI
 
 /// The tile raster of a room check (IosFlBad:49): equal columns (`repeat(8, minmax(0, 1fr))`) of `tileHeight` tall
-/// tiles on a `background` plate with `padding` and `gap`. A tile is a button for accessibility without an action; a
-/// hollow tile carries a 2 pt `border` inside its box and a short label. Built from stacks, not a lazy grid, so the
+/// tiles on a `background` plate with `padding` and `gap`. For accessibility the grid is one element (M7 D8): the
+/// label describes the raster and the value lists the hollow tiles; a tile has no semantics and no action. A hollow
+/// tile carries a 2 pt `border` inside its box and a short label. Built from stacks, not a lazy grid, so the
 /// height is known to a parent that sizes to its content.
 public struct TileGrid: View {
     public struct Tile {
@@ -22,14 +23,12 @@ public struct TileGrid: View {
         public let style: Style
         public let label: String?
         public let accessibilityLabel: String
-        public let identifier: String
 
-        public init(id: String, style: Style, label: String?, accessibilityLabel: String, identifier: String) {
+        public init(id: String, style: Style, label: String?, accessibilityLabel: String) {
             self.id = id
             self.style = style
             self.label = label
             self.accessibilityLabel = accessibilityLabel
-            self.identifier = identifier
         }
     }
 
@@ -58,6 +57,12 @@ public struct TileGrid: View {
         self.accessibilityLabel = accessibilityLabel
     }
 
+    /// The `accessibilityLabel` strings of the hollow tiles (the ones with a `border`), joined with ", "; empty when
+    /// no tile is hollow.
+    public static func accessibilityValue(tiles: [Tile]) -> String {
+        tiles.filter { $0.style.border != nil }.map(\.accessibilityLabel).joined(separator: ", ")
+    }
+
     private var rows: [[Int]] {
         stride(from: 0, to: tiles.count, by: columns).map { start in
             Array(start..<min(start + columns, tiles.count))
@@ -81,8 +86,10 @@ public struct TileGrid: View {
         .padding(padding)
         .frame(maxWidth: .infinity)
         .background(background.color, in: RoundedRectangle(cornerRadius: radius))
-        .accessibilityElement(children: .contain)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(accessibilityLabel))
+        .accessibilityValue(Text(Self.accessibilityValue(tiles: tiles)))
+        .accessibilityIdentifier("tiles.grid")
     }
 
     private func tileView(_ tile: Tile) -> some View {
@@ -104,9 +111,5 @@ public struct TileGrid: View {
                         .fixedSize()
                 }
             }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text(tile.accessibilityLabel))
-            .accessibilityAddTraits(.isButton)
-            .accessibilityIdentifier(tile.identifier)
     }
 }

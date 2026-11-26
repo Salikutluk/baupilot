@@ -14,7 +14,9 @@ struct DefectsScreen: View {
         ScreenScaffold(kind: .tabRoot) {
             // A content container of its own: on the scaffold the identifier would merge with `screen.inspections`.
             VStack(alignment: .leading, spacing: 14) {
-                LargeTitleHeader(title: model.title, trailing: .link(text: model.templatesLabel, action: nil))
+                LargeTitleHeader(
+                    title: model.title, trailing: .link(text: model.templatesLabel, action: nil),
+                    trailingIdentifier: "ph.AbnMaengel.vorlagen")
                 SegmentedControl(
                     segments: model.views, selection: 1, height: .regular,
                     background: .chip(Tokens.chip.abnMaengel), accessibilityLabel: model.viewsLabel,
@@ -30,6 +32,7 @@ struct DefectsScreen: View {
                     CountLinkRow(
                         icon: .checkW26, iconColor: Tokens.ok.core, title: model.resolvedLabel,
                         count: model.resolvedCount, action: nil)
+                        .accessibilityIdentifier("ph.AbnMaengel.resolved")
                 }
             }
             .accessibilityElement(children: .contain)
@@ -64,7 +67,9 @@ struct DefectsScreen: View {
                         HStack(spacing: 8) {
                             PillButton(
                                 model.remindLabel, style: .outline(border: Tokens.border.abnMaengel), action: nil)
+                            .accessibilityIdentifier("ph.AbnMaengel.remind.\(card.id)")
                             PillButton(model.resolveLabel, style: .filled, action: nil)
+                                .accessibilityIdentifier("ph.AbnMaengel.resolve.\(card.id)")
                         }
                     }
                 }
