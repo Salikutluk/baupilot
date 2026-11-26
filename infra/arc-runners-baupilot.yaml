@@ -1,0 +1,100 @@
+# Argo CD app for the baupilot runner scale set (label "k3s-runners") on the home k3s cluster.
+# Apply: kubectl apply -f infra/arc-runners-baupilot.yaml
+# Same pod template as arc-runners-evo (dind with MTU 1450 + Docker Hub mirror), plus a hostPath that CI
+# jobs use as artifact store: /var/lib/ci-artifacts-baupilot on the node, /ci-artifacts in the runner.
+# Its own folder, not evo's /var/lib/ci-artifacts: evo's cleanup deletes every top-level entry older than a day.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: arc-runners-baupilot
+  namespace: argocd
+  annotations:
+    arc-k3s/repo: Salikutluk/baupilot
+  labels:
+    arc-k3s/managed: "true"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: arc-baupilot
+  source:
+    repoURL: ghcr.io/actions/actions-runner-controller-charts
+    chart: gha-runner-scale-set
+    targetRevision: 0.15.1
+    helm:
+      releaseName: k3s-runners
+      valuesObject:
+        githubConfigUrl: https://github.com/Salikutluk/baupilot
+        githubConfigSecret: arc-github-auth
+        runnerScaleSetName: k3s-runners
+        minRunners: 0
+        maxRunners: 3
+        controllerServiceAccount:
+          name: arc-controller
+          namespace: arc-systems
+        template:
+          spec:
+            initContainers:
+              - name: init-dind-externals
+                image: ghcr.io/actions/actions-runner:latest
+                command: [cp]
+                args: ["-r", "/home/runner/externals/.", "/home/runner/tmpDir/"]
+                volumeMounts:
+                  - { name: dind-externals, mountPath: /home/runner/tmpDir }
+              - name: dind
+                image: docker:dind
+                restartPolicy: Always
+                args:
+                  - dockerd
+                  - --host=unix:///var/run/docker.sock
+                  - --group=$(DOCKER_GROUP_GID)
+                  - --mtu=1450
+                  - --default-network-opt=bridge=com.docker.network.driver.mtu=1450
+                  - --registry-mirror=http://registry-mirror.arc-systems.svc:5000
+                  - --insecure-registry=registry-mirror.arc-systems.svc:5000
+                env:
+                  - { name: DOCKER_GROUP_GID, value: "123" }
+                securityContext:
+                  privileged: true
+                startupProbe:
+                  exec:
+                    command: [docker, info]
+                  initialDelaySeconds: 0
+                  periodSeconds: 5
+                  failureThreshold: 24
+                volumeMounts:
+                  - { name: work, mountPath: /home/runner/_work }
+                  - { name: dind-sock, mountPath: /var/run }
+                  - { name: dind-externals, mountPath: /home/runner/externals }
+            containers:
+              - name: runner
+                image: ghcr.io/actions/actions-runner:latest
+                command: [/home/runner/run.sh]
+                env:
+                  - { name: DOCKER_HOST, value: unix:///var/run/docker.sock }
+                  - { name: RUNNER_WAIT_FOR_DOCKER_IN_SECONDS, value: "120" }
+                volumeMounts:
+                  - { name: work, mountPath: /home/runner/_work }
+                  - { name: dind-sock, mountPath: /var/run }
+                  - { name: ci-artifacts, mountPath: /ci-artifacts }
+            volumes:
+              - { name: dind-sock, emptyDir: {} }
+              - { name: dind-externals, emptyDir: {} }
+              - { name: work, emptyDir: {} }
+              - name: ci-artifacts
+                hostPath:
+                  path: /var/lib/ci-artifacts-baupilot
+                  type: DirectoryOrCreate
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 10
+      backoff: { duration: 15s, factor: 2, maxDuration: 5m }
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - SkipDryRunOnMissingResource=true
