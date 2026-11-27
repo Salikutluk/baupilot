@@ -47,7 +47,7 @@ import de.baupilot.inspection.SignatureStrokes
 
 /** Actions the Abnahme screen raises; the shell turns them into navigation. */
 sealed interface SignOffAction {
-    data class Finish(val target: NavigationTarget) : SignOffAction
+    data class Finish(val target: NavigationTarget, val strokes: SignatureStrokes) : SignOffAction
 }
 
 /** Fill and ink of a count tile (renderVals of AndAbnSignatur.dc.html:85-88). */
@@ -112,7 +112,7 @@ fun SignOffScreen(
                     size = ButtonSize.Regular,
                     container = FilledContainer.Primary,
                     modifier = Modifier.testTag("sign.finish"),
-                    onClick = { onAction(SignOffAction.Finish(model.finishTarget)) },
+                    onClick = { onAction(SignOffAction.Finish(model.finishTarget, strokes)) },
                 )
             }
         },

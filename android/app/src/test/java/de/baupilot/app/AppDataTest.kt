@@ -366,7 +366,7 @@ class AppDataTest {
         val bad = edited { root ->
             root.editObject("documents") { docs ->
                 docs.mapArray("categories") { i, c ->
-                    if (i != 0) c else JsonObject(c + ("count" to JsonPrimitive("8")))
+                    if (i != 0) c else JsonObject(c + ("label" to JsonPrimitive("Anderes")))
                 }
             }
         }

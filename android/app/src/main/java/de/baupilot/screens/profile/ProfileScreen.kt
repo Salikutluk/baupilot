@@ -39,6 +39,9 @@ import de.baupilot.designsystem.components.TonalButton
 import de.baupilot.designsystem.components.Trailing
 import de.baupilot.screens.ScreenCopy
 
+/** Flat row index of "Abmelden" (ScreenCopy.kt:175-186): the only row that raises `onSignOut`. */
+private const val SIGN_OUT_ROW = 6
+
 private val TOGGLE_SAVER = listSaver<SnapshotStateList<Boolean>, Boolean>(
     save = { it.toList() },
     restore = { it.toMutableStateList() },
@@ -46,10 +49,10 @@ private val TOGGLE_SAVER = listSaver<SnapshotStateList<Boolean>, Boolean>(
 
 /**
  * Profil (AndProfil.dc.html): title bar, profile row and three settings sections. The switches flip local,
- * non-persisted state (D16); the settings rows, "Bearbeiten" and "Abmelden" have no action.
+ * non-persisted state (D16); the settings rows and "Bearbeiten" have no action; only row 6, "Abmelden", raises [onSignOut].
  */
 @Composable
-fun ProfileScreen(model: ProfileModel) {
+fun ProfileScreen(model: ProfileModel, onSignOut: () -> Unit = {}) {
     // Keyed by the flat row index; starts from the fixture's `checked` value and survives tab switches and
     // activity recreation (M1).
     val toggles = rememberSaveable(saver = TOGGLE_SAVER) {
@@ -98,6 +101,7 @@ fun ProfileScreen(model: ProfileModel) {
                                 },
                                 minHeight = ListItemHeight.H56,
                                 titleColor = if (signOut) Tokens.error else Tokens.text,
+                                onClick = if (position == SIGN_OUT_ROW) onSignOut else null,
                                 modifier = if (row.isToggle) Modifier else Modifier.testTag("ph.Profil.row.$position"),
                             )
                         }

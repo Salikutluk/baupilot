@@ -485,10 +485,11 @@ data class AppData(
                 )
             }
 
+            // The chip text is frozen design copy ("Angebote 7"); only its label is checked, as an import raises the count.
             val filterField = "screens.Dokumente.android.filters"
             val categories = documentItems.categories
             if (dokumenteText.filters.size != categories.size + 1 ||
-                categories.indices.any { "${categories[it].label} ${categories[it].count}" != dokumenteText.filters[it + 1].text }
+                categories.indices.any { !dokumenteText.filters[it + 1].text.startsWith("${categories[it].label} ") }
             ) {
                 throw RepositoryException.Decoding(filterField)
             }

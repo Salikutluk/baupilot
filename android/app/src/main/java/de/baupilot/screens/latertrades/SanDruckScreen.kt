@@ -35,17 +35,24 @@ import de.baupilot.designsystem.components.StepperVariant
 import de.baupilot.designsystem.components.TimerRing
 import de.baupilot.designsystem.components.TitleStyle
 
+/** Actions of the pressure test screen; the shell turns them into capture calls. */
+sealed interface SanDruckAction {
+    /** The camera button. */
+    data object Photo : SanDruckAction
+}
+
 /**
  * Sanitaer Druckprobe Trinkwasser (AndSanDruck.dc.html:17-84): close bar with the counter, the fixed 50 % progress
  * bar and three compact steppers. The current step is a card with the timer ring, the read-only start reading, the
- * editable end reading (D12: local text, never saved) and the photo button, which has no action. [onClose] is the
- * close control.
+ * editable end reading (D12: local text, never saved) and the photo button, which raises [SanDruckAction.Photo].
+ * [onClose] is the close control.
  */
 @Composable
 fun SanDruckScreen(
     model: PressureCheckModel,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    onAction: (SanDruckAction) -> Unit = {},
 ) {
     val route = model.route
     DetailScreenScaffold(
@@ -75,7 +82,7 @@ fun SanDruckScreen(
                         number = model.current.n,
                         title = model.current.title,
                         state = StepState.Current,
-                        body = { CurrentBody(model) },
+                        body = { CurrentBody(model, onAction) },
                     ),
                 ),
                 variant = StepperVariant.Compact,
@@ -110,7 +117,7 @@ private fun nextSteps(model: PressureCheckModel): List<Step> = model.next.mapInd
 
 /** AndSanDruck:35-81: the ring row, the two readings and the photo button, gap 14. */
 @Composable
-private fun CurrentBody(model: PressureCheckModel) {
+private fun CurrentBody(model: PressureCheckModel, onAction: (SanDruckAction) -> Unit) {
     val timer = model.timer
     var end by rememberSaveable { mutableStateOf("") }
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -155,6 +162,7 @@ private fun CurrentBody(model: PressureCheckModel) {
             icon = BaupilotIcon.Camera,
             iconSize = 20.dp,
             modifier = Modifier.testTag("pressure.photo"),
+            onClick = { onAction(SanDruckAction.Photo) },
         )
     }
 }

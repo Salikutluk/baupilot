@@ -17,6 +17,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipe
 import androidx.compose.ui.geometry.Offset
+import de.baupilot.BaupilotApplication
 import de.baupilot.MainActivity
 import de.baupilot.screens.ScreenCopy
 import org.junit.Assert.assertEquals
@@ -25,6 +26,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 /**
@@ -121,6 +123,10 @@ class InspectionFlowUiTest {
         rule.onNode(hasTestTag("defect.defect-window-f2") and hasAnyDescendant(hasText("Frist 15.01.2027 · 2 Fotos")))
             .assertExists()
         rule.onNodeWithTag("tab.inspections").assertIsSelected()
+        val services = (RuntimeEnvironment.getApplication() as BaupilotApplication).services
+        val protocols = services.database.query("SELECT COUNT(*) FROM records WHERE tableId = 'protocols'", emptyArray())
+            .use { it.moveToFirst(); it.getLong(0) }
+        assertEquals("the sign-off recorded its protocol", 1L, protocols)
     }
 
     /** D11 (I3): the pad's state is "leer" without a stroke and "unterschrieben" after one (unmerged tree). */

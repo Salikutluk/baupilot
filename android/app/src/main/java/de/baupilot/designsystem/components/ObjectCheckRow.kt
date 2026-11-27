@@ -48,6 +48,8 @@ fun ObjectCheckRow(
     showsDivider: Boolean,
     modifier: Modifier = Modifier,
     tags: ObjectCheckTags? = null,
+    onOk: () -> Unit = {},
+    onDefect: () -> Unit = {},
 ) {
     Column(modifier.fillMaxWidth()) {
         if (showsDivider) Box(Modifier.fillMaxWidth().height(1.dp).background(Tokens.outlineVariant.color()))
@@ -65,6 +67,8 @@ fun ObjectCheckRow(
                 tags = tags,
                 defectDescription = "$title: Mangel",
                 okDescription = "$title: in Ordnung",
+                onOk = onOk,
+                onDefect = onDefect,
             )
         }
     }
@@ -73,8 +77,8 @@ fun ObjectCheckRow(
 /**
  * The defect / ok pair (AndSanBad:55-62): a 1 `outline` border, radius 20 and clipped, 40 inside (42 outside) and 98
  * wide. The defect cell is 48 wide with a 1 `outline` line on its right edge and a `muted` cross; the ok cell is 48
- * wide and is `okBg` with an `okFg` check when [ok]. Neither cell acts; they are buttons for accessibility. The cells
- * stay 40 tall in layout: Compose widens each one's hit area to 48 without changing its size.
+ * wide and is `okBg` with an `okFg` check when [ok]. The cells call [onDefect] and [onOk] (no-ops by default) and
+ * are buttons for accessibility. They stay 40 tall in layout: Compose widens each one's hit area to 48 without changing its size.
  */
 @Composable
 fun VerdictToggle(
@@ -83,6 +87,8 @@ fun VerdictToggle(
     tags: ObjectCheckTags? = null,
     defectDescription: String = "Mangel",
     okDescription: String = "in Ordnung",
+    onOk: () -> Unit = {},
+    onDefect: () -> Unit = {},
 ) {
     val outline = Tokens.outline.color()
     Row(
@@ -97,6 +103,7 @@ fun VerdictToggle(
             tint = Tokens.muted.color(),
             description = defectDescription,
             tag = tags?.defect,
+            onClick = onDefect,
             modifier = Modifier.drawBehind {
                 val line = 1.dp.toPx()
                 drawRect(outline, Offset(size.width - line, 0f), Size(line, size.height))
@@ -107,6 +114,7 @@ fun VerdictToggle(
             tint = (if (ok) Tokens.okFg else Tokens.muted).color(),
             description = okDescription,
             tag = tags?.ok,
+            onClick = onOk,
             modifier = if (ok) Modifier.background(Tokens.okBg.color()) else Modifier,
         )
     }
@@ -118,13 +126,14 @@ private fun VerdictCell(
     tint: androidx.compose.ui.graphics.Color,
     description: String,
     tag: String?,
+    onClick: () -> Unit,
     modifier: Modifier,
 ) {
     Box(
         modifier = modifier
             .width(48.dp)
             .fillMaxHeight()
-            .clickable(role = Role.Button, onClick = {})
+            .clickable(role = Role.Button, onClick = onClick)
             .semantics { contentDescription = description }
             .then(if (tag != null) Modifier.testTag(tag) else Modifier),
         contentAlignment = Alignment.Center,

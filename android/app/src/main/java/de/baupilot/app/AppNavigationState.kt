@@ -219,3 +219,6 @@ data class AppNavigationState(
         }
     }
 }
+
+/** Sign-out (D22): back to the logged-out default; the next [AppNavigationState.logIn] starts on Home again. */
+fun AppNavigationState.logOut(): AppNavigationState = AppNavigationState()

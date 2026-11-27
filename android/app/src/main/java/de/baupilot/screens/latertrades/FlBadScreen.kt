@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import de.baupilot.app.AppRoute
 import de.baupilot.app.TileCheckModel
 import de.baupilot.designsystem.BaupilotText
 import de.baupilot.designsystem.Tokens
@@ -31,7 +32,14 @@ import de.baupilot.designsystem.components.StepperVariant
 import de.baupilot.designsystem.components.TileGrid
 import de.baupilot.designsystem.components.TileItem
 import de.baupilot.designsystem.components.TitleStyle
-import de.baupilot.screens.earlytrades.CheckStepAction
+
+/** Actions of the tile check screen; the shell turns them into navigation and step records. */
+sealed interface TileAction {
+    data class Open(val route: AppRoute) : TileAction
+
+    /** "Keine Hohlstellen" on `tiles.none`: the shell records the step as passed. */
+    data object NoFindings : TileAction
+}
 
 /**
  * Width split of the two buttons (AndFlBad.dc.html:58-59), measured on the reference: both are `flex: 1`, but the `<a>`
@@ -44,7 +52,8 @@ private const val NONE_BUTTON_WEIGHT = 166f
 /**
  * Fliesen Raumprüfung Bad (AndFlBad.dc.html:17-70): close bar with the counter, the fixed 42 % progress bar and three
  * compact steppers. The current step is a card with the instruction, the tile grid, the result line and the two
- * buttons. "Als Mangel" opens the defect form (D5); the tiles and "Keine Hohlstellen" have no action (D12).
+ * buttons. "Als Mangel" opens the defect form (D5); "Keine Hohlstellen" raises [TileAction.NoFindings]; the tiles have no
+ * action (D12).
  * [onClose] is the close control.
  */
 @Composable
@@ -52,7 +61,7 @@ fun FlBadScreen(
     model: TileCheckModel,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
-    onAction: (CheckStepAction) -> Unit = {},
+    onAction: (TileAction) -> Unit = {},
 ) {
     val route = model.route
     DetailScreenScaffold(
@@ -109,7 +118,7 @@ fun FlBadScreen(
 }
 
 @Composable
-private fun CurrentBody(model: TileCheckModel, onAction: (CheckStepAction) -> Unit) {
+private fun CurrentBody(model: TileCheckModel, onAction: (TileAction) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         BaupilotText(text = model.current.text, size = 14.sp, lineHeight = 20.sp, color = Tokens.muted)
         LegendRow(direction = model.wallLabel, mark = model.markHint)
@@ -133,11 +142,12 @@ private fun CurrentBody(model: TileCheckModel, onAction: (CheckStepAction) -> Un
                 size = ButtonSize.Regular,
                 container = FilledContainer.Error,
                 modifier = Modifier.weight(DEFECT_BUTTON_WEIGHT).testTag("tiles.defect"),
-                onClick = { onAction(CheckStepAction.Open(model.defectTarget)) },
+                onClick = { onAction(TileAction.Open(model.defectTarget)) },
             )
             OutlinedButton(
                 label = model.noneLabel,
                 modifier = Modifier.weight(NONE_BUTTON_WEIGHT).testTag("tiles.none"),
+                onClick = { onAction(TileAction.NoFindings) },
             )
         }
     }

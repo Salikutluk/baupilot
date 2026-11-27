@@ -1,0 +1,9 @@
+{
+  "name": "project-cleanup",
+  "private": true,
+  "type": "module",
+  "main": "src/main.js",
+  "dependencies": {
+    "node-appwrite": "32.4.0"
+  }
+}

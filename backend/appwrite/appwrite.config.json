@@ -1,0 +1,1533 @@
+{
+  "projectId": "baupilot",
+  "projectName": "Baupilot",
+  "endpoint": "https://fra.cloud.appwrite.io/v1",
+  "settings": {
+    "services": {
+      "account": true,
+      "databases": true,
+      "storage": true,
+      "teams": true,
+      "users": true,
+      "functions": true,
+      "messaging": true
+    },
+    "auth": {
+      "methods": {
+        "email-password": true
+      }
+    }
+  },
+  "functions": [
+    {
+      "$id": "deadline-reminders",
+      "name": "deadline-reminders",
+      "runtime": "node-22",
+      "execute": [],
+      "events": [],
+      "schedule": "0 6 * * *",
+      "timeout": 120,
+      "enabled": true,
+      "logging": true,
+      "entrypoint": "src/main.js",
+      "commands": "npm install",
+      "scopes": [
+        "rows.read",
+        "users.read",
+        "targets.read",
+        "messages.write"
+      ],
+      "path": "functions/deadline-reminders"
+    },
+    {
+      "$id": "project-cleanup",
+      "name": "project-cleanup",
+      "runtime": "node-22",
+      "execute": [],
+      "events": [
+        "databases.baupilot.tables.projects.rows.*.delete"
+      ],
+      "schedule": "",
+      "timeout": 300,
+      "enabled": true,
+      "logging": true,
+      "entrypoint": "src/main.js",
+      "commands": "npm install",
+      "scopes": [
+        "rows.read",
+        "rows.write",
+        "files.read",
+        "files.write"
+      ],
+      "path": "functions/project-cleanup"
+    }
+  ],
+  "tablesDB": [
+    {
+      "$id": "baupilot",
+      "name": "baupilot",
+      "enabled": true
+    }
+  ],
+  "tables": [
+    {
+      "$id": "projects",
+      "$permissions": [
+        "read(\"team:bauherr\")",
+        "read(\"team:architekt\")",
+        "read(\"team:handwerker\")",
+        "create(\"team:bauherr\")",
+        "create(\"team:architekt\")",
+        "update(\"team:bauherr\")",
+        "update(\"team:architekt\")",
+        "delete(\"team:bauherr\")"
+      ],
+      "databaseId": "baupilot",
+      "name": "Projects",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "projectId",
+          "type": "varchar",
+          "size": 64,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "sortKey",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "stamps",
+          "type": "longtext",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "deleted",
+          "type": "boolean",
+          "required": false,
+          "array": false,
+          "default": false
+        },
+        {
+          "key": "id",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "buildingType",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "address",
+          "type": "varchar",
+          "size": 255,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "constructionStart",
+          "type": "varchar",
+          "size": 32,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "moveIn",
+          "type": "varchar",
+          "size": 32,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "phase",
+          "type": "varchar",
+          "size": 512,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "unreadNotifications",
+          "type": "integer",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "owner",
+          "type": "varchar",
+          "size": 1024,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_projectId",
+          "type": "key",
+          "columns": [
+            "projectId"
+          ],
+          "orders": [
+            "asc"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "members",
+      "$permissions": [
+        "read(\"team:bauherr\")",
+        "read(\"team:architekt\")",
+        "read(\"team:handwerker\")",
+        "create(\"team:bauherr\")",
+        "create(\"team:architekt\")",
+        "create(\"team:handwerker\")",
+        "update(\"team:bauherr\")",
+        "update(\"team:architekt\")",
+        "update(\"team:handwerker\")"
+      ],
+      "databaseId": "baupilot",
+      "name": "Members",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "projectId",
+          "type": "varchar",
+          "size": 64,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "sortKey",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "stamps",
+          "type": "longtext",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "deleted",
+          "type": "boolean",
+          "required": false,
+          "array": false,
+          "default": false
+        },
+        {
+          "key": "userId",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "role",
+          "type": "varchar",
+          "size": 16,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_projectId",
+          "type": "key",
+          "columns": [
+            "projectId"
+          ],
+          "orders": [
+            "asc"
+          ]
+        },
+        {
+          "key": "uq_project_user",
+          "type": "unique",
+          "columns": [
+            "projectId",
+            "userId"
+          ],
+          "orders": [
+            "asc",
+            "asc"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "trades",
+      "$permissions": [
+        "read(\"team:bauherr\")",
+        "read(\"team:architekt\")",
+        "read(\"team:handwerker\")",
+        "create(\"team:bauherr\")",
+        "create(\"team:architekt\")",
+        "update(\"team:bauherr\")",
+        "update(\"team:architekt\")"
+      ],
+      "databaseId": "baupilot",
+      "name": "Trades",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "projectId",
+          "type": "varchar",
+          "size": 64,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "sortKey",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "stamps",
+          "type": "longtext",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "deleted",
+          "type": "boolean",
+          "required": false,
+          "array": false,
+          "default": false
+        },
+        {
+          "key": "id",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "name",
+          "type": "varchar",
+          "size": 128,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "phase",
+          "type": "integer",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "window",
+          "type": "varchar",
+          "size": 128,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "scheduleState",
+          "type": "varchar",
+          "size": 32,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "askNow",
+          "type": "boolean",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "weekLabel",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "statusLabel",
+          "type": "varchar",
+          "size": 128,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "detail",
+          "type": "longtext",
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_projectId",
+          "type": "key",
+          "columns": [
+            "projectId"
+          ],
+          "orders": [
+            "asc"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "offers",
+      "$permissions": [
+        "read(\"team:bauherr\")",
+        "read(\"team:architekt\")",
+        "read(\"team:handwerker\")",
+        "create(\"team:bauherr\")",
+        "create(\"team:architekt\")",
+        "update(\"team:bauherr\")",
+        "update(\"team:architekt\")"
+      ],
+      "databaseId": "baupilot",
+      "name": "Offers",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "projectId",
+          "type": "varchar",
+          "size": 64,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "sortKey",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "stamps",
+          "type": "longtext",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "deleted",
+          "type": "boolean",
+          "required": false,
+          "array": false,
+          "default": false
+        },
+        {
+          "key": "id",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "tradeId",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "firm",
+          "type": "varchar",
+          "size": 128,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "price",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "best",
+          "type": "boolean",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "pending",
+          "type": "boolean",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "meta",
+          "type": "varchar",
+          "size": 512,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "documentId",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_projectId",
+          "type": "key",
+          "columns": [
+            "projectId"
+          ],
+          "orders": [
+            "asc"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "documents",
+      "$permissions": [
+        "read(\"team:bauherr\")",
+        "read(\"team:architekt\")",
+        "read(\"team:handwerker\")",
+        "create(\"team:bauherr\")",
+        "create(\"team:architekt\")",
+        "create(\"team:handwerker\")",
+        "update(\"team:bauherr\")",
+        "update(\"team:architekt\")",
+        "update(\"team:handwerker\")"
+      ],
+      "databaseId": "baupilot",
+      "name": "Documents",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "projectId",
+          "type": "varchar",
+          "size": 64,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "sortKey",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "stamps",
+          "type": "longtext",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "deleted",
+          "type": "boolean",
+          "required": false,
+          "array": false,
+          "default": false
+        },
+        {
+          "key": "id",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "kind",
+          "type": "varchar",
+          "size": 32,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "tradeId",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "title",
+          "type": "varchar",
+          "size": 255,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "meta",
+          "type": "varchar",
+          "size": 512,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "amount",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "due",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "statusLabel",
+          "type": "varchar",
+          "size": 128,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "viewer",
+          "type": "longtext",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "fileId",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "fileSha256",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "sizeBytes",
+          "type": "integer",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "origin",
+          "type": "varchar",
+          "size": 16,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "importedAt",
+          "type": "varchar",
+          "size": 40,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_projectId",
+          "type": "key",
+          "columns": [
+            "projectId"
+          ],
+          "orders": [
+            "asc"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "inspections",
+      "$permissions": [
+        "read(\"team:bauherr\")",
+        "read(\"team:architekt\")",
+        "read(\"team:handwerker\")",
+        "create(\"team:bauherr\")",
+        "create(\"team:architekt\")",
+        "create(\"team:handwerker\")",
+        "update(\"team:bauherr\")",
+        "update(\"team:architekt\")",
+        "update(\"team:handwerker\")"
+      ],
+      "databaseId": "baupilot",
+      "name": "Inspections",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "projectId",
+          "type": "varchar",
+          "size": 64,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "sortKey",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "stamps",
+          "type": "longtext",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "deleted",
+          "type": "boolean",
+          "required": false,
+          "array": false,
+          "default": false
+        },
+        {
+          "key": "tradeId",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "name",
+          "type": "varchar",
+          "size": 128,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "sub",
+          "type": "varchar",
+          "size": 512,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "status",
+          "type": "varchar",
+          "size": 32,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "route",
+          "type": "varchar",
+          "size": 255,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "signedAt",
+          "type": "varchar",
+          "size": 40,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "protocolId",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_projectId",
+          "type": "key",
+          "columns": [
+            "projectId"
+          ],
+          "orders": [
+            "asc"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "steps",
+      "$permissions": [
+        "read(\"team:bauherr\")",
+        "read(\"team:architekt\")",
+        "read(\"team:handwerker\")",
+        "create(\"team:bauherr\")",
+        "create(\"team:architekt\")",
+        "create(\"team:handwerker\")",
+        "update(\"team:bauherr\")",
+        "update(\"team:architekt\")",
+        "update(\"team:handwerker\")"
+      ],
+      "databaseId": "baupilot",
+      "name": "Steps",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "projectId",
+          "type": "varchar",
+          "size": 64,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "sortKey",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "stamps",
+          "type": "longtext",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "deleted",
+          "type": "boolean",
+          "required": false,
+          "array": false,
+          "default": false
+        },
+        {
+          "key": "stepKey",
+          "type": "varchar",
+          "size": 128,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "tradeId",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "status",
+          "type": "varchar",
+          "size": 16,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "values",
+          "type": "varchar",
+          "size": 2048,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "capturedAt",
+          "type": "varchar",
+          "size": 40,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_projectId",
+          "type": "key",
+          "columns": [
+            "projectId"
+          ],
+          "orders": [
+            "asc"
+          ]
+        },
+        {
+          "key": "uq_project_step",
+          "type": "unique",
+          "columns": [
+            "projectId",
+            "stepKey"
+          ],
+          "orders": [
+            "asc",
+            "asc"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "defects",
+      "$permissions": [
+        "read(\"team:bauherr\")",
+        "read(\"team:architekt\")",
+        "read(\"team:handwerker\")",
+        "create(\"team:bauherr\")",
+        "create(\"team:architekt\")",
+        "create(\"team:handwerker\")",
+        "update(\"team:bauherr\")",
+        "update(\"team:architekt\")",
+        "update(\"team:handwerker\")"
+      ],
+      "databaseId": "baupilot",
+      "name": "Defects",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "projectId",
+          "type": "varchar",
+          "size": 64,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "sortKey",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "stamps",
+          "type": "longtext",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "deleted",
+          "type": "boolean",
+          "required": false,
+          "array": false,
+          "default": false
+        },
+        {
+          "key": "id",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "tradeId",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "trade",
+          "type": "varchar",
+          "size": 512,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "title",
+          "type": "varchar",
+          "size": 255,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "deadline",
+          "type": "varchar",
+          "size": 32,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "deadlineLabel",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "dueLabel",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "urgency",
+          "type": "varchar",
+          "size": 32,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "meta",
+          "type": "varchar",
+          "size": 255,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "photos",
+          "type": "integer",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "severity",
+          "type": "varchar",
+          "size": 32,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "description",
+          "type": "varchar",
+          "size": 2048,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "elementId",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "responsible",
+          "type": "varchar",
+          "size": 128,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "notifyByEmail",
+          "type": "boolean",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "stepKey",
+          "type": "varchar",
+          "size": 128,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "origin",
+          "type": "varchar",
+          "size": 16,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_projectId",
+          "type": "key",
+          "columns": [
+            "projectId"
+          ],
+          "orders": [
+            "asc"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "signatures",
+      "$permissions": [
+        "read(\"team:bauherr\")",
+        "read(\"team:architekt\")",
+        "read(\"team:handwerker\")",
+        "create(\"team:bauherr\")",
+        "create(\"team:architekt\")",
+        "create(\"team:handwerker\")",
+        "update(\"team:bauherr\")",
+        "update(\"team:architekt\")",
+        "update(\"team:handwerker\")"
+      ],
+      "databaseId": "baupilot",
+      "name": "Signatures",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "projectId",
+          "type": "varchar",
+          "size": 64,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "sortKey",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "stamps",
+          "type": "longtext",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "deleted",
+          "type": "boolean",
+          "required": false,
+          "array": false,
+          "default": false
+        },
+        {
+          "key": "inspectionId",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "role",
+          "type": "varchar",
+          "size": 16,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "name",
+          "type": "varchar",
+          "size": 128,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "strokes",
+          "type": "longtext",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "signedAt",
+          "type": "varchar",
+          "size": 40,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_projectId",
+          "type": "key",
+          "columns": [
+            "projectId"
+          ],
+          "orders": [
+            "asc"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "notifications",
+      "$permissions": [
+        "read(\"team:bauherr\")",
+        "read(\"team:architekt\")",
+        "read(\"team:handwerker\")",
+        "create(\"team:bauherr\")",
+        "create(\"team:architekt\")",
+        "update(\"team:bauherr\")",
+        "update(\"team:architekt\")"
+      ],
+      "databaseId": "baupilot",
+      "name": "Notifications",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "projectId",
+          "type": "varchar",
+          "size": 64,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "sortKey",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "stamps",
+          "type": "longtext",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "deleted",
+          "type": "boolean",
+          "required": false,
+          "array": false,
+          "default": false
+        },
+        {
+          "key": "id",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "kind",
+          "type": "varchar",
+          "size": 32,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "title",
+          "type": "varchar",
+          "size": 255,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "text",
+          "type": "varchar",
+          "size": 512,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "when",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "unread",
+          "type": "boolean",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "target",
+          "type": "varchar",
+          "size": 255,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "group",
+          "type": "varchar",
+          "size": 128,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_projectId",
+          "type": "key",
+          "columns": [
+            "projectId"
+          ],
+          "orders": [
+            "asc"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "photos",
+      "$permissions": [
+        "read(\"team:bauherr\")",
+        "read(\"team:architekt\")",
+        "read(\"team:handwerker\")",
+        "create(\"team:bauherr\")",
+        "create(\"team:architekt\")",
+        "create(\"team:handwerker\")",
+        "update(\"team:bauherr\")",
+        "update(\"team:architekt\")",
+        "update(\"team:handwerker\")"
+      ],
+      "databaseId": "baupilot",
+      "name": "Photos",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "projectId",
+          "type": "varchar",
+          "size": 64,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "sortKey",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "stamps",
+          "type": "longtext",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "deleted",
+          "type": "boolean",
+          "required": false,
+          "array": false,
+          "default": false
+        },
+        {
+          "key": "ownerTable",
+          "type": "varchar",
+          "size": 16,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "ownerId",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "fileId",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "sha256",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "takenAt",
+          "type": "varchar",
+          "size": 40,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "bytes",
+          "type": "integer",
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_projectId",
+          "type": "key",
+          "columns": [
+            "projectId"
+          ],
+          "orders": [
+            "asc"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "protocols",
+      "$permissions": [
+        "read(\"team:bauherr\")",
+        "read(\"team:architekt\")",
+        "read(\"team:handwerker\")",
+        "create(\"team:bauherr\")",
+        "create(\"team:architekt\")",
+        "create(\"team:handwerker\")",
+        "update(\"team:bauherr\")",
+        "update(\"team:architekt\")",
+        "update(\"team:handwerker\")"
+      ],
+      "databaseId": "baupilot",
+      "name": "Protocols",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "projectId",
+          "type": "varchar",
+          "size": 64,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "sortKey",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "stamps",
+          "type": "longtext",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "deleted",
+          "type": "boolean",
+          "required": false,
+          "array": false,
+          "default": false
+        },
+        {
+          "key": "inspectionId",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "fileId",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "fileSha256",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "contentSha256",
+          "type": "varchar",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "contentJson",
+          "type": "longtext",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "createdAt",
+          "type": "varchar",
+          "size": 40,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_projectId",
+          "type": "key",
+          "columns": [
+            "projectId"
+          ],
+          "orders": [
+            "asc"
+          ]
+        }
+      ]
+    }
+  ],
+  "teams": [
+    {
+      "$id": "bauherr",
+      "name": "Bauherr"
+    },
+    {
+      "$id": "architekt",
+      "name": "Architekt"
+    },
+    {
+      "$id": "handwerker",
+      "name": "Handwerker"
+    }
+  ],
+  "buckets": [
+    {
+      "$id": "photos",
+      "$permissions": [
+        "read(\"team:bauherr\")",
+        "read(\"team:architekt\")",
+        "read(\"team:handwerker\")",
+        "create(\"team:bauherr\")",
+        "create(\"team:architekt\")",
+        "create(\"team:handwerker\")"
+      ],
+      "fileSecurity": false,
+      "name": "Fotos",
+      "enabled": true,
+      "maximumFileSize": 20971520,
+      "allowedFileExtensions": [
+        "jpg",
+        "jpeg"
+      ],
+      "compression": "none",
+      "encryption": true,
+      "antivirus": true
+    },
+    {
+      "$id": "pdfs",
+      "$permissions": [
+        "read(\"team:bauherr\")",
+        "read(\"team:architekt\")",
+        "read(\"team:handwerker\")",
+        "create(\"team:bauherr\")",
+        "create(\"team:architekt\")",
+        "create(\"team:handwerker\")"
+      ],
+      "fileSecurity": false,
+      "name": "PDFs",
+      "enabled": true,
+      "maximumFileSize": 52428800,
+      "allowedFileExtensions": [
+        "pdf"
+      ],
+      "compression": "none",
+      "encryption": true,
+      "antivirus": true
+    }
+  ]
+}

@@ -46,11 +46,11 @@ private const val CHIPS_PER_ROW = 2
 
 /**
  * Login (AndLogin.dc.html): padding 56 / 24 / 28, gap 24, the sign-in block pinned to the bottom.
- * E-Mail draws the focused look and Passwort the idle look, fixed (D15). "Anmelden" calls [onSubmit]; the Google
+ * E-Mail draws the focused look and Passwort the idle look, fixed (D15). "Anmelden" calls [onSubmit] with the typed email and password; the Google
  * button, "Passwort vergessen?" and "Neues Bauvorhaben anlegen" are placeholders without action.
  */
 @Composable
-fun LoginScreen(model: LoginModel, onSubmit: () -> Unit) {
+fun LoginScreen(model: LoginModel, onSubmit: (email: String, password: String) -> Unit = { _, _ -> }) {
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     Column(
@@ -119,7 +119,7 @@ fun LoginScreen(model: LoginModel, onSubmit: () -> Unit) {
                 size = ButtonSize.Regular,
                 container = FilledContainer.Primary,
                 letterSpacing = 0.1.sp,
-                onClick = onSubmit,
+                onClick = { onSubmit(email, password) },
                 modifier = Modifier.testTag("login.submit"),
             )
             // AndLogin.dc.html:45 (placeholder, no action)

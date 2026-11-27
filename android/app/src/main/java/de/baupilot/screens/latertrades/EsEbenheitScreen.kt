@@ -43,12 +43,18 @@ import java.util.Locale
 /** Actions of the flatness screen; the shell turns them into navigation. */
 sealed interface FlatnessAction {
     data class Open(val route: AppRoute) : FlatnessAction
+
+    /** "Speichern": the point list after the append (the local append stays). */
+    data class Saved(val points: List<Int>) : FlatnessAction
+
+    /** The camera button. */
+    data object Photo : FlatnessAction
 }
 
 /**
  * Estrich Ebenheit check (AndEsEbenheit.dc.html:17-57): the instruction, the gap stepper, the live result and the
  * save row in a card, then the saved points as chips and the defect link. The gap and the points live here (D4) and
- * are never written. The camera has no action; the defect link opens the defect form (D5). [onClose] is the back arrow.
+ * are never written. The save row raises [FlatnessAction.Saved] and [FlatnessAction.Photo]; the defect link opens the defect form (D5). [onClose] is the back arrow.
  */
 @Composable
 fun EsEbenheitScreen(
@@ -75,7 +81,7 @@ fun EsEbenheitScreen(
         modifier = modifier.testTag("screen.inspection.${route.tradeId}.${route.check}"),
     ) {
         BaupilotCard {
-            MeasureBody(model, flatness) { flatness = it }
+            MeasureBody(model, flatness, onAction) { flatness = it }
         }
         MeasuredSection(model, flatness, onAction)
     }
@@ -83,7 +89,12 @@ fun EsEbenheitScreen(
 
 /** AndEsEbenheit:30-47: the instruction, the labelled stepper (gap 12), the result banner and the save row (gaps 14, 8). */
 @Composable
-private fun MeasureBody(model: FlatnessCheckModel, flatness: FlatnessViewModel, onChange: (FlatnessViewModel) -> Unit) {
+private fun MeasureBody(
+    model: FlatnessCheckModel,
+    flatness: FlatnessViewModel,
+    onAction: (FlatnessAction) -> Unit,
+    onChange: (FlatnessViewModel) -> Unit,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
         BaupilotText(text = model.instruction, size = 14.sp, lineHeight = 20.sp, color = Tokens.muted)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -112,13 +123,21 @@ private fun MeasureBody(model: FlatnessCheckModel, flatness: FlatnessViewModel, 
             foreground = if (flatness.isWithin) Tokens.okFg else Tokens.errFg,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedIconButton(label = model.photoLabel, modifier = Modifier.testTag("flatness.photo"))
+            OutlinedIconButton(
+                label = model.photoLabel,
+                modifier = Modifier.testTag("flatness.photo"),
+                onClick = { onAction(FlatnessAction.Photo) },
+            )
             FilledButton(
                 label = model.saveLabel,
                 size = ButtonSize.Regular,
                 container = FilledContainer.Primary,
                 modifier = Modifier.weight(1f).testTag("flatness.save"),
-                onClick = { onChange(flatness.save()) },
+                onClick = {
+                    val saved = flatness.save()
+                    onChange(saved)
+                    onAction(FlatnessAction.Saved(saved.points))
+                },
             )
         }
     }

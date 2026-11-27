@@ -4,10 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import de.baupilot.capture.StepStatus
 import de.baupilot.designsystem.Tokens
 import de.baupilot.designsystem.components.BaupilotNavigationBar
 import de.baupilot.designsystem.components.Tab
@@ -50,11 +53,14 @@ import de.baupilot.screens.latertrades.FlatnessAction
 import de.baupilot.screens.latertrades.MaRaumScreen
 import de.baupilot.screens.latertrades.MaUebersichtScreen
 import de.baupilot.screens.latertrades.OverviewAction
+import de.baupilot.screens.latertrades.SanBadAction
 import de.baupilot.screens.latertrades.SanBadScreen
+import de.baupilot.screens.latertrades.SanDruckAction
 import de.baupilot.screens.latertrades.SanDruckScreen
 import de.baupilot.screens.latertrades.SanGefaelleScreen
 import de.baupilot.screens.latertrades.SanUebersichtScreen
 import de.baupilot.screens.latertrades.SlopeAction
+import de.baupilot.screens.latertrades.TileAction
 import de.baupilot.screens.notifications.NotificationsAction
 import de.baupilot.screens.notifications.NotificationsScreen
 import de.baupilot.screens.placeholder.PlaceholderPresentation
@@ -64,6 +70,9 @@ import de.baupilot.screens.schedule.ScheduleAction
 import de.baupilot.screens.schedule.ScheduleScreen
 import de.baupilot.screens.signoff.SignOffAction
 import de.baupilot.screens.signoff.SignOffScreen
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 private fun AppTab.designSystemTab(): Tab = when (this) {
     AppTab.Home -> Tab.Overview
@@ -80,6 +89,16 @@ private fun Tab.appTab(): AppTab = when (this) {
     Tab.Documents -> AppTab.Documents
     Tab.Profile -> AppTab.Profile
 }
+
+private val NO_VALUES = JsonObject(emptyMap())
+
+private fun AppActions.record(route: AppRoute, status: StepStatus, part: String? = null) =
+    recordStep(route, part, status, NO_VALUES)
+
+private fun AppActions.record(route: AppRoute, values: JsonObject) = recordStep(route, null, null, values)
+
+private fun valuesOf(vararg entries: Pair<String, Int>) =
+    JsonObject(entries.associate { (key, value) -> key to JsonPrimitive(value) })
 
 /**
  * Saveable-state key per route (D9): a parent's state survives a push and pop, and Profil keeps `profile/0/root`.
@@ -113,6 +132,7 @@ fun AppShell(
     state: AppNavigationState,
     onStateChange: (AppNavigationState) -> Unit,
     data: AppData,
+    actions: AppActions = AppActions.None,
 ) {
     val holder = rememberSaveableStateHolder()
     val tab = state.selectedTab
@@ -125,6 +145,7 @@ fun AppShell(
                 state = state,
                 onStateChange = onStateChange,
                 data = data,
+                actions = actions,
             )
         }
         if (state.showsTabBar) {
@@ -145,8 +166,12 @@ private fun TabContent(
     state: AppNavigationState,
     onStateChange: (AppNavigationState) -> Unit,
     data: AppData,
+    actions: AppActions,
 ) {
     val onBack = { onStateChange(state.pop()) }
+    // Work that outlives the click (sign-off export, sign-out) navigates from the state of its end, not of its start.
+    val latestState by rememberUpdatedState(state)
+    val latestChange by rememberUpdatedState(onStateChange)
     if (route != null) {
         when (route) {
             is AppRoute.Trade -> {
@@ -156,6 +181,7 @@ private fun TabContent(
                         model = model,
                         onBack = onBack,
                         onNavigate = { onStateChange(state.open(it)) },
+                        onAttach = { actions.importDocument(model.tradeId, "offer") },
                     )
                 } else {
                     PushedPlaceholder(data.tradeNames[route.id] ?: route.id, "screen.trade.${route.id}", onBack)
@@ -263,7 +289,12 @@ private fun TabContent(
                         onClose = onBack,
                         onAction = { action ->
                             when (action) {
-                                is StepAction.Open -> onStateChange(state.open(action.route))
+                                is StepAction.Open -> {
+                                    actions.record(route, StepStatus.DEFECT)
+                                    onStateChange(state.open(action.route))
+                                }
+                                StepAction.Ok -> actions.record(route, StepStatus.OK)
+                                StepAction.AddPhoto -> actions.capturePhoto(route, null)
                             }
                         },
                     )
@@ -279,15 +310,20 @@ private fun TabContent(
             AppRoute.NewDefect -> DefectFormScreen(
                 model = data.defectForm,
                 onAction = { action ->
-                    onStateChange(
-                        when (action) {
-                            DefectFormAction.Cancel -> state.pop()
-                            is DefectFormAction.Save -> state.saveDefect(
-                                formTradeId = action.tradeId,
-                                hasSignOff = data.signOffs[action.tradeId] != null,
+                    when (action) {
+                        DefectFormAction.Cancel -> onStateChange(state.pop())
+                        DefectFormAction.AddPhoto -> actions.capturePhoto(AppRoute.NewDefect, null)
+                        is DefectFormAction.Save -> {
+                            val path = state.path(tab)
+                            actions.saveDefect(action.values, path.getOrNull(path.size - 2))
+                            onStateChange(
+                                state.saveDefect(
+                                    formTradeId = action.tradeId,
+                                    hasSignOff = data.signOffs[action.tradeId] != null,
+                                ),
                             )
-                        },
-                    )
+                        }
+                    }
                 },
             )
 
@@ -299,7 +335,9 @@ private fun TabContent(
                         onBack = onBack,
                         onAction = { action ->
                             when (action) {
-                                is SignOffAction.Finish -> onStateChange(state.go(action.target))
+                                is SignOffAction.Finish -> actions.finishSignOff(route.inspectionId, action.strokes) {
+                                    latestChange(latestState.go(action.target))
+                                }
                             }
                         },
                     )
@@ -318,6 +356,7 @@ private fun TabContent(
                 val onStep = { action: CheckStepAction ->
                     when (action) {
                         is CheckStepAction.Open -> onStateChange(state.open(action.route))
+                        CheckStepAction.Ok -> actions.record(route, StepStatus.OK)
                     }
                 }
                 if (measure != null) {
@@ -327,6 +366,9 @@ private fun TabContent(
                         onAction = { action ->
                             when (action) {
                                 is MeasureAction.Open -> onStateChange(state.open(action.route))
+                                is MeasureAction.Save ->
+                                    actions.record(route, valuesOf("actualW" to action.actualW, "actualH" to action.actualH))
+                                MeasureAction.Photo -> actions.capturePhoto(route, null)
                             }
                         },
                     )
@@ -335,7 +377,15 @@ private fun TabContent(
                 } else if (smoke != null) {
                     ElRauchmelderScreen(model = smoke, onBack = onBack, onAction = onStep)
                 } else if (pressure != null) {
-                    SanDruckScreen(model = pressure, onClose = onBack)
+                    SanDruckScreen(
+                        model = pressure,
+                        onClose = onBack,
+                        onAction = { action ->
+                            when (action) {
+                                SanDruckAction.Photo -> actions.capturePhoto(route, null)
+                            }
+                        },
+                    )
                 } else if (flatness != null) {
                     EsEbenheitScreen(
                         model = flatness,
@@ -343,6 +393,11 @@ private fun TabContent(
                         onAction = { action ->
                             when (action) {
                                 is FlatnessAction.Open -> onStateChange(state.open(action.route))
+                                is FlatnessAction.Saved -> actions.record(
+                                    route,
+                                    JsonObject(mapOf("points" to JsonArray(action.points.map { JsonPrimitive(it) }))),
+                                )
+                                FlatnessAction.Photo -> actions.capturePhoto(route, null)
                             }
                         },
                     )
@@ -361,24 +416,40 @@ private fun TabContent(
                 val onStep = { action: CheckStepAction ->
                     when (action) {
                         is CheckStepAction.Open -> onStateChange(state.open(action.route))
+                        CheckStepAction.Ok -> actions.record(route, StepStatus.OK)
                     }
                 }
                 if (room != null) {
-                    ElRaumScreen(
-                        model = room,
+                    ElRaumScreen(model = room, onClose = onBack, onAction = onStep)
+                } else if (objects != null) {
+                    SanBadScreen(
+                        model = objects,
                         onClose = onBack,
                         onAction = { action ->
                             when (action) {
-                                is CheckStepAction.Open -> onStateChange(state.open(action.route))
+                                is SanBadAction.Ok -> actions.record(route, StepStatus.OK, "object/${action.n}")
+                                is SanBadAction.Defect -> actions.record(route, StepStatus.DEFECT, "object/${action.n}")
                             }
                         },
                     )
-                } else if (objects != null) {
-                    SanBadScreen(model = objects, onClose = onBack)
                 } else if (tiles != null) {
-                    FlBadScreen(model = tiles, onClose = onBack, onAction = onStep)
+                    FlBadScreen(
+                        model = tiles,
+                        onClose = onBack,
+                        onAction = { action ->
+                            when (action) {
+                                is TileAction.Open -> onStateChange(state.open(action.route))
+                                TileAction.NoFindings -> actions.record(route, StepStatus.OK)
+                            }
+                        },
+                    )
                 } else if (paint != null) {
-                    MaRaumScreen(model = paint, onClose = onBack, onAction = onStep)
+                    MaRaumScreen(
+                        model = paint,
+                        onClose = onBack,
+                        onAction = onStep,
+                        onPhoto = { actions.capturePhoto(route, null) },
+                    )
                 } else {
                     PushedPlaceholder(route.roomId, "screen.inspection.${route.tradeId}.room.${route.roomId}", onBack)
                 }
@@ -393,6 +464,9 @@ private fun TabContent(
                         onAction = { action ->
                             when (action) {
                                 is SlopeAction.Open -> onStateChange(state.open(action.route))
+                                is SlopeAction.Save ->
+                                    actions.record(route, valuesOf("lenDm" to action.lenDm, "dropMm" to action.dropMm))
+                                SlopeAction.Photo -> actions.capturePhoto(route, null)
                             }
                         },
                     )
@@ -468,9 +542,13 @@ private fun TabContent(
         AppTab.Documents -> DocumentsScreen(
             model = data.documents,
             onOpen = { onStateChange(state.open(it)) },
+            onImport = { kind -> actions.importDocument(null, kind ?: "plan") },
         )
 
-        AppTab.Profile -> ProfileScreen(model = data.profile)
+        AppTab.Profile -> ProfileScreen(
+            model = data.profile,
+            onSignOut = { actions.signOut { latestChange(latestState.logOut()) } },
+        )
     }
 }
 

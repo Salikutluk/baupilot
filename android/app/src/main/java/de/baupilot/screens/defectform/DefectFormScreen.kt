@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.baupilot.app.DefectFormModel
+import de.baupilot.app.DefectFormValues
 import de.baupilot.designsystem.BaupilotIcon
 import de.baupilot.designsystem.BaupilotText
 import de.baupilot.designsystem.Tokens
@@ -41,14 +42,15 @@ import de.baupilot.designsystem.components.Trailing
 /** Actions the Mangel form raises; the shell turns them into navigation. */
 sealed interface DefectFormAction {
     data object Cancel : DefectFormAction
-    data class Save(val tradeId: String) : DefectFormAction
+    data class Save(val tradeId: String, val values: DefectFormValues) : DefectFormAction
+    data object AddPhoto : DefectFormAction
 }
 
 /**
  * Mangel erfassen (Nr. 13, AndAbnMangel.dc.html): modal bar with the close button and "Sichern", the alert banner,
  * the description field, the photo row, the severity buttons, the deadline field with its chips and the two form
  * rows. The form is local state (D9): it survives rotation and the shell's saveable entry, and nothing is written
- * anywhere (I8). "Foto aufnehmen" has no action; "Sichern" and the close button only raise [onAction].
+ * anywhere (I8). "Foto aufnehmen", "Sichern" and the close button only raise [onAction].
  */
 @Composable
 fun DefectFormScreen(
@@ -73,7 +75,14 @@ fun DefectFormScreen(
                     Action.Text(
                         label = model.saveLabel,
                         height = 40,
-                        onClick = { onAction(DefectFormAction.Save(model.tradeId)) },
+                        onClick = {
+                            onAction(
+                                DefectFormAction.Save(
+                                    model.tradeId,
+                                    DefectFormValues(model.tradeId, description, severity, deadline, notify),
+                                ),
+                            )
+                        },
                         testTag = "defect.save",
                     ),
                 ),
@@ -99,8 +108,9 @@ fun DefectFormScreen(
                 PhotoTile(
                     kind = PhotoTileKind.Add(null),
                     height = 76.dp,
-                    modifier = Modifier.width(76.dp),
+                    modifier = Modifier.width(76.dp).testTag("defect.photo.add"),
                     contentDescription = model.addPhotoLabel,
+                    onClick = { onAction(DefectFormAction.AddPhoto) },
                 )
             }
         }

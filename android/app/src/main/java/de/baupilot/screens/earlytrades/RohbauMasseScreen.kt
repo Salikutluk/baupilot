@@ -53,6 +53,12 @@ import de.baupilot.screens.ScreenCopy
 /** Actions of the Maße & Lot screen; the shell turns them into navigation. */
 sealed interface MeasureAction {
     data class Open(val route: AppRoute) : MeasureAction
+
+    /** "Speichern": the entered width and height (the stepper values). */
+    data class Save(val actualW: Int, val actualH: Int) : MeasureAction
+
+    /** The camera button. */
+    data object Photo : MeasureAction
 }
 
 /**
@@ -65,8 +71,8 @@ private const val SAVE_BUTTON_WEIGHT = 136f
 
 /**
  * Rohbau Maße & Lot (Nr. 18, AndRohbauMasse.dc.html:17-71). The measure value is kept here (D3, D12) and never
- * written (I6): the stepper changes the diff text and the result live. Only "Mangel" and the back arrow act; the
- * camera, "Speichern", the chips and the plumb row have no action.
+ * written (I6): the stepper changes the diff text and the result live. "Mangel", the camera, "Speichern" and the back arrow raise actions; the
+ * chips and the plumb row have none.
  */
 @Composable
 fun RohbauMasseScreen(
@@ -140,7 +146,11 @@ private fun MeasureCardBody(
             foreground = if (within) Tokens.okFg else Tokens.errFg,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
-            OutlinedIconButton(label = model.photoLabel, modifier = Modifier.testTag("measure.photo"))
+            OutlinedIconButton(
+                label = model.photoLabel,
+                modifier = Modifier.testTag("measure.photo"),
+                onClick = { onAction(MeasureAction.Photo) },
+            )
             OutlinedButton(
                 label = model.defectLabel,
                 modifier = Modifier.weight(DEFECT_BUTTON_WEIGHT).testTag("measure.defect"),
@@ -154,6 +164,7 @@ private fun MeasureCardBody(
                 size = ButtonSize.Regular,
                 container = FilledContainer.Primary,
                 modifier = Modifier.weight(SAVE_BUTTON_WEIGHT).testTag("measure.save"),
+                onClick = { onAction(MeasureAction.Save(measure.actualW, measure.actualH)) },
             )
         }
     }

@@ -46,12 +46,17 @@ import de.baupilot.designsystem.components.Trailing
 
 /**
  * Dokumente (AndDokumente.dc.html): search bar, filter chips, the invoice hint card, the "Zuletzt hinzugefügt"
- * header and the document rows. The search, the hint card, "Nach Gewerk" and the FAB are placeholders without
- * action. The chip selection and the query survive recomposition and rotation; the rows follow
+ * header and the document rows. The search, the hint card and "Nach Gewerk" are placeholders without action; the FAB raises [onImport]
+ * with the selected filter's kind key (null for "Alle"). The chip selection and the query survive recomposition and rotation; the rows follow
  * `model.rows(filter)`. A row with a target calls [onOpen].
  */
 @Composable
-fun DocumentsScreen(model: DocumentsModel, modifier: Modifier = Modifier, onOpen: (AppRoute) -> Unit = {}) {
+fun DocumentsScreen(
+    model: DocumentsModel,
+    modifier: Modifier = Modifier,
+    onOpen: (AppRoute) -> Unit = {},
+    onImport: (kind: String?) -> Unit = {},
+) {
     var query by rememberSaveable { mutableStateOf("") }
     var filter by rememberSaveable { mutableIntStateOf(model.initialFilter) }
 
@@ -64,7 +69,7 @@ fun DocumentsScreen(model: DocumentsModel, modifier: Modifier = Modifier, onOpen
                 label = model.uploadLabel,
                 icon = FabIcon.Plus,
                 modifier = Modifier.testTag("ph.Dokumente.add"),
-                onClick = null,
+                onClick = { onImport(model.filters[filter].kind?.key) },
             )
         },
     ) {
