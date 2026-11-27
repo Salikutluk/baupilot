@@ -43,6 +43,9 @@ import de.baupilot.designsystem.components.TitleStyle
 /** Actions of the room, panel and smoke alarm screens; the shell turns them into navigation. */
 sealed interface CheckStepAction {
     data class Open(val route: AppRoute) : CheckStepAction
+
+    /** "In Ordnung" on `step.ok`: the shell records the step as passed. */
+    data object Ok : CheckStepAction
 }
 
 /**
@@ -155,6 +158,7 @@ private fun CurrentBody(model: RoomCheckModel, onAction: (CheckStepAction) -> Un
                 size = ButtonSize.Regular,
                 container = FilledContainer.Primary,
                 modifier = Modifier.weight(OK_BUTTON_WEIGHT).testTag("step.ok"),
+                onClick = { onAction(CheckStepAction.Ok) },
             )
         }
     }

@@ -133,6 +133,7 @@ private fun CurrentBody(model: PanelCheckModel, onAction: (CheckStepAction) -> U
                 size = ButtonSize.Regular,
                 container = FilledContainer.Primary,
                 modifier = Modifier.weight(OK_BUTTON_WEIGHT).testTag("step.ok"),
+                onClick = { onAction(CheckStepAction.Ok) },
             )
         }
     }

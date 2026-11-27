@@ -1,9 +1,12 @@
 package de.baupilot.app
 
+import androidx.test.core.app.ApplicationProvider
+import de.baupilot.BaupilotApplication
 import de.baupilot.data.MockRepository
 import de.baupilot.data.RepositoryException
 import java.io.File
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -29,5 +32,16 @@ class BaupilotRootLoadTest {
     @Test
     fun goodFixtureYieldsData() = runTest {
         assertNotNull(loadOrNull { MockRepository(fixture) })
+    }
+
+    @Test
+    fun loadsFromLocalRepository() = runTest {
+        val repository = ApplicationProvider.getApplicationContext<BaupilotApplication>().services.repository
+        repository.ensureSeeded()
+        val data = loadOrNull { repository }
+        assertNotNull(data)
+        // StatusChipColors are plain classes (identity equality): compare the rendered models without the hash.
+        fun AppData.rendered() = toString().replace(Regex("@[0-9a-f]+"), "@")
+        assertEquals(AppData.load(MockRepository(fixture)).rendered(), data!!.rendered())
     }
 }

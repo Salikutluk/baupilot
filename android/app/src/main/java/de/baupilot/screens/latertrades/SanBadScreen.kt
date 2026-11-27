@@ -29,10 +29,19 @@ import de.baupilot.designsystem.components.ObjectChip
 import de.baupilot.designsystem.components.ObjectChipState
 import de.baupilot.designsystem.components.TitleStyle
 
+/** Actions of the bathroom objects screen; the shell turns them into step records. */
+sealed interface SanBadAction {
+    /** The ok cell of check row [n]. */
+    data class Ok(val n: Int) : SanBadAction
+
+    /** The defect cell of check row [n]. */
+    data class Defect(val n: Int) : SanBadAction
+}
+
 /**
  * Sanitaer Bad OG, Objekte (AndSanBad.dc.html:17-64): the bar with the object counter under the title, the object tabs
  * (a wrapping row of chips), the card of the selected object with its check rows and the note about the next object.
- * The tabs and the defect / ok buttons have no action (D12). [onClose] is the back arrow.
+ * The tabs have no action (D12); the defect / ok cells raise [SanBadAction]. [onClose] is the back arrow.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -40,6 +49,7 @@ fun SanBadScreen(
     model: ObjectCheckModel,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    onAction: (SanBadAction) -> Unit = {},
 ) {
     val route = model.route
     DetailScreenScaffold(
@@ -90,6 +100,8 @@ fun SanBadScreen(
                         ok = check.ok,
                         showsDivider = index > 0,
                         tags = ObjectCheckTags(ok = "object.check.$index.ok", defect = "object.check.$index.defect"),
+                        onOk = { onAction(SanBadAction.Ok(index)) },
+                        onDefect = { onAction(SanBadAction.Defect(index)) },
                     )
                 }
             }

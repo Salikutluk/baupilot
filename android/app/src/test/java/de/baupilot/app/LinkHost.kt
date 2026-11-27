@@ -17,7 +17,7 @@ import de.baupilot.snapshot.TestAppData
  * on the source screen. The `BackHandler` is copied from `BaupilotRoot` (without it a system back pops nothing).
  * [start] may be called again within one test: it restarts the content at the new state.
  */
-class LinkHost {
+class LinkHost(private val actions: AppActions = AppActions.None) {
     val rule: AndroidComposeTestRule<ActivityScenarioRule<ComponentActivity>, ComponentActivity> = createAndroidComposeRule<ComponentActivity>()
 
     private val data by lazy { TestAppData.load() }
@@ -33,7 +33,7 @@ class LinkHost {
                 key(current.first) {
                     var state by remember { mutableStateOf(current.second) }
                     BackHandler(enabled = state.canPop) { state = state.pop() }
-                    BaupilotAppContent(state, onStateChange = { state = it }, data = data)
+                    BaupilotAppContent(state, onStateChange = { state = it }, data = data, actions = actions)
                 }
             }
         }

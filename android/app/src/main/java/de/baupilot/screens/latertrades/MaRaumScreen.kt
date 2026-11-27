@@ -57,8 +57,9 @@ private const val OK_BUTTON_WEIGHT = 136f
 /**
  * Maler Raumprüfung Wohnen (AndMaRaum.dc.html:17-72): close bar with the counter, the fixed 30 % progress bar and three
  * compact steppers. The done row ends in the colour swatch, the current card holds the raking-light sketch, the
- * instruction, the wall chips and the three buttons. "Mangel" opens the defect form (D5); the wall chips, the camera
- * and "In Ordnung" have no action (D12). [onClose] is the close control.
+ * instruction, the wall chips and the three buttons. "Mangel" opens the defect form (D5); "In Ordnung" raises
+ * [CheckStepAction.Ok] and the camera calls [onPhoto]; the wall chips have no action (D12). [onClose] is the close
+ * control.
  */
 @Composable
 fun MaRaumScreen(
@@ -66,6 +67,7 @@ fun MaRaumScreen(
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
     onAction: (CheckStepAction) -> Unit = {},
+    onPhoto: () -> Unit = {},
 ) {
     val route = model.route
     DetailScreenScaffold(
@@ -105,7 +107,7 @@ fun MaRaumScreen(
                         number = model.current.n,
                         title = model.current.title,
                         state = StepState.Current,
-                        body = { CurrentBody(model, onAction) },
+                        body = { CurrentBody(model, onAction, onPhoto) },
                     ),
                 ),
                 variant = StepperVariant.Compact,
@@ -140,7 +142,7 @@ private fun PaintColor.token(): ColorToken = when (this) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun CurrentBody(model: PaintCheckModel, onAction: (CheckStepAction) -> Unit) {
+private fun CurrentBody(model: PaintCheckModel, onAction: (CheckStepAction) -> Unit, onPhoto: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         RakingLightSketch()
         BaupilotText(text = model.current.text, size = 14.sp, lineHeight = 20.sp, color = Tokens.muted)
@@ -163,7 +165,11 @@ private fun CurrentBody(model: PaintCheckModel, onAction: (CheckStepAction) -> U
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
-            OutlinedIconButton(label = model.photoLabel, modifier = Modifier.testTag("paint.photo"))
+            OutlinedIconButton(
+                label = model.photoLabel,
+                modifier = Modifier.testTag("paint.photo"),
+                onClick = onPhoto,
+            )
             OutlinedButton(
                 label = model.defectLabel,
                 modifier = Modifier.weight(DEFECT_BUTTON_WEIGHT).testTag("step.defect"),
@@ -176,6 +182,7 @@ private fun CurrentBody(model: PaintCheckModel, onAction: (CheckStepAction) -> U
                 size = ButtonSize.Regular,
                 container = FilledContainer.Primary,
                 modifier = Modifier.weight(OK_BUTTON_WEIGHT).testTag("step.ok"),
+                onClick = { onAction(CheckStepAction.Ok) },
             )
         }
     }

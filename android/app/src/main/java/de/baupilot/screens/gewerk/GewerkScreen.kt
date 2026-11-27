@@ -33,7 +33,7 @@ import de.baupilot.screens.ScreenCopy
 /**
  * Gewerk-Detail (AndGewerk.dc.html): back bar with overflow action, status and phase tags, the fact card, the
  * tab row and the offers, with the attach and compare actions pinned to the bottom. Offers and the compare
- * button follow their route through [onNavigate]; the attach and overflow controls and the tabs have no action.
+ * button follow their route through [onNavigate]; the attach control raises [onAttach]; the overflow control and the tabs have no action.
  */
 @Composable
 fun GewerkScreen(
@@ -41,6 +41,7 @@ fun GewerkScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     onNavigate: (AppRoute) -> Unit = {},
+    onAttach: () -> Unit = {},
 ) {
     DetailScreenScaffold(
         topBar = {
@@ -56,7 +57,7 @@ fun GewerkScreen(
         modifier = modifier.testTag("screen.trade.${model.tradeId}"),
         bottomBar = {
             BottomActionBar {
-                TonalIconButton(BaupilotIcon.Paperclip, model.addLabel, Modifier.testTag("ph.Gewerk.add"))
+                TonalIconButton(BaupilotIcon.Paperclip, model.addLabel, Modifier.testTag("ph.Gewerk.add"), onClick = onAttach)
                 FilledButton(
                     label = model.compareLabel,
                     size = ButtonSize.Regular,

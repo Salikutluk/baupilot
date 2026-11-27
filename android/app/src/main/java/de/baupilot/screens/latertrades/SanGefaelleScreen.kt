@@ -42,6 +42,12 @@ import de.baupilot.screens.ScreenCopy
 /** Actions of the drain slope screen; the shell turns them into navigation. */
 sealed interface SlopeAction {
     data class Open(val route: AppRoute) : SlopeAction
+
+    /** "Speichern": the entered length in dm and drop in mm (the stepper values). */
+    data class Save(val lenDm: Int, val dropMm: Int) : SlopeAction
+
+    /** The camera button. */
+    data object Photo : SlopeAction
 }
 
 /**
@@ -55,8 +61,7 @@ private const val SAVE_BUTTON_WEIGHT = 136f
 /**
  * Sanitaer Gefaelle check (AndSanGefaelle.dc.html:17-82): the four section tiles, the calculator card and the note.
  * The length and the drop live here (D3, D12) and are never written: the steppers change the percentage, the verdict
- * and the schema at once. Only the back arrow and "Mangel" act; the camera, "Speichern" and the section tiles have no
- * action. [onClose] is the back arrow.
+ * and the schema at once. The back arrow, "Mangel", "Speichern" and the camera act; the section tiles have no action. [onClose] is the back arrow.
  */
 @Composable
 fun SanGefaelleScreen(
@@ -146,7 +151,11 @@ private fun CalculatorBody(
             verdictTag = "slope.verdict",
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
-            OutlinedIconButton(label = model.photoLabel, modifier = Modifier.testTag("slope.photo"))
+            OutlinedIconButton(
+                label = model.photoLabel,
+                modifier = Modifier.testTag("slope.photo"),
+                onClick = { onAction(SlopeAction.Photo) },
+            )
             OutlinedButton(
                 label = model.defectLabel,
                 modifier = Modifier.weight(DEFECT_BUTTON_WEIGHT).testTag("slope.defect"),
@@ -160,6 +169,7 @@ private fun CalculatorBody(
                 size = ButtonSize.Regular,
                 container = FilledContainer.Primary,
                 modifier = Modifier.weight(SAVE_BUTTON_WEIGHT).testTag("slope.save"),
+                onClick = { onAction(SlopeAction.Save(slope.lenDm, slope.dropMm)) },
             )
         }
     }

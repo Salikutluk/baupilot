@@ -38,6 +38,12 @@ import de.baupilot.screens.ScreenCopy
 /** Actions the Prüfschritt screen raises; the shell turns them into navigation. */
 sealed interface StepAction {
     data class Open(val route: AppRoute) : StepAction
+
+    /** "In Ordnung": the shell records the step as passed. */
+    data object Ok : StepAction
+
+    /** The Add tile of the photo grid: the shell starts the camera. */
+    data object AddPhoto : StepAction
 }
 
 /**
@@ -124,7 +130,8 @@ private fun CurrentBody(model: StepModel, onAction: (StepAction) -> Unit) {
             PhotoTile(
                 kind = PhotoTileKind.Add(current.addPhotoLabel),
                 height = 80.dp,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).testTag("step.photo.add"),
+                onClick = { onAction(StepAction.AddPhoto) },
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
@@ -142,6 +149,7 @@ private fun CurrentBody(model: StepModel, onAction: (StepAction) -> Unit) {
                 container = FilledContainer.Primary,
                 modifier = Modifier.weight(OK_BUTTON_WEIGHT).testTag("ph.AbnPruefung.ok"),
                 icon = BaupilotIcon.CheckW30,
+                onClick = { onAction(StepAction.Ok) },
             )
         }
     }

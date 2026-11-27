@@ -421,4 +421,22 @@ class AppNavigationStateTest {
         val atRoot = loggedIn().select(AppTab.Inspections)
         assertEquals(atRoot, atRoot.saveDefect("windows", hasSignOff = true))
     }
+
+    @Test
+    fun logOutResetsToLoggedOutDefault() {
+        val dirty = loggedIn().select(AppTab.Inspections).push(AppRoute.Inspection("windows")).push(AppRoute.NewDefect)
+            .select(AppTab.Profile).showDefects()
+        assertEquals(AppNavigationState(), dirty.logOut())
+        assertFalse(dirty.logOut().isLoggedIn)
+        assertEquals(AppNavigationState(), AppNavigationState().logOut())
+    }
+
+    @Test
+    fun logOutSurvivesSaver() {
+        val scope = SaverScope { true }
+        val state = loggedIn().push(trade).logOut()
+        val saved = with(AppNavigationState.Saver) { scope.save(state) }
+        assertEquals(state, AppNavigationState.Saver.restore(saved!!))
+        assertFalse(AppNavigationState.Saver.restore(saved)!!.isLoggedIn)
+    }
 }

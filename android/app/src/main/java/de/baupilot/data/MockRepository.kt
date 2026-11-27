@@ -14,6 +14,8 @@ internal val FixtureJson = Json { ignoreUnknownKeys = false }
 sealed class RepositoryException(message: String) : Exception(message) {
     class FixtureMissing(val path: String) : RepositoryException("Fixture missing: $path")
     class Decoding(val detail: String) : RepositoryException("Fixture decoding failed: $detail")
+    class Storage(val detail: String) : RepositoryException("Local storage failed: $detail")
+    class NoProject : RepositoryException("No project in local storage")
 }
 
 class MockRepository(json: String) : BackendRepository {
